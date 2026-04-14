@@ -26,6 +26,7 @@ use App\Restaurant\Infrastructure\Entrypoint\Http\IndexController as RestaurantI
 use App\Restaurant\Infrastructure\Entrypoint\Http\GetController as RestaurantGetController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\PutController as RestaurantPutController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\DeleteController as RestaurantDeleteController;
+use App\Restaurant\Infrastructure\Entrypoint\Http\ChangePasswordPatchController as RestaurantChangePasswordPatchController;
 
 
 Route::post('/users', PostController::class);
@@ -53,4 +54,5 @@ Route::post('/restaurants', RestaurantPostController::class);
 Route::get('/restaurants', RestaurantIndexController::class);
 Route::get('/restaurants/{id}', RestaurantGetController::class);
 Route::put('/restaurants/{id}', RestaurantPutController::class);
+Route::patch('/restaurants/{id}/password', RestaurantChangePasswordPatchController::class);
 Route::delete('/restaurants/{id}', RestaurantDeleteController::class);

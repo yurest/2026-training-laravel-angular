@@ -1,8 +1,8 @@
 <?php
 
-namespace App\User\Infrastructure\Services;
+namespace App\Shared\Infrastructure\Services;
 
-use App\User\Domain\Interfaces\PasswordHasherInterface;
+use App\Shared\Domain\Interfaces\PasswordHasherInterface;
 use Illuminate\Support\Facades\Hash;
 
 class LaravelPasswordHasher implements PasswordHasherInterface

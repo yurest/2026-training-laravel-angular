@@ -3,7 +3,7 @@
 namespace App\User\Application\LoginUser;
 
 use App\Shared\Domain\ValueObject\Email;
-use App\User\Domain\Interfaces\PasswordHasherInterface;
+use App\Shared\Domain\Interfaces\PasswordHasherInterface;
 use App\User\Domain\Interfaces\UserRepositoryInterface;
 
 class LoginUser
