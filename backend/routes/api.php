@@ -21,12 +21,20 @@ use App\Product\Infrastructure\Entrypoint\Http\IndexController as ProductIndexCo
 use App\Product\Infrastructure\Entrypoint\Http\GetController as ProductGetController;
 use App\Product\Infrastructure\Entrypoint\Http\PutController as ProductPutController;
 use App\Product\Infrastructure\Entrypoint\Http\DeleteController as ProductDeleteController;
+
 use App\Restaurant\Infrastructure\Entrypoint\Http\PostController as RestaurantPostController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\IndexController as RestaurantIndexController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\GetController as RestaurantGetController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\PutController as RestaurantPutController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\DeleteController as RestaurantDeleteController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\ChangePasswordPatchController as RestaurantChangePasswordPatchController;
+
+use App\Zone\Infrastructure\Entrypoint\Http\PostController as ZonePostController;
+use App\Zone\Infrastructure\Entrypoint\Http\IndexController as ZoneIndexController;
+use App\Zone\Infrastructure\Entrypoint\Http\GetController as ZoneGetController;
+use App\Zone\Infrastructure\Entrypoint\Http\PutController as ZonePutController;
+use App\Zone\Infrastructure\Entrypoint\Http\DeleteController as ZoneDeleteController;
+
 
 
 Route::post('/users', PostController::class);
@@ -56,3 +64,9 @@ Route::get('/restaurants/{id}', RestaurantGetController::class);
 Route::put('/restaurants/{id}', RestaurantPutController::class);
 Route::patch('/restaurants/{id}/password', RestaurantChangePasswordPatchController::class);
 Route::delete('/restaurants/{id}', RestaurantDeleteController::class);
+
+Route::post('/zones', ZonePostController::class);
+Route::get('/zones', ZoneIndexController::class);
+Route::get('/zones/{id}', ZoneGetController::class);
+Route::put('/zones/{id}', ZonePutController::class);
+Route::delete('/zones/{id}', ZoneDeleteController::class);
