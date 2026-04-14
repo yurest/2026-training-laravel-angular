@@ -22,7 +22,7 @@ final readonly class GetProductsResponse
     }
 
     /**
-     * @return array<string, array<int, array<string, string|bool>>>
+     * @return array<string, array<int, array<string, string|int|bool|null>>>
      */
     public function toArray(): array
     {

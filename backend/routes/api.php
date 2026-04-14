@@ -35,6 +35,11 @@ use App\Zone\Infrastructure\Entrypoint\Http\GetController as ZoneGetController;
 use App\Zone\Infrastructure\Entrypoint\Http\PutController as ZonePutController;
 use App\Zone\Infrastructure\Entrypoint\Http\DeleteController as ZoneDeleteController;
 
+use App\Table\Infrastructure\Entrypoint\Http\PostController as TablePostController;
+use App\Table\Infrastructure\Entrypoint\Http\IndexController as TableIndexController;
+use App\Table\Infrastructure\Entrypoint\Http\GetController as TableGetController;
+use App\Table\Infrastructure\Entrypoint\Http\PutController as TablePutController;
+use App\Table\Infrastructure\Entrypoint\Http\DeleteController as TableDeleteController;
 
 
 Route::post('/users', PostController::class);
@@ -70,3 +75,9 @@ Route::get('/zones', ZoneIndexController::class);
 Route::get('/zones/{id}', ZoneGetController::class);
 Route::put('/zones/{id}', ZonePutController::class);
 Route::delete('/zones/{id}', ZoneDeleteController::class);
+
+Route::post('/tables', TablePostController::class);
+Route::get('/tables', TableIndexController::class);
+Route::get('/tables/{id}', TableGetController::class);
+Route::put('/tables/{id}', TablePutController::class);
+Route::delete('/tables/{id}', TableDeleteController::class);
