@@ -6,14 +6,14 @@ use App\Zone\Application\GetZone\GetZoneResponse;
 
 final readonly class GetZonesResponse
 {
-     /**
+    /**
      * @param GetZoneResponse[] $zones
      */
     public function __construct(
         public array $zones,
     ) {}
 
-      /**
+    /**
      * @param GetZoneResponse[] $zones
      */
     public static function create(array $zones): self
