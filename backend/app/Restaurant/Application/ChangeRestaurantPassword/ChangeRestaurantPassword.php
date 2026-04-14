@@ -2,7 +2,6 @@
 
 namespace App\Restaurant\Application\ChangeRestaurantPassword;
 
-use App\Restaurant\Domain\Entity\Restaurant;
 use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
 use App\Restaurant\Domain\ValueObject\RestaurantPasswordHash;
@@ -27,10 +26,10 @@ final class ChangeRestaurantPassword
             $this->passwordHasher->hash($plainPassword),
         );
 
-        $updatedRestaurant = $restaurant->changePassword($passwordHash);
+        $restaurant = $restaurant->changePassword($passwordHash);
 
-        $this->restaurantRepository->save($updatedRestaurant);
+        $this->restaurantRepository->save($restaurant);
 
-        return ChangeRestaurantPasswordResponse::create($updatedRestaurant);
+        return ChangeRestaurantPasswordResponse::create($restaurant);
     }
 }

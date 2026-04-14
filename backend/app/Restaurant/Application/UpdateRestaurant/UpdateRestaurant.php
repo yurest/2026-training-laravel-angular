@@ -28,15 +28,31 @@ final class UpdateRestaurant
             throw RestaurantNotFoundException::withId($id);
         }
 
-        $updatedRestaurant = $restaurant->update(
-            $name !== null ? RestaurantName::create($name) : $restaurant->name(),
-            $legalName !== null ? RestaurantLegalName::create($legalName) : $restaurant->legalName(),
-            $taxId !== null ? TaxId::create($taxId) : $restaurant->taxId(),
-            $email !== null ? Email::create($email) : $restaurant->email(),
+        $nameVO = $name !== null
+            ? RestaurantName::create($name)
+            : $restaurant->name();
+
+        $legalNameVO = $legalName !== null
+            ? RestaurantLegalName::create($legalName)
+            : $restaurant->legalName();
+
+        $taxIdVO = $taxId !== null
+            ? TaxId::create($taxId)
+            : $restaurant->taxId();
+
+        $emailVO = $email !== null
+            ? Email::create($email)
+            : $restaurant->email();
+
+        $restaurant = $restaurant->update(
+            $nameVO,
+            $legalNameVO,
+            $taxIdVO,
+            $emailVO,
         );
 
-        $this->restaurantRepository->save($updatedRestaurant);
+        $this->restaurantRepository->save($restaurant);
 
-        return UpdateRestaurantResponse::create($updatedRestaurant);
+        return UpdateRestaurantResponse::create($restaurant);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Product\Infrastructure\Entrypoint\Http;
 
-
 use App\Product\Application\DeleteProduct\DeleteProduct;
 use App\Product\Domain\Exception\ProductNotFoundException;
 use Illuminate\Http\JsonResponse;

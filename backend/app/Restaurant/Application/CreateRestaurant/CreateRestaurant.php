@@ -25,14 +25,22 @@ final class CreateRestaurant
         string $email,
         string $plainPassword,
     ): CreateRestaurantResponse {
-        $restaurant = Restaurant::dddCreate(
-            RestaurantName::create($name),
-            RestaurantLegalName::create($legalName),
-            TaxId::create($taxId),
-            Email::create($email),
-            RestaurantPasswordHash::create($this->passwordHasher->hash($plainPassword)),
+        $nameVO = RestaurantName::create($name);
+        $legalNameVO = RestaurantLegalName::create($legalName);
+        $taxIdVO = TaxId::create($taxId);
+        $emailVO = Email::create($email);
+        $passwordHashVO = RestaurantPasswordHash::create(
+            $this->passwordHasher->hash($plainPassword),
         );
 
+        $restaurant = Restaurant::dddCreate(
+            $nameVO,
+            $legalNameVO,
+            $taxIdVO,
+            $emailVO,
+            $passwordHashVO,
+        );
+ 
         $this->restaurantRepository->save($restaurant);
 
         return CreateRestaurantResponse::create($restaurant);
