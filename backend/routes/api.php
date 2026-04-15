@@ -41,9 +41,12 @@ use App\Table\Infrastructure\Entrypoint\Http\GetController as TableGetController
 use App\Table\Infrastructure\Entrypoint\Http\PutController as TablePutController;
 use App\Table\Infrastructure\Entrypoint\Http\DeleteController as TableDeleteController;
 
-
-Route::post('/users', PostController::class);
-Route::post('/login', LoginPostController::class);
+use App\User\Infrastructure\Entrypoint\Http\PostController as UserPostController;
+use App\User\Infrastructure\Entrypoint\Http\LoginPostController as UserLoginPostController;
+use App\User\Infrastructure\Entrypoint\Http\IndexController as UserIndexController;
+use App\User\Infrastructure\Entrypoint\Http\GetController as UserGetController;
+use App\User\Infrastructure\Entrypoint\Http\PutController as UserPutController;
+use App\User\Infrastructure\Entrypoint\Http\DeleteController as UserDeleteController;
 
 Route::post('/taxes', TaxPostController::class);
 Route::get('/taxes', TaxIndexController::class);
@@ -81,3 +84,10 @@ Route::get('/tables', TableIndexController::class);
 Route::get('/tables/{id}', TableGetController::class);
 Route::put('/tables/{id}', TablePutController::class);
 Route::delete('/tables/{id}', TableDeleteController::class);
+
+Route::post('/users', UserPostController::class);
+Route::post('/login', UserLoginPostController::class);
+Route::get('/users', UserIndexController::class);
+Route::get('/users/{id}', UserGetController::class);
+Route::put('/users/{id}', UserPutController::class);
+Route::delete('/users/{id}', UserDeleteController::class);

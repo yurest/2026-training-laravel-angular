@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+
 use App\Table\Domain\Interfaces\TableRepositoryInterface;
 use App\Table\Infrastructure\Persistence\Repositories\EloquentTableRepository;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;

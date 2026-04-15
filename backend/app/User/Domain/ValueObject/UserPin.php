@@ -2,23 +2,30 @@
 
 namespace App\User\Domain\ValueObject;
 
-final readonly class UserName
+final readonly class UserPin
 {
-    private const MAX_LENGTH = 255;
+    private const LENGTH = 4;
 
     private string $value;
 
     private function __construct(string $value)
     {
         $trimmed = trim($value);
+
         if ($trimmed === '') {
-            throw new \InvalidArgumentException('User name cannot be empty.');
+            throw new \InvalidArgumentException('User pin cannot be empty.');
         }
-        if (mb_strlen($trimmed) > self::MAX_LENGTH) {
+
+        if (!ctype_digit($trimmed)) {
+            throw new \InvalidArgumentException('User pin must contain only digits.');
+        }
+
+        if (strlen($trimmed) !== self::LENGTH) {
             throw new \InvalidArgumentException(
-                sprintf('User name cannot exceed %d characters.', self::MAX_LENGTH)
+                sprintf('User pin must be exactly %d digits.', self::LENGTH),
             );
         }
+
         $this->value = $trimmed;
     }
 

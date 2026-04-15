@@ -1,10 +1,10 @@
 <?php
 
-namespace App\User\Application\LoginUser;
+namespace App\User\Application\UpdateUser;
 
 use App\User\Domain\Entity\User;
 
-final readonly class LoginUserResponse
+final readonly class UpdateUserResponse
 {
     public function __construct(
         public string $id,
@@ -13,6 +13,8 @@ final readonly class LoginUserResponse
         public ?string $imageSrc,
         public string $name,
         public string $email,
+        public string $createdAt,
+        public string $updatedAt,
     ) {}
 
     public static function create(User $user): self
@@ -24,6 +26,8 @@ final readonly class LoginUserResponse
             imageSrc: $user->imageSrc()->value(),
             name: $user->name()->value(),
             email: $user->email()->value(),
+            createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );
     }
 
@@ -39,6 +43,8 @@ final readonly class LoginUserResponse
             'image_src' => $this->imageSrc,
             'name' => $this->name,
             'email' => $this->email,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
         ];
     }
 }

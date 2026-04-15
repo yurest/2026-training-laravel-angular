@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Product\Domain\ValueObject;
+namespace App\User\Domain\ValueObject;
 
-final readonly class ProductImageSrc
+final readonly class UserImageSrc
 {
     private const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
     private function __construct(
-        private ?string $value
+        private ?string $value,
     ) {}
 
     public static function create(?string $imageSrc): self
@@ -21,7 +21,7 @@ final readonly class ProductImageSrc
         }
 
         if ($imageSrc !== null && !self::isValid($imageSrc)) {
-            throw new \InvalidArgumentException('Invalid image source format.');
+            throw new \InvalidArgumentException('Invalid user image source format.');
         }
 
         return new self($imageSrc);

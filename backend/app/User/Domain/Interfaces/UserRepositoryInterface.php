@@ -11,4 +11,11 @@ interface UserRepositoryInterface
     public function findById(string $id): ?User;
 
     public function findByEmail(string $email): ?User;
+
+    /**
+     * @return array<int, User>
+     */
+    public function findAll(): array;
+
+    public function delete(User $user): void;
 }

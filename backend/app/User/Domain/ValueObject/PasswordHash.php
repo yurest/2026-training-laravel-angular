@@ -2,7 +2,7 @@
 
 namespace App\User\Domain\ValueObject;
 
-class PasswordHash
+final readonly class PasswordHash
 {
     private const MIN_LENGTH = 60;
 
