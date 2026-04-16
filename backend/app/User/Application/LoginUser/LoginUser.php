@@ -6,12 +6,14 @@ use App\Shared\Domain\Interfaces\PasswordHasherInterface;
 use App\Shared\Domain\ValueObject\Email;
 use App\User\Domain\Exception\UserInvalidCredentialsException;
 use App\User\Domain\Interfaces\UserRepositoryInterface;
+use App\User\Domain\Interfaces\UserTokenGeneratorInterface;
 
 final class LoginUser
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
         private PasswordHasherInterface $passwordHasher,
+        private UserTokenGeneratorInterface $userTokenGenerator,
     ) {}
 
     public function __invoke(
@@ -33,6 +35,11 @@ final class LoginUser
             throw UserInvalidCredentialsException::create();
         }
 
-        return LoginUserResponse::create($user);
+        $token = $this->userTokenGenerator->generate(
+            $user->id()->value(),
+            'frontend',
+        );
+
+        return LoginUserResponse::create($user, $token);
     }
 }

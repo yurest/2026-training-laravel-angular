@@ -7,6 +7,7 @@ use App\User\Domain\Entity\User;
 final readonly class LoginUserResponse
 {
     public function __construct(
+        public string $token,
         public string $id,
         public string $restaurantId,
         public string $role,
@@ -15,9 +16,10 @@ final readonly class LoginUserResponse
         public string $email,
     ) {}
 
-    public static function create(User $user): self
+    public static function create(User $user, string $token): self
     {
         return new self(
+            token: $token,
             id: $user->id()->value(),
             restaurantId: $user->restaurantId()->value(),
             role: $user->role()->value(),
@@ -33,12 +35,15 @@ final readonly class LoginUserResponse
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
-            'restaurant_id' => $this->restaurantId,
-            'role' => $this->role,
-            'image_src' => $this->imageSrc,
-            'name' => $this->name,
-            'email' => $this->email,
+            'token' => $this->token,
+            'user' => [
+                'id' => $this->id,
+                'restaurant_id' => $this->restaurantId,
+                'role' => $this->role,
+                'image_src' => $this->imageSrc,
+                'name' => $this->name,
+                'email' => $this->email,
+            ],
         ];
     }
 }
