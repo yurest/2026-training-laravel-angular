@@ -4,8 +4,8 @@ namespace App\Restaurant\Domain\Entity;
 
 use App\Shared\Domain\ValueObject\DomainDateTime;
 use App\Shared\Domain\ValueObject\Email;
-use App\Shared\Domain\ValueObject\TaxId;
 use App\Shared\Domain\ValueObject\Uuid;
+use App\Restaurant\Domain\ValueObject\CompanyTaxId;
 use App\Restaurant\Domain\ValueObject\RestaurantLegalName;
 use App\Restaurant\Domain\ValueObject\RestaurantName;
 use App\Restaurant\Domain\ValueObject\RestaurantPasswordHash;
@@ -16,7 +16,7 @@ class Restaurant
         private Uuid $id,
         private RestaurantName $name,
         private RestaurantLegalName $legalName,
-        private TaxId $taxId,
+        private CompanyTaxId $fiscalId,
         private Email $email,
         private RestaurantPasswordHash $passwordHash,
         private DomainDateTime $createdAt,
@@ -26,7 +26,7 @@ class Restaurant
     public static function dddCreate(
         RestaurantName $name,
         RestaurantLegalName $legalName,
-        TaxId $taxId,
+        CompanyTaxId $fiscalId,
         Email $email,
         RestaurantPasswordHash $passwordHash,
     ): self {
@@ -36,7 +36,7 @@ class Restaurant
             Uuid::generate(),
             $name,
             $legalName,
-            $taxId,
+            $fiscalId,
             $email,
             $passwordHash,
             $now,
@@ -58,7 +58,7 @@ class Restaurant
             Uuid::create($id),
             RestaurantName::create($name),
             RestaurantLegalName::create($legalName),
-            TaxId::create($taxId),
+            CompanyTaxId::create($taxId),
             Email::create($email),
             RestaurantPasswordHash::create($passwordHash),
             DomainDateTime::create($createdAt),
@@ -81,9 +81,9 @@ class Restaurant
         return $this->legalName;
     }
 
-    public function taxId(): TaxId
+    public function fiscalId(): CompanyTaxId
     {
-        return $this->taxId;
+        return $this->fiscalId;
     }
 
     public function email(): Email
@@ -109,14 +109,14 @@ class Restaurant
     public function update(
         RestaurantName $name,
         RestaurantLegalName $legalName,
-        TaxId $taxId,
+        CompanyTaxId $fiscalId,
         Email $email,
     ): self {
         return new self(
             $this->id,
             $name,
             $legalName,
-            $taxId,
+            $fiscalId,
             $email,
             $this->passwordHash,
             $this->createdAt,
@@ -130,7 +130,7 @@ class Restaurant
             $this->id,
             $this->name,
             $this->legalName,
-            $this->taxId,
+            $this->fiscalId,
             $this->email,
             $passwordHash,
             $this->createdAt,

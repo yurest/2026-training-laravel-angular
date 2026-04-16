@@ -4,10 +4,10 @@ namespace App\Restaurant\Application\UpdateRestaurant;
 
 use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
+use App\Restaurant\Domain\ValueObject\CompanyTaxId;
 use App\Restaurant\Domain\ValueObject\RestaurantLegalName;
 use App\Restaurant\Domain\ValueObject\RestaurantName;
 use App\Shared\Domain\ValueObject\Email;
-use App\Shared\Domain\ValueObject\TaxId;
 
 final class UpdateRestaurant
 {
@@ -36,9 +36,9 @@ final class UpdateRestaurant
             ? RestaurantLegalName::create($legalName)
             : $restaurant->legalName();
 
-        $taxIdVO = $taxId !== null
-            ? TaxId::create($taxId)
-            : $restaurant->taxId();
+        $fiscalIdVO = $taxId !== null
+            ? CompanyTaxId::create($taxId)
+            : $restaurant->fiscalId();
 
         $emailVO = $email !== null
             ? Email::create($email)
@@ -47,7 +47,7 @@ final class UpdateRestaurant
         $restaurant = $restaurant->update(
             $nameVO,
             $legalNameVO,
-            $taxIdVO,
+            $fiscalIdVO,
             $emailVO,
         );
 
