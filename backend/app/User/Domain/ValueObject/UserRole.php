@@ -2,23 +2,32 @@
 
 namespace App\User\Domain\ValueObject;
 
-final readonly class UserName
+final readonly class UserRole
 {
-    private const MAX_LENGTH = 255;
+    private const ALLOWED_VALUES = [
+        'admin',
+        'operator',
+    ];
 
     private string $value;
 
     private function __construct(string $value)
     {
         $trimmed = trim($value);
+
         if ($trimmed === '') {
-            throw new \InvalidArgumentException('User name cannot be empty.');
+            throw new \InvalidArgumentException('User role cannot be empty.');
         }
-        if (mb_strlen($trimmed) > self::MAX_LENGTH) {
+
+        if (!in_array($trimmed, self::ALLOWED_VALUES, true)) {
             throw new \InvalidArgumentException(
-                sprintf('User name cannot exceed %d characters.', self::MAX_LENGTH)
+                sprintf(
+                    'User role must be one of: %s.',
+                    implode(', ', self::ALLOWED_VALUES),
+                )
             );
         }
+
         $this->value = $trimmed;
     }
 
