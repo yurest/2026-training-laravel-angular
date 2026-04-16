@@ -4,12 +4,12 @@ namespace App\Restaurant\Application\CreateRestaurant;
 
 use App\Restaurant\Domain\Entity\Restaurant;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
+use App\Restaurant\Domain\ValueObject\CompanyTaxId;
 use App\Restaurant\Domain\ValueObject\RestaurantLegalName;
 use App\Restaurant\Domain\ValueObject\RestaurantName;
 use App\Restaurant\Domain\ValueObject\RestaurantPasswordHash;
 use App\Shared\Domain\Interfaces\PasswordHasherInterface;
 use App\Shared\Domain\ValueObject\Email;
-use App\Shared\Domain\ValueObject\TaxId;
 
 final class CreateRestaurant
 {
@@ -27,7 +27,7 @@ final class CreateRestaurant
     ): CreateRestaurantResponse {
         $nameVO = RestaurantName::create($name);
         $legalNameVO = RestaurantLegalName::create($legalName);
-        $taxIdVO = TaxId::create($taxId);
+        $fiscalIdVO = CompanyTaxId::create($taxId);
         $emailVO = Email::create($email);
         $passwordHashVO = RestaurantPasswordHash::create(
             $this->passwordHasher->hash($plainPassword),
@@ -36,11 +36,11 @@ final class CreateRestaurant
         $restaurant = Restaurant::dddCreate(
             $nameVO,
             $legalNameVO,
-            $taxIdVO,
+            $fiscalIdVO,
             $emailVO,
             $passwordHashVO,
         );
- 
+
         $this->restaurantRepository->save($restaurant);
 
         return CreateRestaurantResponse::create($restaurant);

@@ -19,7 +19,7 @@ final class EloquentRestaurantRepository implements RestaurantRepositoryInterfac
             [
                 'name' => $restaurant->name()->value(),
                 'legal_name' => $restaurant->legalName()->value(),
-                'tax_id' => $restaurant->taxId()->value(),
+                'tax_id' => $restaurant->fiscalId()->value(),
                 'email' => $restaurant->email()->value(),
                 'password' => $restaurant->passwordHash()->value(),
                 'created_at' => $restaurant->createdAt()->value(),

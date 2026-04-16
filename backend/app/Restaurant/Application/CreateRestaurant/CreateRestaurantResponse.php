@@ -22,7 +22,7 @@ final readonly class CreateRestaurantResponse
             id: $restaurant->id()->value(),
             name: $restaurant->name()->value(),
             legalName: $restaurant->legalName()->value(),
-            taxId: $restaurant->taxId()->value(),
+            taxId: $restaurant->fiscalId()->value(),
             email: $restaurant->email()->value(),
             createdAt: $restaurant->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $restaurant->updatedAt()->format(\DateTimeInterface::ATOM),
