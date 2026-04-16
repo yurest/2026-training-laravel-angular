@@ -14,6 +14,13 @@ final class PostController
 
     public function __invoke(Request $request): JsonResponse
     {
+        //CONTROL DE PERMISOS
+        $authUser = $request->user();
+
+        if ($authUser->role !== 'admin') {
+            return new JsonResponse(['message' => 'Forbidden'], 403);
+        }
+ 
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
             'role' => ['required', 'string'],
