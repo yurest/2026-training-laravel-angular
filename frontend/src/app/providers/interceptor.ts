@@ -18,13 +18,16 @@ export class InterceptorProvider implements HttpInterceptor {
    * Clona la petición añadiendo las cabeceras
    * 
    */
-  private setHeader(request: HttpRequest<any>): HttpRequest<any> {
-    return request.clone({
-      setHeaders: {
-        Accept: 'application/json',
-        'Accept-Language': 'es',
-      }
-    });
-  }
+ private setHeader(request: HttpRequest<any>): HttpRequest<any> {
+  const token = localStorage.getItem('token');
+
+  return request.clone({
+    setHeaders: {
+      Accept: 'application/json',
+      'Accept-Language': 'es',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  });
+}
 
 }
