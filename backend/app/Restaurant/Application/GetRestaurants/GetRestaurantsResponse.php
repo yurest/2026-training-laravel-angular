@@ -7,14 +7,14 @@ use App\Restaurant\Application\GetRestaurant\GetRestaurantResponse;
 final readonly class GetRestaurantsResponse
 {
     /**
-     * @param array<int, GetRestaurantResponse> $restaurants
+     * @param  array<int, GetRestaurantResponse>  $restaurants
      */
     public function __construct(
         public array $restaurants,
     ) {}
 
     /**
-     * @param array<int, GetRestaurantResponse> $restaurants
+     * @param  array<int, GetRestaurantResponse>  $restaurants
      */
     public static function create(array $restaurants): self
     {

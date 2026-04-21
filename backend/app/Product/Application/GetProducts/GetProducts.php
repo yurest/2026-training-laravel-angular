@@ -22,4 +22,4 @@ final class GetProducts
 
         return GetProductsResponse::create($productResponses);
     }
-}                                                                               
+}

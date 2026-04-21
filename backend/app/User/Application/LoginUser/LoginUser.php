@@ -28,7 +28,7 @@ final class LoginUser
             throw UserInvalidCredentialsException::create();
         }
 
-        if (!$this->passwordHasher->verify(
+        if (! $this->passwordHasher->verify(
             $plainPassword,
             $user->passwordHash()->value(),
         )) {

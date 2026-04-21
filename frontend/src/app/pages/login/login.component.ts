@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,18 +14,15 @@ export class LoginComponent implements OnInit {
   email = '';
   password = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {}
 
   login() {
-    this.http.post('http://localhost:8000/api/login', {
-      email: this.email,
-      password: this.password,
-    }).subscribe({
+    this.authService.login(this.email, this.password).subscribe({
       next: (response: any) => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        this.authService.saveToken(response.token);
+        this.authService.saveUser(response.user);
 
         console.log(response);
         this.router.navigate(['/home']);

@@ -5,6 +5,7 @@ namespace App\Restaurant\Domain\ValueObject;
 final readonly class RestaurantPasswordHash
 {
     private const MIN_LENGTH = 60;
+
     private const MAX_LENGTH = 255;
 
     private string $value;

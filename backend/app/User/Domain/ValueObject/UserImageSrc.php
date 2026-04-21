@@ -20,7 +20,7 @@ final readonly class UserImageSrc
             }
         }
 
-        if ($imageSrc !== null && !self::isValid($imageSrc)) {
+        if ($imageSrc !== null && ! self::isValid($imageSrc)) {
             throw new \InvalidArgumentException('Invalid user image source format.');
         }
 
@@ -29,7 +29,7 @@ final readonly class UserImageSrc
 
     private static function isValid(string $imageSrc): bool
     {
-        if (!self::isValidUrl($imageSrc) && !self::isValidLocalPath($imageSrc)) {
+        if (! self::isValidUrl($imageSrc) && ! self::isValidLocalPath($imageSrc)) {
             return false;
         }
 

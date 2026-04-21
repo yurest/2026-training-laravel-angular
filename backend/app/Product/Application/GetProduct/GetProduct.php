@@ -5,7 +5,7 @@ namespace App\Product\Application\GetProduct;
 use App\Product\Domain\Exception\ProductNotFoundException;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 
-final class GetProduct  
+final class GetProduct
 {
     public function __construct(
         private ProductRepositoryInterface $productRepository,

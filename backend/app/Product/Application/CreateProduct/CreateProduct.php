@@ -12,7 +12,7 @@ use App\Shared\Domain\ValueObject\FamilyId;
 use App\Shared\Domain\ValueObject\RestaurantId;
 use App\Shared\Domain\ValueObject\TaxId;
 
- final class CreateProduct
+final class CreateProduct
 {
     public function __construct(
         private ProductRepositoryInterface $productRepository,

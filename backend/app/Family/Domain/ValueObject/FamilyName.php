@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Family\Domain\ValueObject;
+
 use InvalidArgumentException;
 
 final readonly class FamilyName

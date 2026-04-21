@@ -54,7 +54,8 @@ class Tax
             DomainDateTime::create($updatedAt),
         );
     }
- public function id(): Uuid
+
+    public function id(): Uuid
     {
         return $this->id;
     }

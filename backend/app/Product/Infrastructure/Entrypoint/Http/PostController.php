@@ -3,8 +3,8 @@
 namespace App\Product\Infrastructure\Entrypoint\Http;
 
 use App\Product\Application\CreateProduct\CreateProduct;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 final class PostController
 {

@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\User;
 
+use App\Shared\Domain\Interfaces\PasswordHasherInterface;
 use App\User\Application\CreateUser\CreateUser;
 use App\User\Application\CreateUser\CreateUserResponse;
 use App\User\Domain\Entity\User;
-use App\Shared\Domain\Interfaces\PasswordHasherInterface;
 use App\User\Domain\Interfaces\UserRepositoryInterface;
 use Mockery;
 use PHPUnit\Framework\TestCase;

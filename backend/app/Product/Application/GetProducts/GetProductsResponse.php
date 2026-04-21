@@ -7,14 +7,14 @@ use App\Product\Application\GetProduct\GetProductResponse;
 final readonly class GetProductsResponse
 {
     /**
-     * @param GetProductResponse[] $products
+     * @param  GetProductResponse[]  $products
      */
     public function __construct(
         public array $products,
     ) {}
 
     /**
-     * @param GetProductResponse[] $products
+     * @param  GetProductResponse[]  $products
      */
     public static function create(array $products): self
     {
@@ -28,10 +28,9 @@ final readonly class GetProductsResponse
     {
         return [
             'products' => array_map(
-                fn(GetProductResponse $product) => $product->toArray(),
+                fn (GetProductResponse $product) => $product->toArray(),
                 $this->products,
             ),
         ];
     }
 }
-  
