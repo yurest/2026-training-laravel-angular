@@ -1,0 +1,22 @@
+<ion-content class="tables-page">
+  <div class="tables-header">
+    <h2>Mesas</h2>
+  </div>
+
+  <div class="tables-grid">
+    <ion-card
+      *ngFor="let table of tables"
+      (click)="openTable(table.id)"
+      [class.free]="table.status === 'free'"
+      [class.occupied]="table.status === 'occupied'"
+    >
+      <ion-card-content>
+        <h3>{{ table.name }}</h3>
+        <p>
+          Estado:
+          {{ table.status === 'free' ? 'Libre' : 'Ocupada' }}
+        </p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

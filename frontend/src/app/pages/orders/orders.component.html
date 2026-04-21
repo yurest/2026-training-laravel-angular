@@ -1,0 +1,37 @@
+<ion-content class="ion-padding">
+  <h2>Pedido - Mesa {{ tableId }}</h2>
+
+  <div class="orders-layout">
+    <div class="products-section">
+      <h3>Productos</h3>
+
+      <ion-card *ngFor="let product of products" (click)="addProduct(product)">
+        <ion-card-content>
+          <h4>{{ product.name }}</h4>
+          <p>{{ (product.price / 100) | number:'1.2-2' }} €</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <div class="summary-section ion-padding">
+      <h3>Pedido actual</h3>
+
+      <div *ngIf="orderLines.length === 0">
+        <p>No hay productos añadidos todavía.</p>
+      </div>
+
+      <div *ngFor="let line of orderLines" class="order-line">
+        <span>{{ line.name }} x{{ line.quantity }}</span>
+        <span>{{ (getLineTotal(line) / 100) | number:'1.2-2' }} €</span>
+      </div>
+
+      <hr />
+
+      <h3>Total: {{ (getOrderTotal() / 100) | number:'1.2-2' }} €</h3>
+
+      <ion-button expand="block">
+        Guardar pedido
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

@@ -1,6 +1,28 @@
-<h2>Login</h2>
+<div class="login-page">
+  <div class="login-card">
+    <h1>TPV</h1>
+    <p class="subtitle">Inicia sesión para acceder al terminal</p>
 
-<input type="email" placeholder="Email" [(ngModel)]="email">
-<input type="password" placeholder="Password" [(ngModel)]="password">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        placeholder="admin@example.com"
+        [(ngModel)]="email"
+      />
+    </div>
 
-<button (click)="login()">Entrar</button>
+    <div class="form-group">
+      <label for="password">Contraseña</label>
+      <input
+        id="password"
+        type="password"
+        placeholder="••••••••"
+        [(ngModel)]="password"
+      />
+    </div>
+
+    <button class="login-button" (click)="login()">Entrar</button>
+  </div>
+</div>

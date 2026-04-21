@@ -1,0 +1,65 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  background: #121212;
+}
+
+.sidebar {
+  width: 220px;
+  background: #1a1a1a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  border-right: 1px solid #2a2a2a;
+}
+
+.sidebar h2 {
+  margin: 0 0 24px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.nav-button,
+.user-block button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.nav-button:hover,
+.user-block button:hover {
+  background: #2a2a2a;
+}
+
+.nav-button.active {
+  background: #7c3aed;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.user-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-name {
+  color: #d1d5db;
+  font-size: 0.95rem;
+  padding: 0 6px;
+}
+
+.content {
+  flex: 1;
+  padding: 24px;
+  background: #121212;
+  overflow: auto;
+}

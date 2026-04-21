@@ -1,28 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth/auth.service';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton],
 })
 export class HomePage implements OnInit {
-  constructor(private http: HttpClient) {}
+  user: any = null;
+
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
-    this.testRequest();
+    this.user = this.authService.getUser();
   }
 
-  testRequest() {
-    this.http.get('http://localhost:8000/api/users').subscribe({
-      next: (response) => {
-        console.log('OK', response);
-      },
-      error: (error) => {
-        console.log('ERROR', error);
-      }
-    });
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

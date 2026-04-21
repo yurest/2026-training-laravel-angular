@@ -1,0 +1,58 @@
+.tables-page {
+  --background: #121212;
+  color: white;
+}
+
+.tables-header {
+  margin-bottom: 20px;
+}
+
+.tables-header h2 {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+ion-card {
+  cursor: pointer;
+  margin: 0;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+ion-card:active {
+  transform: scale(0.98);
+}
+
+ion-card h3,
+ion-card p {
+  margin: 0;
+  color: white;
+}
+
+ion-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+ion-card p {
+  color: #d1d5db;
+}
+
+ion-card.free {
+  --background: #1f3b2d;
+  border-color: #22c55e;
+}
+
+ion-card.occupied {
+  --background: #3b1f1f;
+  border-color: #ef4444;
+}

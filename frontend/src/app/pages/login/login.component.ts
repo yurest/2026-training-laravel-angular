@@ -16,7 +16,12 @@ export class LoginComponent implements OnInit {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    //  si ya estás logueado, no puedes volver al login
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/tpv']);
+    }
+  }
 
   login() {
     this.authService.login(this.email, this.password).subscribe({
@@ -25,11 +30,13 @@ export class LoginComponent implements OnInit {
         this.authService.saveUser(response.user);
 
         console.log(response);
-        this.router.navigate(['/home']);
+
+        // redirige al TPV
+        this.router.navigate(['/tpv']);
       },
       error: (error) => {
         console.log(error);
-      }
+      },
     });
   }
 }
