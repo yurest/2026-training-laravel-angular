@@ -3,9 +3,28 @@
     <h2>Mesas</h2>
   </div>
 
+  <div class="zones-bar" *ngIf="zones.length > 0">
+    <button
+      class="zone-button"
+      [class.active]="isAllZonesActive()"
+      (click)="selectAllZones()"
+    >
+      Todas
+    </button>
+
+    <button
+      *ngFor="let zone of zones; let i = index"
+      class="zone-button"
+      [class.active]="isZoneActive(i + 1)"
+      (click)="selectZone(i + 1)"
+    >
+      {{ zone.name }}
+    </button>
+  </div>
+
   <div class="tables-grid">
     <ion-card
-      *ngFor="let table of tables"
+      *ngFor="let table of getFilteredTables()"
       (click)="openTable(table.id)"
       [class.free]="table.status === 'free'"
       [class.occupied]="table.status === 'occupied'"

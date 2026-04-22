@@ -2,7 +2,22 @@
   <div class="sidebar">
     <h2>TPV</h2>
 
-    <button class="nav-button active" (click)="goToTables()">Mesas</button>
+    <button
+      class="nav-button"
+      [class.active]="isRouteActive('tables')"
+      (click)="goToTables()"
+    >
+      Mesas
+    </button>
+
+    <button
+      *ngIf="isAdmin()"
+      class="nav-button"
+      [class.active]="isRouteActive('settings')"
+      (click)="goToSettings()"
+    >
+      Ajustes
+    </button>
 
     <div class="spacer"></div>
 

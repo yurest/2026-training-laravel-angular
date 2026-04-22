@@ -1,0 +1,28 @@
+import { Injectable, Injector } from '@angular/core';
+import { Observable } from 'rxjs';
+import { BaseApiService, ApiResponse } from './base-api.service';
+
+export interface Zone {
+  id: string;
+  uuid?: string;
+  restaurant_id: string | number;
+  name: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ZoneService extends BaseApiService {
+  private endpoint = '/zones';
+
+  constructor(protected override injector: Injector) {
+    super(injector);
+  }
+
+  getZones(): Observable<ApiResponse> {
+    return this.httpCall(this.endpoint, null, 'get');
+  }
+}

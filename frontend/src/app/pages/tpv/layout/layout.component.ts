@@ -1,14 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonButton,
-  IonButtons,
-} from '@ionic/angular/standalone';
 import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
@@ -16,16 +8,7 @@ import { AuthService } from '../../../services/auth/auth.service';
   standalone: true,
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss'],
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonButton,
-    IonButtons,
-  ],
+  imports: [CommonModule, RouterOutlet],
 })
 export class LayoutComponent implements OnInit {
   user: any = null;
@@ -34,6 +17,7 @@ export class LayoutComponent implements OnInit {
 
   ngOnInit() {
     this.user = this.authService.getUser();
+    console.log('USER LAYOUT:', this.user);
   }
 
   logout() {
@@ -45,6 +29,15 @@ export class LayoutComponent implements OnInit {
     this.router.navigate(['/tpv/tables']);
   }
 
-  
-  // goToProducts()
+  goToSettings() {
+    this.router.navigate(['/tpv/settings']);
+  }
+
+  isAdmin(): boolean {
+    return this.user?.role?.toLowerCase?.() === 'admin';
+  }
+
+  isRouteActive(route: string): boolean {
+    return this.router.url.includes(route);
+  }
 }

@@ -1,0 +1,112 @@
+<ion-content class="settings-page">
+  <div class="settings-header">
+    <h2>Ajustes</h2>
+    <p>Panel de administración</p>
+  </div>
+
+  <div class="settings-layout">
+    <ion-card class="panel-card">
+      <ion-card-content>
+        <h3>Crear usuario</h3>
+
+        <div class="form-group">
+          <label>Nombre</label>
+          <input
+            type="text"
+            [(ngModel)]="createForm.name"
+            placeholder="Nombre"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            [(ngModel)]="createForm.email"
+            placeholder="email@ejemplo.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input
+            type="password"
+            [(ngModel)]="createForm.password"
+            placeholder="Contraseña"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Confirmar contraseña</label>
+          <input
+            type="password"
+            [(ngModel)]="createForm.password_confirmation"
+            placeholder="Repite la contraseña"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Rol</label>
+          <select [(ngModel)]="createForm.role">
+            <option value="operator">Operator</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>PIN</label>
+          <input
+            type="text"
+            [(ngModel)]="createForm.pin"
+            placeholder="PIN"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Imagen</label>
+          <input
+            type="text"
+            [(ngModel)]="createForm.image_src"
+            placeholder="URL imagen"
+          />
+        </div>
+
+        <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+        <ion-button expand="block" (click)="createUser()">
+          Crear usuario
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="panel-card">
+      <ion-card-content>
+        <div class="list-header">
+          <h3>Usuarios</h3>
+        </div>
+
+        <p *ngIf="loading">Cargando usuarios...</p>
+
+        <div *ngIf="!loading && users.length === 0" class="empty-state">
+          No hay usuarios.
+        </div>
+
+        <div *ngFor="let user of users" class="user-row">
+          <div class="user-info">
+            <strong>{{ user.name }}</strong>
+            <span>{{ user.email }}</span>
+            <span>Rol: {{ user.role }}</span>
+          </div>
+
+          <ion-button
+            color="danger"
+            size="small"
+            (click)="deleteUser(user)"
+          >
+            Borrar
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
