@@ -33,6 +33,10 @@ export class UserService extends BaseApiService {
     return this.httpCall(this.endpoint, user, 'post');
   }
 
+  updateUser(id: string, user: any): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, user, 'put');
+  }
+
   deleteUser(id: string): Observable<ApiResponse> {
     return this.httpCall(`${this.endpoint}/${id}`, null, 'delete');
   }

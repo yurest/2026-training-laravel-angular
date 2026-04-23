@@ -31,6 +31,12 @@ export const routes: Routes = [
           import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
       },
       {
+        path: 'settings/products',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./pages/settings/products/products.component').then((m) => m.ProductsComponent),
+      },
+      {
         path: '',
         redirectTo: 'tables',
         pathMatch: 'full',
