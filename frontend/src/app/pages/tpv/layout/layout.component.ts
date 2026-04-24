@@ -12,12 +12,13 @@ import { AuthService } from '../../../services/auth/auth.service';
 })
 export class LayoutComponent implements OnInit {
   user: any = null;
+  isDarkTheme = true;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.user = this.authService.getUser();
-    console.log('USER LAYOUT:', this.user);
+    this.isDarkTheme = document.body.classList.contains('dark');
   }
 
   logout() {
@@ -39,5 +40,19 @@ export class LayoutComponent implements OnInit {
 
   isRouteActive(route: string): boolean {
     return this.router.url.includes(route);
+  }
+
+  toggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+
+    if (this.isDarkTheme) {
+      document.body.classList.add('dark');
+      document.body.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.add('light');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   }
 }

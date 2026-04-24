@@ -5,53 +5,12 @@
   </div>
 
   <div class="settings-sections">
-    <button
-      class="section-button"
-      [class.active]="isSectionActive('users')"
-      (click)="selectSection('users')"
-    >
-      Usuarios
-    </button>
-
-    <button
-      class="section-button"
-      [class.active]="isSectionActive('products')"
-      (click)="selectSection('products')"
-    >
-      Productos
-    </button>
-
-    <button
-      class="section-button"
-      [class.active]="isSectionActive('families')"
-      (click)="selectSection('families')"
-    >
-      Familias
-    </button>
-
-    <button
-      class="section-button"
-      [class.active]="isSectionActive('taxes')"
-      (click)="selectSection('taxes')"
-    >
-      Impuestos
-    </button>
-
-    <button
-      class="section-button"
-      [class.active]="isSectionActive('zones')"
-      (click)="selectSection('zones')"
-    >
-      Zonas
-    </button>
-
-    <button
-      class="section-button"
-      [class.active]="isSectionActive('tables')"
-      (click)="selectSection('tables')"
-    >
-      Mesas
-    </button>
+    <ion-button [class.active]="isSectionActive('users')" (click)="selectSection('users')">Usuarios</ion-button>
+    <ion-button [class.active]="isSectionActive('products')" (click)="selectSection('products')">Productos</ion-button>
+    <ion-button [class.active]="isSectionActive('families')" (click)="selectSection('families')">Familias</ion-button>
+    <ion-button [class.active]="isSectionActive('taxes')" (click)="selectSection('taxes')">Impuestos</ion-button>
+    <ion-button [class.active]="isSectionActive('zones')" (click)="selectSection('zones')">Zonas</ion-button>
+    <ion-button [class.active]="isSectionActive('tables')" (click)="selectSection('tables')">Mesas</ion-button>
   </div>
 
   <!-- USERS -->
@@ -62,122 +21,122 @@
           <h3 *ngIf="mode === 'create'">Crear usuario</h3>
           <h3 *ngIf="mode === 'edit'">Editar usuario</h3>
 
-          <div class="form-group">
-            <label>Nombre</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input
               *ngIf="mode === 'create'"
               type="text"
               [(ngModel)]="createForm.name"
               placeholder="Nombre"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="mode === 'edit'"
               type="text"
               [(ngModel)]="editForm.name"
               placeholder="Nombre"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Email</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input
               *ngIf="mode === 'create'"
               type="email"
               [(ngModel)]="createForm.email"
               placeholder="email@ejemplo.com"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="mode === 'edit'"
               type="email"
               [(ngModel)]="editForm.email"
               placeholder="email@ejemplo.com"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
           <ng-container *ngIf="mode === 'create'">
-            <div class="form-group">
-              <label>Contraseña</label>
-              <input
+            <ion-item>
+              <ion-label position="stacked">Contraseña</ion-label>
+              <ion-input
                 type="password"
                 [(ngModel)]="createForm.password"
                 placeholder="Contraseña"
-              />
-            </div>
+              ></ion-input>
+            </ion-item>
 
-            <div class="form-group">
-              <label>Confirmar contraseña</label>
-              <input
+            <ion-item>
+              <ion-label position="stacked">Confirmar contraseña</ion-label>
+              <ion-input
                 type="password"
                 [(ngModel)]="createForm.password_confirmation"
                 placeholder="Repite la contraseña"
-              />
-            </div>
+              ></ion-input>
+            </ion-item>
           </ng-container>
 
           <ng-container *ngIf="mode === 'edit'">
-            <div class="form-group">
-              <label>Nueva contraseña</label>
-              <input
+            <ion-item>
+              <ion-label position="stacked">Nueva contraseña</ion-label>
+              <ion-input
                 type="password"
                 [(ngModel)]="editForm.password"
                 placeholder="Déjala vacía si no quieres cambiarla"
-              />
-            </div>
+              ></ion-input>
+            </ion-item>
 
-            <div class="form-group">
-              <label>Confirmar nueva contraseña</label>
-              <input
+            <ion-item>
+              <ion-label position="stacked">Confirmar nueva contraseña</ion-label>
+              <ion-input
                 type="password"
                 [(ngModel)]="editForm.password_confirmation"
                 placeholder="Repite la nueva contraseña"
-              />
-            </div>
+              ></ion-input>
+            </ion-item>
           </ng-container>
 
-          <div class="form-group">
-            <label>Rol</label>
-            <select *ngIf="mode === 'create'" [(ngModel)]="createForm.role">
-              <option value="operator">Operator</option>
-              <option value="admin">Admin</option>
-            </select>
+          <ion-item>
+            <ion-label position="stacked">Rol</ion-label>
+            <ion-select *ngIf="mode === 'create'" [(ngModel)]="createForm.role">
+              <ion-select-option value="operator">Operator</ion-select-option>
+              <ion-select-option value="admin">Admin</ion-select-option>
+            </ion-select>
 
-            <select *ngIf="mode === 'edit'" [(ngModel)]="editForm.role">
-              <option value="operator">Operator</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+            <ion-select *ngIf="mode === 'edit'" [(ngModel)]="editForm.role">
+              <ion-select-option value="operator">Operator</ion-select-option>
+              <ion-select-option value="admin">Admin</ion-select-option>
+            </ion-select>
+          </ion-item>
 
-          <div class="form-group">
-            <label>PIN</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">PIN</ion-label>
+            <ion-input
               *ngIf="mode === 'create'"
               type="text"
               [(ngModel)]="createForm.pin"
               placeholder="PIN"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="mode === 'edit'"
               type="text"
               [(ngModel)]="editForm.pin"
               placeholder="PIN"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Imagen</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Imagen</ion-label>
+            <ion-input
               *ngIf="mode === 'create'"
               type="text"
               [(ngModel)]="createForm.image_src"
               placeholder="URL imagen"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="mode === 'edit'"
               type="text"
               [(ngModel)]="editForm.image_src"
               placeholder="URL imagen"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
           <div class="error-box" *ngIf="errorMessages.length > 0">
             <p class="error-title">Revisa estos campos:</p>
@@ -187,43 +146,38 @@
           </div>
 
           <div class="form-actions" *ngIf="mode === 'create'">
-            <ion-button expand="block" (click)="createUser()">
-              Crear usuario
-            </ion-button>
+            <ion-button expand="block" (click)="createUser()">Crear usuario</ion-button>
           </div>
 
           <div class="form-actions edit-actions" *ngIf="mode === 'edit'">
-            <ion-button color="medium" (click)="cancelEdit()">
-              Cancelar
-            </ion-button>
-            <ion-button (click)="saveEdit()">
-              Guardar cambios
-            </ion-button>
+            <ion-button color="medium" (click)="cancelEdit()">Cancelar</ion-button>
+            <ion-button (click)="saveEdit()">Guardar cambios</ion-button>
           </div>
         </ion-card-content>
       </ion-card>
 
       <ion-card class="panel-card">
         <ion-card-content>
-          <div class="list-header">
-            <h3>Usuarios</h3>
-          </div>
+          <h3>Usuarios</h3>
 
-          <div class="search-box">
-            <input
+          <ion-item>
+            <ion-label position="stacked">Buscar</ion-label>
+            <ion-input
               type="text"
               [(ngModel)]="searchTerm"
               (ngModelChange)="onSearchChange()"
               placeholder="Buscar por nombre o email"
-            />
-            <button
-              class="clear-search-button"
-              *ngIf="searchTerm"
-              (click)="clearSearch()"
-            >
-              Limpiar
-            </button>
-          </div>
+            ></ion-input>
+          </ion-item>
+
+          <ion-button
+            fill="outline"
+            size="small"
+            *ngIf="searchTerm"
+            (click)="clearSearch()"
+          >
+            Limpiar
+          </ion-button>
 
           <p *ngIf="loading">Cargando usuarios...</p>
 
@@ -240,19 +194,11 @@
               </div>
 
               <div class="row-actions">
-                <ion-button
-                  color="warning"
-                  size="small"
-                  (click)="startEdit(user)"
-                >
+                <ion-button color="warning" size="small" (click)="startEdit(user)">
                   Editar
                 </ion-button>
 
-                <ion-button
-                  color="danger"
-                  size="small"
-                  (click)="deleteUser(user)"
-                >
+                <ion-button color="danger" size="small" (click)="deleteUser(user)">
                   Borrar
                 </ion-button>
               </div>
@@ -271,123 +217,117 @@
           <h3 *ngIf="productMode === 'create'">Crear producto</h3>
           <h3 *ngIf="productMode === 'edit'">Editar producto</h3>
 
-          <div class="form-group">
-            <label>Nombre</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input
               *ngIf="productMode === 'create'"
               type="text"
               [(ngModel)]="createProductForm.name"
               placeholder="Nombre del producto"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="productMode === 'edit'"
               type="text"
               [(ngModel)]="editProductForm.name"
               placeholder="Nombre del producto"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Familia</label>
-            <select *ngIf="productMode === 'create'" [(ngModel)]="createProductForm.family_id">
-              <option value="">Selecciona una familia</option>
-              <option *ngFor="let family of families" [value]="family.id">
+          <ion-item>
+            <ion-label position="stacked">Familia</ion-label>
+            <ion-select *ngIf="productMode === 'create'" [(ngModel)]="createProductForm.family_id">
+              <ion-select-option value="">Selecciona una familia</ion-select-option>
+              <ion-select-option *ngFor="let family of families" [value]="family.id">
                 {{ family.name }}
-              </option>
-            </select>
+              </ion-select-option>
+            </ion-select>
 
-            <select *ngIf="productMode === 'edit'" [(ngModel)]="editProductForm.family_id">
-              <option value="">Selecciona una familia</option>
-              <option *ngFor="let family of families" [value]="family.id">
+            <ion-select *ngIf="productMode === 'edit'" [(ngModel)]="editProductForm.family_id">
+              <ion-select-option value="">Selecciona una familia</ion-select-option>
+              <ion-select-option *ngFor="let family of families" [value]="family.id">
                 {{ family.name }}
-              </option>
-            </select>
-          </div>
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Impuesto</label>
-            <select *ngIf="productMode === 'create'" [(ngModel)]="createProductForm.tax_id">
-              <option value="">Selecciona un impuesto</option>
-              <option *ngFor="let tax of taxes" [value]="tax.id">
+          <ion-item>
+            <ion-label position="stacked">Impuesto</ion-label>
+            <ion-select *ngIf="productMode === 'create'" [(ngModel)]="createProductForm.tax_id">
+              <ion-select-option value="">Selecciona un impuesto</ion-select-option>
+              <ion-select-option *ngFor="let tax of taxes" [value]="tax.id">
                 {{ tax.name }}
-              </option>
-            </select>
+              </ion-select-option>
+            </ion-select>
 
-            <select *ngIf="productMode === 'edit'" [(ngModel)]="editProductForm.tax_id">
-              <option value="">Selecciona un impuesto</option>
-              <option *ngFor="let tax of taxes" [value]="tax.id">
+            <ion-select *ngIf="productMode === 'edit'" [(ngModel)]="editProductForm.tax_id">
+              <ion-select-option value="">Selecciona un impuesto</ion-select-option>
+              <ion-select-option *ngFor="let tax of taxes" [value]="tax.id">
                 {{ tax.name }}
-              </option>
-            </select>
-          </div>
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Precio (€)</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Precio (€)</ion-label>
+            <ion-input
               *ngIf="productMode === 'create'"
               type="number"
               [(ngModel)]="createProductForm.price"
               placeholder="0.00"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="productMode === 'edit'"
               type="number"
               [(ngModel)]="editProductForm.price"
               placeholder="0.00"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Stock</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Stock</ion-label>
+            <ion-input
               *ngIf="productMode === 'create'"
               type="number"
               [(ngModel)]="createProductForm.stock"
               placeholder="0"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="productMode === 'edit'"
               type="number"
               [(ngModel)]="editProductForm.stock"
               placeholder="0"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
-          <div class="form-group">
-            <label>Imagen</label>
-            <input
+          <ion-item>
+            <ion-label position="stacked">Imagen</ion-label>
+            <ion-input
               *ngIf="productMode === 'create'"
               type="text"
               [(ngModel)]="createProductForm.image_src"
               placeholder="URL imagen"
-            />
-            <input
+            ></ion-input>
+            <ion-input
               *ngIf="productMode === 'edit'"
               type="text"
               [(ngModel)]="editProductForm.image_src"
               placeholder="URL imagen"
-            />
-          </div>
+            ></ion-input>
+          </ion-item>
 
-          <div class="form-group checkbox-group">
-            <label>
-              <input
-                *ngIf="productMode === 'create'"
-                type="checkbox"
-                [(ngModel)]="createProductForm.active"
-              />
-              Activo
-            </label>
-
-            <label>
-              <input
-                *ngIf="productMode === 'edit'"
-                type="checkbox"
-                [(ngModel)]="editProductForm.active"
-              />
-              Activo
-            </label>
-          </div>
+          <ion-item>
+            <ion-checkbox
+              *ngIf="productMode === 'create'"
+              [(ngModel)]="createProductForm.active"
+              slot="start"
+            ></ion-checkbox>
+            <ion-checkbox
+              *ngIf="productMode === 'edit'"
+              [(ngModel)]="editProductForm.active"
+              slot="start"
+            ></ion-checkbox>
+            <ion-label>Activo</ion-label>
+          </ion-item>
 
           <div class="error-box" *ngIf="productErrorMessages.length > 0">
             <p class="error-title">Revisa estos campos:</p>
@@ -397,43 +337,38 @@
           </div>
 
           <div class="form-actions" *ngIf="productMode === 'create'">
-            <ion-button expand="block" (click)="createProduct()">
-              Crear producto
-            </ion-button>
+            <ion-button expand="block" (click)="createProduct()">Crear producto</ion-button>
           </div>
 
           <div class="form-actions edit-actions" *ngIf="productMode === 'edit'">
-            <ion-button color="medium" (click)="cancelEditProduct()">
-              Cancelar
-            </ion-button>
-            <ion-button (click)="saveEditProduct()">
-              Guardar cambios
-            </ion-button>
+            <ion-button color="medium" (click)="cancelEditProduct()">Cancelar</ion-button>
+            <ion-button (click)="saveEditProduct()">Guardar cambios</ion-button>
           </div>
         </ion-card-content>
       </ion-card>
 
       <ion-card class="panel-card">
         <ion-card-content>
-          <div class="list-header">
-            <h3>Productos</h3>
-          </div>
+          <h3>Productos</h3>
 
-          <div class="search-box">
-            <input
+          <ion-item>
+            <ion-label position="stacked">Buscar</ion-label>
+            <ion-input
               type="text"
               [(ngModel)]="productSearchTerm"
               (ngModelChange)="onProductSearchChange()"
               placeholder="Buscar por nombre"
-            />
-            <button
-              class="clear-search-button"
-              *ngIf="productSearchTerm"
-              (click)="clearProductSearch()"
-            >
-              Limpiar
-            </button>
-          </div>
+            ></ion-input>
+          </ion-item>
+
+          <ion-button
+            fill="outline"
+            size="small"
+            *ngIf="productSearchTerm"
+            (click)="clearProductSearch()"
+          >
+            Limpiar
+          </ion-button>
 
           <p *ngIf="productsLoading">Cargando productos...</p>
 
@@ -452,19 +387,11 @@
               </div>
 
               <div class="row-actions">
-                <ion-button
-                  color="warning"
-                  size="small"
-                  (click)="startEditProduct(product)"
-                >
+                <ion-button color="warning" size="small" (click)="startEditProduct(product)">
                   Editar
                 </ion-button>
 
-                <ion-button
-                  color="danger"
-                  size="small"
-                  (click)="deleteProduct(product)"
-                >
+                <ion-button color="danger" size="small" (click)="deleteProduct(product)">
                   Borrar
                 </ion-button>
               </div>

@@ -16,7 +16,7 @@ export interface Family {
   providedIn: 'root',
 })
 export class FamilyService extends BaseApiService {
-  private endpoint = '/family';
+  private endpoint = '/families';
 
   constructor(protected override injector: Injector) {
     super(injector);
@@ -24,5 +24,17 @@ export class FamilyService extends BaseApiService {
 
   getFamilies(): Observable<ApiResponse> {
     return this.httpCall(this.endpoint, null, 'get');
+  }
+
+  createFamily(data: any): Observable<ApiResponse> {
+    return this.httpCall(this.endpoint, data, 'post');
+  }
+
+  updateFamily(id: string, data: any): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, data, 'put');
+  }
+
+  deleteFamily(id: string): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, null, 'delete');
   }
 }
