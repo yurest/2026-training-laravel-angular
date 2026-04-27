@@ -99,3 +99,33 @@ ion-alert.custom-dark-alert {
 .custom-dark-alert .alert-button-inner {
   color: inherit !important;
 }
+
+/* SELECT / ALERT DE IONIC EN MODO OSCURO */
+body.dark ion-alert {
+  --background: #1e1e1e;
+  --color: #ffffff;
+}
+
+body.dark ion-alert .alert-wrapper {
+  background: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+body.dark ion-alert .alert-title,
+body.dark ion-alert .alert-sub-title,
+body.dark ion-alert .alert-message,
+body.dark ion-alert .alert-radio-label {
+  color: #ffffff !important;
+}
+
+body.dark ion-alert .alert-radio-icon {
+  border-color: #9ca3af !important;
+}
+
+body.dark ion-alert .alert-radio-inner {
+  background: #7c3aed !important;
+}
+
+body.dark ion-alert .alert-button {
+  color: #7c3aed !important;
+}

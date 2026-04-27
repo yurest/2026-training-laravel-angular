@@ -2,32 +2,37 @@
   <div class="sidebar">
     <h2>TPV</h2>
 
-    <button
+    <ion-button
       class="nav-button"
+      fill="clear"
       [class.active]="isRouteActive('tables')"
       (click)="goToTables()"
     >
       Mesas
-    </button>
+    </ion-button>
 
-    <button
+    <ion-button
       *ngIf="isAdmin()"
       class="nav-button"
+      fill="clear"
       [class.active]="isRouteActive('settings')"
       (click)="goToSettings()"
     >
       Ajustes
-    </button>
+    </ion-button>
 
     <div class="spacer"></div>
 
-    <button class="nav-button" (click)="toggleTheme()">
-      {{ isDarkTheme ? 'Modo claro' : 'Modo oscuro' }}
-    </button>
+    <ion-button class="theme-button" fill="clear" (click)="toggleTheme()">
+      <ion-icon [name]="isDarkTheme ? 'sunny' : 'moon'"></ion-icon>
+    </ion-button>
 
     <div class="user-block" *ngIf="user">
       <div class="user-name">{{ user.name }}</div>
-      <button (click)="logout()">Salir</button>
+
+      <ion-button class="logout-button" fill="clear" (click)="logout()">
+        Salir
+      </ion-button>
     </div>
   </div>
 

@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { moon, sunny } from 'ionicons/icons';
 import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
@@ -8,29 +11,31 @@ import { AuthService } from '../../../services/auth/auth.service';
   standalone: true,
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss'],
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, IonButton, IonIcon],
 })
 export class LayoutComponent implements OnInit {
   user: any = null;
   isDarkTheme = true;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {
+    addIcons({ moon, sunny });
+  }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.user = this.authService.getUser();
     this.isDarkTheme = document.body.classList.contains('dark');
   }
 
-  logout() {
+  logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
 
-  goToTables() {
+  goToTables(): void {
     this.router.navigate(['/tpv/tables']);
   }
 
-  goToSettings() {
+  goToSettings(): void {
     this.router.navigate(['/tpv/settings']);
   }
 

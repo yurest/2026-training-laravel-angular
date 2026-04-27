@@ -16,7 +16,7 @@ export interface Tax {
   providedIn: 'root',
 })
 export class TaxService extends BaseApiService {
-  private endpoint = '/tax';
+  private endpoint = '/taxes';
 
   constructor(protected override injector: Injector) {
     super(injector);
@@ -24,5 +24,17 @@ export class TaxService extends BaseApiService {
 
   getTaxes(): Observable<ApiResponse> {
     return this.httpCall(this.endpoint, null, 'get');
+  }
+
+  createTax(data: any): Observable<ApiResponse> {
+    return this.httpCall(this.endpoint, data, 'post');
+  }
+
+  updateTax(id: string, data: any): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, data, 'put');
+  }
+
+  deleteTax(id: string): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, null, 'delete');
   }
 }

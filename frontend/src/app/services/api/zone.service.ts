@@ -25,4 +25,16 @@ export class ZoneService extends BaseApiService {
   getZones(): Observable<ApiResponse> {
     return this.httpCall(this.endpoint, null, 'get');
   }
+
+  createZone(data: any): Observable<ApiResponse> {
+    return this.httpCall(this.endpoint, data, 'post');
+  }
+
+  updateZone(id: string, data: any): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, data, 'put');
+  }
+
+  deleteZone(id: string): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, null, 'delete');
+  }
 }

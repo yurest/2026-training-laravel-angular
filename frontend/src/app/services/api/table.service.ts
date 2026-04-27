@@ -27,4 +27,16 @@ export class TableService extends BaseApiService {
   getTables(): Observable<ApiResponse> {
     return this.httpCall(this.endpoint, null, 'get');
   }
+
+  createTable(data: any): Observable<ApiResponse> {
+    return this.httpCall(this.endpoint, data, 'post');
+  }
+
+  updateTable(id: string, data: any): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, data, 'put');
+  }
+
+  deleteTable(id: string): Observable<ApiResponse> {
+    return this.httpCall(`${this.endpoint}/${id}`, null, 'delete');
+  }
 }

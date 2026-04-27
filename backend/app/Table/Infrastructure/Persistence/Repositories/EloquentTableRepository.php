@@ -5,6 +5,7 @@ namespace App\Table\Infrastructure\Persistence\Repositories;
 use App\Table\Domain\Entity\Table;
 use App\Table\Domain\Interfaces\TableRepositoryInterface;
 use App\Table\Infrastructure\Persistence\Models\EloquentTable;
+use App\Zone\Infrastructure\Persistence\Models\EloquentZone;
 
 final class EloquentTableRepository implements TableRepositoryInterface
 {
@@ -14,11 +15,15 @@ final class EloquentTableRepository implements TableRepositoryInterface
 
     public function save(Table $table): void
     {
+        $zone = EloquentZone::query()
+            ->where('uuid', $table->zoneId()->value())
+            ->first();
+
         $this->model->newQuery()->updateOrCreate(
             ['uuid' => $table->id()->value()],
             [
                 'restaurant_id' => $table->restaurantId()->value(),
-                'zone_id' => $table->zoneId()->value(),
+                'zone_id' => $zone?->id ?? $table->zoneId()->value(),
                 'name' => $table->name()->value(),
                 'created_at' => $table->createdAt()->value(),
                 'updated_at' => $table->updatedAt()->value(),
