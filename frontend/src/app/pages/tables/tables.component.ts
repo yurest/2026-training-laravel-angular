@@ -1,7 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { IonContent, IonCard, IonCardContent, IonButton } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonCard,
+  IonCardContent,
+  IonButton,
+} from '@ionic/angular/standalone';
 import { TableService, TableItem } from '../../services/api/table.service';
 import { ZoneService, Zone } from '../../services/api/zone.service';
 
@@ -15,7 +20,8 @@ import { ZoneService, Zone } from '../../services/api/zone.service';
 export class TablesComponent implements OnInit {
   zones: Zone[] = [];
   tables: TableItem[] = [];
-  selectedZoneIndex: number | null = null;
+
+  selectedZoneNumericId: number | null = null;
 
   constructor(
     private router: Router,
@@ -34,11 +40,10 @@ export class TablesComponent implements OnInit {
         const zones = Array.isArray(response)
           ? response
           : Array.isArray(response.data)
-            ? response.data
-            : response.zones ?? [];
+          ? response.data
+          : response.zones ?? [];
 
         this.zones = zones;
-        this.selectedZoneIndex = null;
       },
       error: (error) => {
         console.log('ERROR loading zones', error);
@@ -52,8 +57,8 @@ export class TablesComponent implements OnInit {
         const tables = Array.isArray(response)
           ? response
           : Array.isArray(response.data)
-            ? response.data
-            : response.tables ?? [];
+          ? response.data
+          : response.tables ?? [];
 
         this.tables = tables.map((table: TableItem, index: number) => ({
           ...table,
@@ -66,33 +71,40 @@ export class TablesComponent implements OnInit {
     });
   }
 
+  selectZone(zoneNumericId: number | undefined): void {
+    if (!zoneNumericId) return;
+    this.selectedZoneNumericId = zoneNumericId;
+  }
+
   selectAllZones(): void {
-    this.selectedZoneIndex = null;
+    this.selectedZoneNumericId = null;
   }
 
-  selectZone(index: number): void {
-    this.selectedZoneIndex = index;
+  isAllZonesActive(): boolean {
+    return this.selectedZoneNumericId === null;
   }
 
-  getFilteredTables(): TableItem[] {
-    if (this.selectedZoneIndex === null) {
-      return this.tables;
-    }
+  isZoneActive(zoneNumericId: number | undefined): boolean {
+    return this.selectedZoneNumericId === zoneNumericId;
+  }
+
+  getTablesByZone(zoneNumericId: number | undefined): TableItem[] {
+    if (!zoneNumericId) return [];
 
     return this.tables.filter(
-      (table: TableItem) => Number(table.zone_id) === Number(this.selectedZoneIndex)
+      (table) => Number(table.zone_id) === Number(zoneNumericId),
     );
+  }
+
+  getSelectedZoneName(): string {
+    const zone = this.zones.find(
+      (item) => item.numeric_id === this.selectedZoneNumericId,
+    );
+
+    return zone?.name ?? '';
   }
 
   openTable(tableId: string | number): void {
     this.router.navigate(['/tpv/orders', tableId]);
-  }
-
-  isAllZonesActive(): boolean {
-    return this.selectedZoneIndex === null;
-  }
-
-  isZoneActive(index: number): boolean {
-    return this.selectedZoneIndex === index;
   }
 }

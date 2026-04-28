@@ -8,6 +8,7 @@ final readonly class GetZoneResponse
 {
     public function __construct(
         public string $id,
+        public ?int $numericId,
         public string $restaurantId,
         public string $name,
         public string $createdAt,
@@ -18,6 +19,7 @@ final readonly class GetZoneResponse
     {
         return new self(
             id: $zone->id()->value(),
+            numericId: $zone->numericId(),
             restaurantId: $zone->restaurantId()->value(),
             name: $zone->name()->value(),
             createdAt: $zone->createdAt()->format(\DateTimeInterface::ATOM),
@@ -26,12 +28,13 @@ final readonly class GetZoneResponse
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, string|int|null>
      */
     public function toArray(): array
     {
         return [
             'id' => $this->id,
+            'numeric_id' => $this->numericId,
             'restaurant_id' => $this->restaurantId,
             'name' => $this->name,
             'created_at' => $this->createdAt,

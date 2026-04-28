@@ -5,6 +5,7 @@ import { BaseApiService, ApiResponse } from './base-api.service';
 export interface Zone {
   id: string;
   uuid?: string;
+  numeric_id: number;
   restaurant_id: string | number;
   name: string;
   created_at?: string;

@@ -1,6 +1,6 @@
 .tables-page {
-  --background: #121212;
-  color: white;
+  --background: var(--app-background);
+  color: var(--app-text);
 }
 
 .tables-header {
@@ -8,73 +8,119 @@
 }
 
 .tables-header h2 {
-  color: white;
+  color: var(--app-text);
   font-size: 2rem;
   font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.tables-header p {
+  color: var(--app-muted);
   margin: 0;
 }
 
 .zones-bar {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 .zone-button {
-  background: #1e1e1e;
-  color: white;
-  border: 1px solid #2a2a2a;
+  background: var(--app-surface);
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
   border-radius: 999px;
   padding: 10px 16px;
   cursor: pointer;
+  font-size: 0.95rem;
 }
 
 .zone-button.active {
-  background: #7c3aed;
-  border-color: #7c3aed;
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: #ffffff;
 }
 
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 18px;
 }
 
-ion-card {
+.table-card {
   cursor: pointer;
   margin: 0;
-  border-radius: 16px;
-  border: 1px solid transparent;
-  transition: transform 0.12s ease, border-color 0.12s ease;
+  border-radius: 20px;
+  border: 2px solid transparent;
+  min-height: 150px;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
 }
 
-ion-card:active {
-  transform: scale(0.98);
+.table-card:active {
+  transform: scale(0.97);
 }
 
-ion-card h3,
-ion-card p {
-  margin: 0;
-  color: white;
+.table-card ion-card-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-ion-card h3 {
-  font-size: 1.2rem;
+.table-status-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.table-card h3 {
+  margin: 12px 0 4px;
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.table-zone {
+  margin: 0 0 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-badge {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.85rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
 }
 
-ion-card p {
-  color: #d1d5db;
-}
-
-ion-card.free {
-  --background: #1f3b2d;
+.table-card.free {
+  --background: #166534;
   border-color: #22c55e;
 }
 
-ion-card.occupied {
-  --background: #3b1f1f;
+.table-card.occupied {
+  --background: #7f1d1d;
   border-color: #ef4444;
+}
+.zone-section {
+  margin-bottom: 30px;
+}
+
+.zone-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #9ca3af;
 }

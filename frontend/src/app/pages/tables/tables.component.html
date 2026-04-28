@@ -1,6 +1,7 @@
 <ion-content class="tables-page">
   <div class="tables-header">
     <h2>Mesas</h2>
+    <p>Selecciona una mesa para abrir el pedido</p>
   </div>
 
   <div class="zones-bar" *ngIf="zones.length > 0">
@@ -13,29 +14,72 @@
     </button>
 
     <button
-      *ngFor="let zone of zones; let i = index"
+      *ngFor="let zone of zones"
       class="zone-button"
-      [class.active]="isZoneActive(i + 1)"
-      (click)="selectZone(i + 1)"
+      [class.active]="isZoneActive(zone.numeric_id)"
+      (click)="selectZone(zone.numeric_id)"
     >
       {{ zone.name }}
     </button>
   </div>
 
-  <div class="tables-grid">
-    <ion-card
-      *ngFor="let table of getFilteredTables()"
-      (click)="openTable(table.id)"
-      [class.free]="table.status === 'free'"
-      [class.occupied]="table.status === 'occupied'"
-    >
-      <ion-card-content>
-        <h3>{{ table.name }}</h3>
-        <p>
-          Estado:
-          {{ table.status === 'free' ? 'Libre' : 'Ocupada' }}
-        </p>
-      </ion-card-content>
-    </ion-card>
-  </div>
+  <!-- TODAS LAS ZONAS -->
+  <ng-container *ngIf="selectedZoneNumericId === null">
+    <div *ngFor="let zone of zones" class="zone-section">
+      <h3 class="zone-title">{{ zone.name }}</h3>
+
+      <div class="tables-grid">
+        <ion-card
+          *ngFor="let table of getTablesByZone(zone.numeric_id)"
+          class="table-card"
+          (click)="openTable(table.id)"
+          [class.free]="table.status === 'free'"
+          [class.occupied]="table.status === 'occupied'"
+        >
+          <ion-card-content>
+            <div class="table-status-icon">
+              {{ table.status === 'free' ? '✓' : '●' }}
+            </div>
+
+            <h3>{{ table.name }}</h3>
+
+            <span class="status-badge">
+              {{ table.status === 'free' ? 'Libre' : 'Ocupada' }}
+            </span>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ZONA SELECCIONADA -->
+  <ng-container *ngIf="selectedZoneNumericId !== null">
+    <div class="zone-section">
+      <h3 class="zone-title">
+        {{ getSelectedZoneName() }}
+      </h3>
+
+      <div class="tables-grid">
+        <ion-card
+          *ngFor="let table of getTablesByZone(selectedZoneNumericId)"
+          class="table-card"
+          (click)="openTable(table.id)"
+          [class.free]="table.status === 'free'"
+          [class.occupied]="table.status === 'occupied'"
+        >
+          <ion-card-content>
+            <div class="table-status-icon">
+              {{ table.status === 'free' ? '✓' : '●' }}
+            </div>
+
+            <h3>{{ table.name }}</h3>
+
+            <span class="status-badge">
+              {{ table.status === 'free' ? 'Libre' : 'Ocupada' }}
+            </span>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </ng-container>
 </ion-content>

@@ -35,6 +35,7 @@ final class EloquentZoneRepository implements ZoneRepositoryInterface
 
         return Zone::fromPersistence(
             $model->uuid,
+            $model->id,
             $model->restaurant_id,
             $model->name,
             $model->created_at->toDateTimeImmutable(),
@@ -52,6 +53,7 @@ final class EloquentZoneRepository implements ZoneRepositoryInterface
         return $models->map(function (EloquentZone $model) {
             return Zone::fromPersistence(
                 $model->uuid,
+                $model->id,
                 $model->restaurant_id,
                 $model->name,
                 $model->created_at->toDateTimeImmutable(),
