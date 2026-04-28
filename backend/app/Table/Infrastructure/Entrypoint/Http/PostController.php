@@ -15,14 +15,14 @@ final class PostController
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'restaurant_id' => ['required', 'integer'],
-            'zone_id' => ['required', 'integer'],
+            'restaurant_id' => ['required', 'string'],
+            'zone_id' => ['required', 'string'],
             'name' => ['required', 'string', 'max:255'],
         ]);
 
         $response = ($this->createTable)(
-            (string) $validated['restaurant_id'],
-            (string) $validated['zone_id'],
+            $validated['restaurant_id'],
+            $validated['zone_id'],
             $validated['name'],
         );
 

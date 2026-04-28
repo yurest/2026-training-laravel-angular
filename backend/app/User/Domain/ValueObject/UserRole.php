@@ -19,7 +19,7 @@ final readonly class UserRole
             throw new \InvalidArgumentException('User role cannot be empty.');
         }
 
-        if (!in_array($trimmed, self::ALLOWED_VALUES, true)) {
+        if (! in_array($trimmed, self::ALLOWED_VALUES, true)) {
             throw new \InvalidArgumentException(
                 sprintf(
                     'User role must be one of: %s.',

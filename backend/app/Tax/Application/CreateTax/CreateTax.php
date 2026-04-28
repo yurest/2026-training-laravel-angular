@@ -22,7 +22,7 @@ final class CreateTax
         $restaurantIdVO = RestaurantId::create($restaurantId);
         $nameVO = TaxName::create($name);
         $percentageVO = TaxPercentage::create($percentage);
-        
+
         $tax = Tax::dddCreate(
             $restaurantIdVO,
             $nameVO,

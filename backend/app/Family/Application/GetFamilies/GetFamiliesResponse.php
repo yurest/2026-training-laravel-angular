@@ -7,14 +7,14 @@ use App\Family\Application\GetFamily\GetFamilyResponse;
 final readonly class GetFamiliesResponse
 {
     /**
-     * @param GetFamilyResponse[] $families
+     * @param  GetFamilyResponse[]  $families
      */
     public function __construct(
         public array $families,
     ) {}
 
     /**
-     * @param GetFamilyResponse[] $families
+     * @param  GetFamilyResponse[]  $families
      */
     public static function create(array $families): self
     {

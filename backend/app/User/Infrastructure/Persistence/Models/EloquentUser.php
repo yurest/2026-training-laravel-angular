@@ -2,8 +2,8 @@
 
 namespace App\User\Infrastructure\Persistence\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
 class EloquentUser extends Authenticatable

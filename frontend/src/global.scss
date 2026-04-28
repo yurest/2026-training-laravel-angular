@@ -1,37 +1,131 @@
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* DARK MODE */
+body.dark {
+  --ion-background-color: #121212;
+  --ion-text-color: #ffffff;
+  --app-background: #121212;
+  --app-surface: #1e1e1e;
+  --app-surface-soft: #2a2a2a;
+  --app-text: #ffffff;
+  --app-muted: #d1d5db;
+  --app-border: #2f2f2f;
+  --app-primary: #7c3aed;
+}
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-/* @import '@ionic/angular/css/palettes/dark.system.css'; */
+/* LIGHT MODE */
+body.light {
+  --ion-background-color: #f4f4f5;
+  --ion-text-color: #111827;
+  --app-background: #f4f4f5;
+  --app-surface: #ffffff;
+  --app-surface-soft: #e5e7eb;
+  --app-text: #111827;
+  --app-muted: #4b5563;
+  --app-border: #d1d5db;
+  --app-primary: #7c3aed;
+}
+
+body {
+  background: var(--app-background);
+  color: var(--app-text);
+}
+
+ion-content {
+  --background: var(--app-background);
+  color: var(--app-text);
+}
+
+ion-card {
+  --background: var(--app-surface);
+  color: var(--app-text);
+}
+
+ion-header,
+ion-toolbar {
+  --background: var(--app-surface) !important;
+  --color: var(--app-text) !important;
+}
+
+/* ALERT PERSONALIZADO */
+.custom-dark-alert {
+  --background: var(--app-surface);
+  --color: var(--app-text);
+  --backdrop-opacity: 0.6;
+}
+
+ion-alert.custom-dark-alert {
+  --background: var(--app-surface) !important;
+  --color: var(--app-text) !important;
+}
+
+.custom-dark-alert .alert-wrapper {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.custom-dark-alert .alert-head,
+.custom-dark-alert .alert-title,
+.custom-dark-alert .alert-sub-title,
+.custom-dark-alert .alert-message {
+  color: var(--app-text) !important;
+}
+
+.custom-dark-alert .alert-button {
+  color: var(--app-primary) !important;
+}
+
+.custom-dark-alert .alert-button.role-destructive {
+  color: #ef4444 !important;
+}
+
+.custom-dark-alert .alert-button-inner {
+  color: inherit !important;
+}
+
+/* SELECT / ALERT DE IONIC EN MODO OSCURO */
+body.dark ion-alert {
+  --background: #1e1e1e;
+  --color: #ffffff;
+}
+
+body.dark ion-alert .alert-wrapper {
+  background: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+body.dark ion-alert .alert-title,
+body.dark ion-alert .alert-sub-title,
+body.dark ion-alert .alert-message,
+body.dark ion-alert .alert-radio-label {
+  color: #ffffff !important;
+}
+
+body.dark ion-alert .alert-radio-icon {
+  border-color: #9ca3af !important;
+}
+
+body.dark ion-alert .alert-radio-inner {
+  background: #7c3aed !important;
+}
+
+body.dark ion-alert .alert-button {
+  color: #7c3aed !important;
+}

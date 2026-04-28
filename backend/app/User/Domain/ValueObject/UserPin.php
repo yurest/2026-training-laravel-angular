@@ -16,7 +16,7 @@ final readonly class UserPin
             throw new \InvalidArgumentException('User pin cannot be empty.');
         }
 
-        if (!ctype_digit($trimmed)) {
+        if (! ctype_digit($trimmed)) {
             throw new \InvalidArgumentException('User pin must contain only digits.');
         }
 

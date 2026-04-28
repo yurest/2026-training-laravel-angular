@@ -7,14 +7,14 @@ use App\User\Application\GetUser\GetUserResponse;
 final readonly class GetUsersResponse
 {
     /**
-     * @param GetUserResponse[] $users
+     * @param  GetUserResponse[]  $users
      */
     public function __construct(
         public array $users,
     ) {}
 
     /**
-     * @param GetUserResponse[] $users
+     * @param  GetUserResponse[]  $users
      */
     public static function create(array $users): self
     {

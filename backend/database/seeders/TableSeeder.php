@@ -27,12 +27,12 @@ class TableSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-               'uuid' => Str::uuid()->toString(),
+                'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $terraceId,
                 'name' => 'Table 2',
                 'created_at' => now(),
-                'updated_at' => now(), 
+                'updated_at' => now(),
             ],
             [
                 'uuid' => Str::uuid()->toString(),
@@ -66,7 +66,7 @@ class TableSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-             [
+            [
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $barId,

@@ -1,13 +1,49 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () => import('./pages/core/home/home.page').then((m) => m.HomePage),
+    path: 'login',
+    loadComponent: () =>
+      import('./pages/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'tpv',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/tpv/layout/layout.component').then((m) => m.LayoutComponent),
+    children: [
+      {
+        path: 'tables',
+        loadComponent: () =>
+          import('./pages/tables/tables.component').then((m) => m.TablesComponent),
+      },
+      {
+        path: 'orders/:id',
+        loadComponent: () =>
+          import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
+      },
+      {
+        path: 'settings',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
+      },
+      {
+        path: '',
+        redirectTo: 'tables',
+        pathMatch: 'full',
+      },
+    ],
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'login',
     pathMatch: 'full',
+  },
+  {
+    path: '**',
+    redirectTo: 'login',
   },
 ];

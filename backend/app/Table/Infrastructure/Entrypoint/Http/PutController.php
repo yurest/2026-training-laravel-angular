@@ -16,7 +16,7 @@ final class PutController
     public function __invoke(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([
-            'zone_id' => ['sometimes', 'integer'],
+            'zone_id' => ['sometimes', 'string'],
             'name' => ['sometimes', 'string', 'max:255'],
         ]);
 

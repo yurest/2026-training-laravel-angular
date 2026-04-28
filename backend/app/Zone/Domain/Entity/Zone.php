@@ -11,6 +11,7 @@ class Zone
 {
     private function __construct(
         private Uuid $id,
+        private ?int $numericId,
         private RestaurantId $restaurantId,
         private ZoneName $name,
         private DomainDateTime $createdAt,
@@ -25,6 +26,7 @@ class Zone
 
         return new self(
             Uuid::generate(),
+            null,
             $restaurantId,
             $name,
             $now,
@@ -34,6 +36,7 @@ class Zone
 
     public static function fromPersistence(
         string $id,
+        ?int $numericId,
         string $restaurantId,
         string $name,
         \DateTimeImmutable $createdAt,
@@ -41,6 +44,7 @@ class Zone
     ): self {
         return new self(
             Uuid::create($id),
+            $numericId,
             RestaurantId::create($restaurantId),
             ZoneName::create($name),
             DomainDateTime::create($createdAt),
@@ -51,6 +55,11 @@ class Zone
     public function id(): Uuid
     {
         return $this->id;
+    }
+
+    public function numericId(): ?int
+    {
+        return $this->numericId;
     }
 
     public function restaurantId(): RestaurantId
@@ -78,6 +87,7 @@ class Zone
     ): self {
         return new self(
             $this->id,
+            $this->numericId,
             $this->restaurantId,
             $name,
             $this->createdAt,

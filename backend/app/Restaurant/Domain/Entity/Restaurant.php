@@ -2,13 +2,13 @@
 
 namespace App\Restaurant\Domain\Entity;
 
-use App\Shared\Domain\ValueObject\DomainDateTime;
-use App\Shared\Domain\ValueObject\Email;
-use App\Shared\Domain\ValueObject\Uuid;
 use App\Restaurant\Domain\ValueObject\CompanyTaxId;
 use App\Restaurant\Domain\ValueObject\RestaurantLegalName;
 use App\Restaurant\Domain\ValueObject\RestaurantName;
 use App\Restaurant\Domain\ValueObject\RestaurantPasswordHash;
+use App\Shared\Domain\ValueObject\DomainDateTime;
+use App\Shared\Domain\ValueObject\Email;
+use App\Shared\Domain\ValueObject\Uuid;
 
 class Restaurant
 {

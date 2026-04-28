@@ -3,8 +3,8 @@
 namespace App\Family\Infrastructure\Entrypoint\Http;
 
 use App\Family\Application\CreateFamily\CreateFamily;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 final class PostController
 {
@@ -16,7 +16,7 @@ final class PostController
     {
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
-            'name' => ['required', 'string', 'max:255'], 
+            'name' => ['required', 'string', 'max:255'],
         ]);
 
         $response = ($this->createFamily)(

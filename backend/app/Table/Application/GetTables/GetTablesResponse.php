@@ -7,14 +7,14 @@ use App\Table\Application\GetTable\GetTableResponse;
 final readonly class GetTablesResponse
 {
     /**
-     * @param GetTableResponse[] $tables
+     * @param  GetTableResponse[]  $tables
      */
     public function __construct(
         public array $tables,
     ) {}
 
     /**
-     * @param GetTableResponse[] $tables
+     * @param  GetTableResponse[]  $tables
      */
     public static function create(array $tables): self
     {

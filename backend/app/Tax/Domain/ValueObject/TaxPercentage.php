@@ -18,10 +18,12 @@ final readonly class TaxPercentage
 
         $this->value = $value;
     }
+
     public static function create(int $value): self
     {
         return new self($value);
     }
+
     public function value(): int
     {
         return $this->value;

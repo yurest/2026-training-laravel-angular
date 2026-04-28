@@ -26,6 +26,7 @@ final readonly class UpdateFamilyResponse
             updatedAt: $family->updatedAt()->format(\DateTimeInterface::ATOM),
         );
     }
+
     /**
      * @return array<string, string|bool>
      */
