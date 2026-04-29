@@ -1,6 +1,12 @@
 <?php
 
-use App\Family\Infrastructure\Entrypoint\Http\DeleteController as FamilyDeleteController;
+//ORDERS
+use App\Order\Infrastructure\Entrypoint\Http\PostController as OrderPostController;
+use App\Order\Infrastructure\Entrypoint\Http\PutController as OrderPutController;
+use App\Order\Infrastructure\Entrypoint\Http\GetController as OrderGetController;
+use App\Order\Infrastructure\Entrypoint\Http\IndexController as OrderIndexController;
+use App\Order\Infrastructure\Entrypoint\Http\DeleteController as OrderDeleteController;
+
 // TAX
 use App\Family\Infrastructure\Entrypoint\Http\GetController as FamilyGetController;
 use App\Family\Infrastructure\Entrypoint\Http\IndexController as FamilyIndexController;
@@ -12,6 +18,7 @@ use App\Product\Infrastructure\Entrypoint\Http\GetController as ProductGetContro
 use App\Product\Infrastructure\Entrypoint\Http\IndexController as ProductIndexController;
 use App\Product\Infrastructure\Entrypoint\Http\PostController as ProductPostController;
 use App\Product\Infrastructure\Entrypoint\Http\PutController as ProductPutController;
+use App\Family\Infrastructure\Entrypoint\Http\DeleteController as FamilyDeleteController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\ChangePasswordPatchController as RestaurantChangePasswordPatchController;
 // PRODUCT
 use App\Restaurant\Infrastructure\Entrypoint\Http\DeleteController as RestaurantDeleteController;
@@ -113,4 +120,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tables/{id}', TableGetController::class);
     Route::put('/tables/{id}', TablePutController::class);
     Route::delete('/tables/{id}', TableDeleteController::class);
+
+    // ORDERS
+    Route::post('/orders', OrderPostController::class);
+    Route::put('/orders/{id}', OrderPutController::class);
+    Route::get('/orders', OrderIndexController::class);
+    Route::get('/orders/{id}', OrderGetController::class);
+    Route::delete('/orders/{id}', OrderDeleteController::class);
 });

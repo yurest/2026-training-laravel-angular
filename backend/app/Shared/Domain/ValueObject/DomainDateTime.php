@@ -2,7 +2,7 @@
 
 namespace App\Shared\Domain\ValueObject;
 
-class DomainDateTime
+final readonly class DomainDateTime
 {
     private \DateTimeImmutable $value;
 

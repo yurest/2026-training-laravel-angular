@@ -2,16 +2,19 @@
 
 namespace App\Shared\Domain\ValueObject;
 
-final readonly class Email
+final readonly class TableId
 {
     private string $value;
 
     private function __construct(string $value)
     {
-        if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException("Invalid email: $value");
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            throw new \InvalidArgumentException('Table id cannot be empty.');
         }
-        $this->value = $value;
+
+        $this->value = $trimmed;
     }
 
     public static function create(string $value): self

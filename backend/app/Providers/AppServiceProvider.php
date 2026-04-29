@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Order\Domain\Interfaces\OrderRepositoryInterface;
+use App\Order\Infrastructure\Persistence\Repositories\EloquentOrderRepository;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 use App\Family\Infrastructure\Persistence\Repositories\EloquentFamilyRepository;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TaxRepositoryInterface::class, EloquentTaxRepository::class);
         $this->app->bind(ZoneRepositoryInterface::class, EloquentZoneRepository::class);
         $this->app->bind(TableRepositoryInterface::class, EloquentTableRepository::class);
+        $this->app->bind(OrderRepositoryInterface::class, EloquentOrderRepository::class);
     }
 
     /**
