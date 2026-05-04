@@ -27,7 +27,7 @@ class OrderLine
         private DomainDateTime $updatedAt,
     ) {}
 
-    public static function create(
+    public static function dddCreate(
         RestaurantId $restaurantId,
         OrderId $orderId,
         ProductId $productId,
@@ -78,14 +78,72 @@ class OrderLine
         );
     }
 
-    public function id(): Uuid { return $this->id; }
-    public function restaurantId(): RestaurantId { return $this->restaurantId; }
-    public function orderId(): OrderId { return $this->orderId; }
-    public function productId(): ProductId { return $this->productId; }
-    public function userId(): UserId { return $this->userId; }
-    public function quantity(): OrderLineQuantity { return $this->quantity; }
-    public function price(): OrderLinePrice { return $this->price; }
-    public function taxPercentage(): OrderLineTaxPercentage { return $this->taxPercentage; }
-    public function createdAt(): DomainDateTime { return $this->createdAt; }
-    public function updatedAt(): DomainDateTime { return $this->updatedAt; }
+public function id(): Uuid
+    {
+        return $this->id;
+    }
+
+    public function restaurantId(): RestaurantId
+    {
+        return $this->restaurantId;
+    }
+
+    public function orderId(): OrderId
+    {
+        return $this->orderId;
+    }
+
+    public function productId(): ProductId
+    {
+        return $this->productId;
+    }
+
+    public function userId(): UserId
+    {
+        return $this->userId;
+    }
+
+    public function quantity(): OrderLineQuantity
+    {
+        return $this->quantity;
+    }
+
+    public function price(): OrderLinePrice
+    {
+        return $this->price;
+    }
+
+    public function taxPercentage(): OrderLineTaxPercentage
+    {
+        return $this->taxPercentage;
+    }
+
+    public function createdAt(): DomainDateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function updatedAt(): DomainDateTime
+    {
+        return $this->updatedAt;
+    }
+
+    public function update(
+        OrderLineQuantity $quantity,
+        OrderLinePrice $price,
+        OrderLineTaxPercentage $taxPercentage,
+    ): self {
+        return new self(
+            $this->id,
+            $this->restaurantId,
+            $this->orderId,
+            $this->productId,
+            $this->userId,
+            $quantity,
+            $price,
+            $taxPercentage,
+            $this->createdAt,
+            DomainDateTime::now(),
+        );
+    }
 }

@@ -1,5 +1,12 @@
 <?php
 
+//ORDER LINES
+use App\OrderLine\Infrastructure\Entrypoint\Http\PostController as OrderLinePostController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\PutController as OrderLinePutController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\GetController as OrderLineGetController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\IndexController as OrderLineIndexController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\DeleteController as OrderLineDeleteController;
+
 //ORDERS
 use App\Order\Infrastructure\Entrypoint\Http\PostController as OrderPostController;
 use App\Order\Infrastructure\Entrypoint\Http\PutController as OrderPutController;
@@ -127,4 +134,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', OrderIndexController::class);
     Route::get('/orders/{id}', OrderGetController::class);
     Route::delete('/orders/{id}', OrderDeleteController::class);
+
+    // ORDER LINES
+    Route::post('/order-lines', OrderLinePostController::class);
+    Route::put('/order-lines/{id}', OrderLinePutController::class);
+    Route::get('/order-lines', OrderLineIndexController::class);
+    Route::get('/order-lines/{id}', OrderLineGetController::class);
+    Route::delete('/order-lines/{id}', OrderLineDeleteController::class);
 });
