@@ -98,9 +98,6 @@ final class CreateSale
                 $paymentsTotal += $payment['amount_cents'];
             }
 
-            // Filosofía deuda viva: cualquier pago es válido, incluso parcial.
-            // Solo exigimos coincidencia exacta cuando se declara explícitamente
-            // como pago completo (no parcial) y el importe cubre el total.
             if ($isPartialPayment || $paymentsTotal < $total + $tipCents) {
                 $total = $paymentsTotal;
             } elseif ($paymentsTotal !== $total + $tipCents) {
