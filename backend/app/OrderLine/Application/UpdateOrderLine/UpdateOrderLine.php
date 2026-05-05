@@ -6,11 +6,13 @@ use App\OrderLine\Domain\Exception\OrderLineNotFoundException;
 use App\OrderLine\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\OrderLine\Domain\ValueObject\OrderLinePrice;
 use App\OrderLine\Domain\ValueObject\OrderLineQuantity;
+use App\OrderLineLog\Application\CreateOrderLineLog\CreateOrderLineLog;
 
 final class UpdateOrderLine
 {
     public function __construct(
         private OrderLineRepositoryInterface $orderLineRepository,
+        private CreateOrderLineLog $createOrderLineLog,
     ) {}
 
     public function __invoke(
@@ -31,6 +33,20 @@ final class UpdateOrderLine
         $priceVO = $price !== null
             ? OrderLinePrice::create($price)
             : $orderLine->price();
+
+         // LOG (ANTES del update)
+        ($this->createOrderLineLog)(
+            $orderLine->restaurantId()->value(),
+            $orderLine->orderId()->value(),
+            $orderLine->id()->value(),
+            $orderLine->userId()->value(),
+            'updated',
+            $orderLine->quantity()->value(),
+            $quantityVO->value(),
+            $orderLine->price()->value(),
+            $priceVO->value(),
+            null,
+        );
 
         $orderLine = $orderLine->update(
             $quantityVO,

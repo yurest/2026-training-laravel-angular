@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\OrderLineLog\Domain\Interfaces\OrderLineLogRepositoryInterface;
+use App\OrderLineLog\Infrastructure\Persistence\Repositories\EloquentOrderLineLogRepository;
+
 use App\OrderLine\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\OrderLine\Infrastructure\Persistence\Repositories\EloquentOrderLineRepository;
 
@@ -60,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TableRepositoryInterface::class, EloquentTableRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, EloquentOrderRepository::class);
         $this->app->bind(OrderLineRepositoryInterface::class, EloquentOrderLineRepository::class);
+        $this->app->bind(OrderLineLogRepositoryInterface::class, EloquentOrderLineLogRepository::class);
     }
 
     /**

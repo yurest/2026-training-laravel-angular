@@ -7,6 +7,7 @@ use App\OrderLine\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\OrderLine\Domain\ValueObject\OrderLinePrice;
 use App\OrderLine\Domain\ValueObject\OrderLineQuantity;
 use App\OrderLine\Domain\ValueObject\OrderLineTaxPercentage;
+use App\OrderLineLog\Application\CreateOrderLineLog\CreateOrderLineLog;
 use App\Shared\Domain\ValueObject\OrderId;
 use App\Shared\Domain\ValueObject\ProductId;
 use App\Shared\Domain\ValueObject\RestaurantId;
@@ -16,6 +17,7 @@ final class CreateOrderLine
 {
     public function __construct(
         private OrderLineRepositoryInterface $orderLineRepository,
+        private CreateOrderLineLog $createOrderLineLog,
     ) {}
 
     public function __invoke(
@@ -46,6 +48,20 @@ final class CreateOrderLine
         );
 
         $this->orderLineRepository->save($orderLine);
+
+        //LOG
+        ($this->createOrderLineLog)(
+            $restaurantIdVO->value(),
+            $orderIdVO->value(),
+            $orderLine->id()->value(),
+            $userIdVO->value(),
+            'created',
+            null,
+            $quantityVO->value(),
+            null,
+            $priceVO->value(),
+            null,
+        );
 
         return CreateOrderLineResponse::create($orderLine);
     }
