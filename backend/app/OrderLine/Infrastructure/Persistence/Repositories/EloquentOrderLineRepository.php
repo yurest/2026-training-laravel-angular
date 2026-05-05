@@ -75,6 +75,31 @@ final class EloquentOrderLineRepository implements OrderLineRepositoryInterface
         })->all();
     }
 
+    /**
+ * @return array<int, OrderLine>
+ */
+public function findByOrderId(string $orderId): array
+{
+    $models = $this->model->newQuery()
+        ->where('order_id', $orderId)
+        ->get();
+
+    return $models->map(function (EloquentOrderLine $model) {
+        return OrderLine::fromPersistence(
+            $model->uuid,
+            $model->restaurant_id,
+            $model->order_id,
+            $model->product_id,
+            $model->user_id,
+            $model->quantity,
+            $model->price,
+            $model->tax_percentage,
+            $model->created_at->toDateTimeImmutable(),
+            $model->updated_at->toDateTimeImmutable(),
+        );
+    })->all();
+}
+
     public function delete(OrderLine $orderLine): void
     {
         $this->model->newQuery()->where('uuid', $orderLine->id()->value())->delete();

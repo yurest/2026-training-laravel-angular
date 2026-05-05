@@ -1,5 +1,7 @@
 <?php
 
+use App\Sale\Infrastructure\Entrypoint\Http\PostController as SalePostController;
+
 //ORDER LINES
 use App\OrderLine\Infrastructure\Entrypoint\Http\PostController as OrderLinePostController;
 use App\OrderLine\Infrastructure\Entrypoint\Http\PutController as OrderLinePutController;
@@ -141,4 +143,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/order-lines', OrderLineIndexController::class);
     Route::get('/order-lines/{id}', OrderLineGetController::class);
     Route::delete('/order-lines/{id}', OrderLineDeleteController::class);
+
+    // SALES
+    Route::post('/sales', SalePostController::class);
 });

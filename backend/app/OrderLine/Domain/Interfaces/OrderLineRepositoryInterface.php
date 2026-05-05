@@ -15,5 +15,10 @@ interface OrderLineRepositoryInterface
      */
     public function findAll(): array;
 
+    /**
+     * @return array<int, OrderLine>
+     */
+    public function findByOrderId(string $orderId): array;
+
     public function delete(OrderLine $orderLine): void;
 }
