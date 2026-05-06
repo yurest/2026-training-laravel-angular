@@ -4,8 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { finalize, take } from 'rxjs/operators';
-import { AuthService } from '../../../services/auth.service';
-import { DeviceStorageService, LinkedRestaurant } from '../../../services/device-storage.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { DeviceStorageService, LinkedRestaurant } from '../../../core/services/device-storage.service';
 
 interface QuickUser {
   name: string;

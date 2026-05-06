@@ -6,7 +6,7 @@ import { BtnComponent } from '../btn/btn.component';
 import { ToggleComponent } from '../toggle/toggle.component';
 import { NumpadComponent } from '../numpad/numpad.component';
 import { AmountDisplayComponent } from '../amount-display/amount-display.component';
-import { DinersStatusComponent } from '../diners-status/diners-status.component';
+import { DinersStatusComponent } from '../../shared/components/diners-status/diners-status.component';
 
 type PaymentMethod = 'cash' | 'card' | 'bizum' | 'mixed' | 'invitation';
 

@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './guards/auth.guard';
-import { RoleGuard } from './guards/role.guard';
+import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
     path: 'app',
-    loadComponent: () => import('./pages/core/app-layout/app-layout.page').then((m) => m.AppLayoutPage),
+    loadComponent: () => import('./core/layout/app-layout/app-layout.page').then((m) => m.AppLayoutPage),
     children: [
       {
         path: 'gestion',
@@ -16,17 +16,17 @@ export const routes: Routes = [
       {
         path: 'mesas',
         canActivate: [AuthGuard],
-        loadComponent: () => import('./pages/core/mesas/mesas.page').then((m) => m.MesasPage),
+        loadComponent: () => import('./features/tables/pages/mesas/mesas.page').then((m) => m.MesasPage),
       },
       {
         path: 'pedidos',
         canActivate: [AuthGuard],
-        loadComponent: () => import('./pages/core/pedidos/pedidos.page').then((m) => m.PedidosPage),
+        loadComponent: () => import('./features/orders/pages/pedidos/pedidos.page').then((m) => m.PedidosPage),
       },
       {
         path: 'comanda',
         canActivate: [AuthGuard],
-        loadComponent: () => import('./pages/core/comanda/comanda.page').then((m) => m.ComandaPage),
+        loadComponent: () => import('./features/orders/pages/comanda/comanda.page').then((m) => m.ComandaPage),
       },
       {
         path: 'autoservicio',
@@ -36,7 +36,7 @@ export const routes: Routes = [
       {
         path: 'caja',
         canActivate: [AuthGuard],
-        loadComponent: () => import('./pages/core/caja/caja.page').then((m) => m.CajaPage),
+        loadComponent: () => import('./features/cash/pages/caja/caja.page').then((m) => m.CajaPage),
       },
       {
         path: 'developer-dashboard',

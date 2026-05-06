@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
-import { DeviceStorageService } from '../../../services/device-storage.service';
+import { DeviceStorageService } from '../../../core/services/device-storage.service';
 
 @Component({
   selector: 'app-home',

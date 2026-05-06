@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { AppContextService } from '../../../services/app-context.service';
-import { DeviceStorageService } from '../../../services/device-storage.service';
+import { AppContextService } from '../../../core/services/app-context.service';
+import { DeviceStorageService } from '../../../core/services/device-storage.service';
 import { FamilyItem, FamilyService } from '../../../services/family.service';
 import { ProductItem, ProductService } from '../../../services/product.service';
 import { RestaurantService } from '../../../services/restaurant.service';
@@ -22,7 +22,7 @@ import { ZonesManagementComponent } from '../../../components/gestion/zones-mana
 import { TaxesManagementComponent } from '../../../components/gestion/taxes-management/taxes-management.component';
 import { ZReportsManagementComponent, ZReportRow } from '../../../components/gestion/zreports-management/zreports-management.component';
 import { ManagementEntityKey } from '../../../components/gestion/entity-tabs/entity-tabs.component';
-import { TpvService } from '../../../services/tpv.service';
+import { TpvService } from '../../../features/cash/services/tpv.service';
 type UserRole = 'operator' | 'supervisor' | 'admin';
 
 interface ManagementRestaurant {

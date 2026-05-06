@@ -3,8 +3,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, finalize, switchMap, take, takeUntil, map, tap } from 'rxjs/operators';
-import { AuthService } from '../../../services/auth.service';
-import { PinAuthService, AuthContext, AuthActionType } from '../../../services/pin-auth.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { PinAuthService, AuthContext, AuthActionType } from '../../../core/services/pin-auth.service';
 import { PinAuthResult } from '../../../components/pin-auth-modal/pin-auth-modal.component';
 import { TpvService, TpvCashSession, TpvCashSessionListItem, TpvOrder, TpvSale, TpvTableItem } from '../../../services/tpv.service';
 import { ChargeSessionService, ChargeSession, RecordPaymentResponse } from '../../../services/charge-session.service';
@@ -13,17 +13,17 @@ import { PinAuthModalComponent } from '../../../components/pin-auth-modal/pin-au
 import { CashMovementModalComponent } from '../../../components/cash-movement-modal/cash-movement-modal.component';
 import { ClosingWizardComponent, ZReportData } from '../../../components/closing-wizard/closing-wizard.component';
 import { CobrarModalComponent, OrderLine } from '../../../components/cobrar-modal/cobrar-modal.component';
-import { SplitBillModalComponent, BillLine } from '../../../components/split-bill-modal/split-bill-modal.component';
-import { MesasAbiertasComponent, PendingTable } from '../../../components/mesas-abiertas/mesas-abiertas.component';
+import { SplitBillModalComponent, BillLine } from '../../../features/cash/ui/split-bill-modal/split-bill-modal.component';
+import { MesasAbiertasComponent, PendingTable } from '../../../features/tables/ui/mesas-abiertas/mesas-abiertas.component';
 import { MethodBarComponent, MethodBreakdown } from '../../../components/method-bar/method-bar.component';
 import { MovimientosListComponent, CashMovement } from '../../../components/movimientos-list/movimientos-list.component';
-import { CardComponent } from '../../../components/card/card.component';
-import { BadgeComponent } from '../../../components/badge/badge.component';
-import { BtnComponent } from '../../../components/btn/btn.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
+import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { BtnComponent } from '../../../shared/components/btn/btn.component';
 import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
-import { SegmentComponent } from '../../../components/segment/segment.component';
+import { SegmentComponent } from '../../../shared/components/segment/segment.component';
 import { PaymentSuccessComponent } from '../../../components/payment-success/payment-success.component';
-import { DinersStatusComponent } from '../../../components/diners-status/diners-status.component';
+import { DinersStatusComponent } from '../../../shared/components/diners-status/diners-status.component';
 
 type CajaState = 'pre-apertura' | 'activa' | 'arqueo' | 'historico';
 

@@ -3,9 +3,9 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { take } from 'rxjs/operators';
-import { AuthService } from '../../../services/auth.service';
-import { DeviceStorageService, LinkedRestaurant } from '../../../services/device-storage.service';
-import { AppContextService } from '../../../services/app-context.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { DeviceStorageService, LinkedRestaurant } from '../../../core/services/device-storage.service';
+import { AppContextService } from '../../../core/services/app-context.service';
 
 interface Restaurant {
   uuid: string;

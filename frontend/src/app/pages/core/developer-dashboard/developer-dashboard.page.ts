@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { take } from 'rxjs';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { RestaurantModalComponent } from '../../../components/modals/restaurant-modal/restaurant-modal.component';
 import { UserModalComponent } from '../../../components/modals/user-modal/user-modal.component';
 

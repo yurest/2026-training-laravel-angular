@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CardComponent } from '../../card/card.component';
-import { BadgeComponent } from '../../badge/badge.component';
-import { BtnComponent } from '../../btn/btn.component';
-import { ZReportModalComponent, ZReportSession } from '../../z-report-modal/z-report-modal.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
+import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { BtnComponent } from '../../../shared/components/btn/btn.component';
+import { ZReportModalComponent, ZReportSession } from '../../../features/cash/ui/z-report-modal/z-report-modal.component';
 
 export interface ZReportRow {
   id: string;
