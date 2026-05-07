@@ -7,13 +7,13 @@ use InvalidArgumentException;
 final readonly class OrderStatus
 {
     private const OPEN = 'open';
-    private const CLOSED = 'closed';
     private const CANCELLED = 'cancelled';
+    private const INVOICED = 'invoiced';
 
     private const ALLOWED = [
         self::OPEN,
-        self::CLOSED,
         self::CANCELLED,
+        self::INVOICED,
     ];
 
     private function __construct(
@@ -34,6 +34,16 @@ final readonly class OrderStatus
     public static function open(): self
     {
         return new self(self::OPEN);
+    }
+
+    public static function cancelled(): self
+    {
+        return new self(self::CANCELLED);
+    }
+
+    public static function invoiced(): self
+    {
+        return new self(self::INVOICED);
     }
 
     public function value(): string

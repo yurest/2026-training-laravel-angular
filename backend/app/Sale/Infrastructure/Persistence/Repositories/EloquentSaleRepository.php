@@ -5,6 +5,7 @@ namespace App\Sale\Infrastructure\Persistence\Repositories;
 use App\Sale\Domain\Entity\Sale;
 use App\Sale\Domain\Interfaces\SaleRepositoryInterface;
 use App\Sale\Infrastructure\Persistence\Models\EloquentSale;
+use Illuminate\Support\Facades\DB;
 
 final class EloquentSaleRepository implements SaleRepositoryInterface
 {
@@ -14,11 +15,15 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
 
     public function save(Sale $sale): void
     {
+        $orderId = DB::table('orders')
+            ->where('uuid', $sale->orderId()->value())
+            ->value('id');
+
         $this->model->newQuery()->updateOrCreate(
             ['uuid' => $sale->id()->value()],
             [
                 'restaurant_id' => $sale->restaurantId()->value(),
-                'order_id' => $sale->orderId()->value(),
+                'order_id' => $orderId,
                 'user_id' => $sale->userId()->value(),
                 'ticket_number' => $sale->ticketNumber()?->value(),
                 'value_date' => $sale->valueDate()->value(),
@@ -50,7 +55,9 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             ->orderByDesc('value_date')
             ->get();
 
-        return $models->map(fn (EloquentSale $model) => $this->mapToEntity($model))->all();
+        return $models
+            ->map(fn (EloquentSale $model) => $this->mapToEntity($model))
+            ->all();
     }
 
     /**
@@ -64,7 +71,9 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             ->orderByDesc('value_date')
             ->get();
 
-        return $models->map(fn (EloquentSale $model) => $this->mapToEntity($model))->all();
+        return $models
+            ->map(fn (EloquentSale $model) => $this->mapToEntity($model))
+            ->all();
     }
 
     /**
@@ -82,7 +91,9 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             ->orderByDesc('value_date')
             ->get();
 
-        return $models->map(fn (EloquentSale $model) => $this->mapToEntity($model))->all();
+        return $models
+            ->map(fn (EloquentSale $model) => $this->mapToEntity($model))
+            ->all();
     }
 
     /**
@@ -98,26 +109,36 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             ->whereDate('value_date', $date);
 
         if ($shift === 'comida') {
-            $query->whereTime('value_date', '>=', '12:00:00')
+            $query
+                ->whereTime('value_date', '>=', '12:00:00')
                 ->whereTime('value_date', '<', '18:00:00');
         }
 
         if ($shift === 'cena') {
-            $query->whereTime('value_date', '>=', '18:00:00')
+            $query
+                ->whereTime('value_date', '>=', '18:00:00')
                 ->whereTime('value_date', '<=', '23:59:59');
         }
 
-        $models = $query->orderByDesc('value_date')->get();
+        $models = $query
+            ->orderByDesc('value_date')
+            ->get();
 
-        return $models->map(fn (EloquentSale $model) => $this->mapToEntity($model))->all();
+        return $models
+            ->map(fn (EloquentSale $model) => $this->mapToEntity($model))
+            ->all();
     }
 
     private function mapToEntity(EloquentSale $model): Sale
     {
+        $orderUuid = DB::table('orders')
+            ->where('id', $model->order_id)
+            ->value('uuid');
+
         return Sale::fromPersistence(
             $model->uuid,
             $model->restaurant_id,
-            $model->order_id,
+            $orderUuid,
             $model->user_id,
             $model->ticket_number,
             $model->value_date->toDateTimeImmutable(),

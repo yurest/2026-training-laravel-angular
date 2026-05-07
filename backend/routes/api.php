@@ -1,5 +1,12 @@
 <?php
 
+//SALE LINES
+use App\SaleLine\Infrastructure\Entrypoint\Http\IndexBySaleController as SaleLineIndexBySaleController;
+use App\Sale\Infrastructure\Entrypoint\Http\CheckoutOrderPostController as CheckoutOrderPostController;
+
+// SALES
+use App\Sale\Infrastructure\Entrypoint\Http\GetController as SaleGetController;
+use App\Sale\Infrastructure\Entrypoint\Http\IndexController as SaleIndexController;
 use App\Sale\Infrastructure\Entrypoint\Http\PostController as SalePostController;
 
 //ORDER LINES
@@ -146,4 +153,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // SALES
     Route::post('/sales', SalePostController::class);
+    Route::get('/sales', SaleIndexController::class);
+    Route::get('/sales/{id}', SaleGetController::class);
+
+    // SALE LINES
+    Route::get('/sales/{saleId}/lines', SaleLineIndexBySaleController::class);
+    Route::post('/orders/{orderId}/checkout', CheckoutOrderPostController::class);
 });
