@@ -1,7 +1,9 @@
 <ion-content class="ion-padding">
-  <h2>Pedido - Mesa {{ tableId }}</h2>
+  <h2>Pedido abierto</h2>
 
-  <div class="orders-layout">
+  <p *ngIf="isLoading">Cargando pedido...</p>
+
+  <div class="orders-layout" *ngIf="!isLoading">
     <div class="products-section">
       <h3>Productos</h3>
 
@@ -21,7 +23,27 @@
       </div>
 
       <div *ngFor="let line of orderLines" class="order-line">
-        <span>{{ line.name }} x{{ line.quantity }}</span>
+        <div>
+          <strong>{{ line.name }}</strong>
+          <div>{{ (line.price / 100) | number:'1.2-2' }} € unidad</div>
+        </div>
+
+        <div class="line-actions">
+          <ion-button size="small" fill="outline" (click)="decreaseLine(line)">
+            -
+          </ion-button>
+
+          <span>x{{ line.quantity }}</span>
+
+          <ion-button size="small" fill="outline" (click)="increaseLine(line)">
+            +
+          </ion-button>
+
+          <ion-button size="small" color="danger" (click)="deleteLine(line)">
+            Borrar
+          </ion-button>
+        </div>
+
         <span>{{ (getLineTotal(line) / 100) | number:'1.2-2' }} €</span>
       </div>
 
@@ -29,8 +51,12 @@
 
       <h3>Total: {{ (getOrderTotal() / 100) | number:'1.2-2' }} €</h3>
 
-      <ion-button expand="block">
-        Guardar pedido
+      <ion-button
+        expand="block"
+        [disabled]="orderLines.length === 0"
+        (click)="checkout()"
+      >
+        Cobrar pedido
       </ion-button>
     </div>
   </div>

@@ -16,15 +16,15 @@ final class PostController
     {
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
-            'table_id' => ['required', 'integer'],
-            'opened_by_user_id' => ['required', 'integer'],
+            'table_id' => ['required', 'string'],
+            'opened_by_user_id' => ['required', 'string'],
             'diners' => ['required', 'integer', 'min:1'],
         ]);
 
         $response = ($this->createOrder)(
             (string) $validated['restaurant_id'],
-            (string) $validated['table_id'],
-            (string) $validated['opened_by_user_id'],
+            $validated['table_id'],
+            $validated['opened_by_user_id'],
             (int) $validated['diners'],
         );
 

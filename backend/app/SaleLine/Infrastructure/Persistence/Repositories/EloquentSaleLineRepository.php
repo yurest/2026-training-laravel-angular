@@ -23,12 +23,16 @@ final class EloquentSaleLineRepository implements SaleLineRepositoryInterface
             ->where('uuid', $saleLine->orderLineId()->value())
             ->value('id');
 
+        $userId = DB::table('users')
+            ->where('uuid', $saleLine->userId()->value())
+            ->value('id');
+
         $this->model->newQuery()->create([
             'uuid' => $saleLine->id()->value(),
             'restaurant_id' => $saleLine->restaurantId()->value(),
             'sale_id' => $saleId,
             'order_line_id' => $orderLineId,
-            'user_id' => $saleLine->userId()->value(),
+            'user_id' => $userId,
             'quantity' => $saleLine->quantity()->value(),
             'price' => $saleLine->price()->value(),
             'tax_percentage' => $saleLine->taxPercentage()->value(),
@@ -59,12 +63,16 @@ final class EloquentSaleLineRepository implements SaleLineRepositoryInterface
                 ->where('id', $model->order_line_id)
                 ->value('uuid');
 
+            $userUuid = DB::table('users')
+                ->where('id', $model->user_id)
+                ->value('uuid');
+
             return SaleLine::fromPersistence(
                 $model->uuid,
                 $model->restaurant_id,
                 $saleUuid,
                 $orderLineUuid,
-                $model->user_id,
+                $userUuid,
                 $model->quantity,
                 $model->price,
                 $model->tax_percentage,

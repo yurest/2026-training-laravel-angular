@@ -27,12 +27,16 @@ final class EloquentOrderLineLogRepository implements OrderLineLogRepositoryInte
                 ->value('id');
         }
 
+        $userId = DB::table('users')
+            ->where('uuid', $orderLineLog->userId()->value())
+            ->value('id');
+
         $this->model->newQuery()->create([
             'uuid' => $orderLineLog->id()->value(),
             'restaurant_id' => $orderLineLog->restaurantId()->value(),
             'order_id' => $orderId,
             'order_line_id' => $orderLineId,
-            'user_id' => $orderLineLog->userId()->value(),
+            'user_id' => $userId,
             'action' => $orderLineLog->action(),
             'old_quantity' => $orderLineLog->oldQuantity(),
             'new_quantity' => $orderLineLog->newQuantity(),

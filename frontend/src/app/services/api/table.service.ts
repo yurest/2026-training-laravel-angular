@@ -5,6 +5,7 @@ import { BaseApiService, ApiResponse } from './base-api.service';
 export interface TableItem {
   id: string | number;
   uuid: string;
+  numeric_id?: number;
   restaurant_id: string | number;
   zone_id: string | number;
   name: string;
