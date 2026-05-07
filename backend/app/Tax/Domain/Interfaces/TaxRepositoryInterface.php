@@ -8,6 +8,8 @@ interface TaxRepositoryInterface
 {
     public function save(Tax $tax): void;
 
+    public function existsByName(string $name): bool;
+
     public function findById(string $id): ?Tax;
 
     /**

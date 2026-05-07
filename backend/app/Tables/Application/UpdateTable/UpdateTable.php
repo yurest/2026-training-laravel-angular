@@ -3,9 +3,10 @@
 namespace App\Tables\Application\UpdateTable;
 
 use App\Shared\Domain\ValueObject\Uuid;
+use App\Tables\Domain\Exception\TableNameAlreadyExistsInZoneException;
+use App\Tables\Domain\Exception\TableNotFoundException;
 use App\Tables\Domain\Interfaces\TableRepositoryInterface;
 use App\Tables\Domain\ValueObject\TableName;
-use InvalidArgumentException;
 
 class UpdateTable
 {
@@ -13,29 +14,30 @@ class UpdateTable
         private TableRepositoryInterface $tableRepository,
     ) {}
 
-    public function __invoke(string $id, string $zoneId, string $name): ?UpdateTableResponse
+    public function __invoke(UpdateTableCommand $command): UpdateTableResponse
     {
-        $table = $this->tableRepository->findById($id);
+        $table = $this->tableRepository->findById($command->id)
+            ?? throw TableNotFoundException::withId($command->id);
 
-        if ($table === null) {
-            return null;
-        }
+        $zoneIdVO = Uuid::create($command->zoneId);
 
-        $zoneIdVO = Uuid::create($zoneId);
-
-        // Validar que no exista otra mesa con el mismo nombre en esta zona (excluyendo la mesa actual)
-        $existingTable = $this->tableRepository->findByZoneIdAndName($zoneIdVO, $name, $id);
-        if ($existingTable !== null) {
-            throw new InvalidArgumentException('Ya existe una mesa con ese nombre en esta zona.');
+        if ($this->tableRepository->findByZoneIdAndName($zoneIdVO, $command->name, $command->id) !== null) {
+            throw TableNameAlreadyExistsInZoneException::withName($command->name);
         }
 
         $table->update(
             $zoneIdVO,
-            TableName::create($name),
+            TableName::create($command->name),
         );
 
         $this->tableRepository->save($table);
 
-        return UpdateTableResponse::create($table);
+        return UpdateTableResponse::create(
+            id: $table->id()->value(),
+            zoneId: $table->zoneId()->value(),
+            name: $table->name()->value(),
+            createdAt: $table->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $table->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

@@ -3,20 +3,26 @@
 namespace App\Product\Infrastructure\Entrypoint\Http;
 
 use App\Product\Application\GetProduct\GetProduct;
+use App\Product\Domain\Exception\ProductNotFoundException;
+use App\Product\Infrastructure\Entrypoint\Http\Requests\GetProductRequest;
 use Illuminate\Http\JsonResponse;
 
-class GetController
+final class GetController
 {
     public function __construct(
         private GetProduct $getProduct,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(GetProductRequest $request, string $id): JsonResponse
     {
-        $response = ($this->getProduct)($id);
+        try {
+            $response = ($this->getProduct)($request->toCommand($id));
+        } catch (ProductNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Product not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());

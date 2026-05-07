@@ -30,6 +30,16 @@ class EloquentTaxRepository implements TaxRepositoryInterface
         );
     }
 
+    public function existsByName(string $name): bool
+    {
+        $restaurantId = $this->tenantContext->requireRestaurantId();
+
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
+            ->where('name', $name)
+            ->exists();
+    }
+
     public function findById(string $id): ?Tax
     {
         $restaurantId = $this->tenantContext->requireRestaurantId();

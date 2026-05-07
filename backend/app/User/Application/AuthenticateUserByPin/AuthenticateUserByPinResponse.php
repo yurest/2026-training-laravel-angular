@@ -4,7 +4,7 @@ namespace App\User\Application\AuthenticateUserByPin;
 
 final readonly class AuthenticateUserByPinResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $name,
         public string $email,
@@ -12,6 +12,24 @@ final readonly class AuthenticateUserByPinResponse
         public ?string $restaurantId = null,
         public ?string $restaurantName = null,
     ) {}
+
+    public static function create(
+        string $id,
+        string $name,
+        string $email,
+        ?string $role = null,
+        ?string $restaurantId = null,
+        ?string $restaurantName = null,
+    ): self {
+        return new self(
+            id: $id,
+            name: $name,
+            email: $email,
+            role: $role,
+            restaurantId: $restaurantId,
+            restaurantName: $restaurantName,
+        );
+    }
 
     public function toArray(): array
     {

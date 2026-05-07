@@ -26,12 +26,12 @@ class AuthenticateForDeviceLink
             ?? throw UserNotFoundException::withEmail($command->email);
 
         if (! $user->verifyPassword($command->password, $this->passwordHasher)) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException;
         }
 
         $role = $user->role();
         if ($role === null || ! $role->isAdmin()) {
-            throw new OnlyAdminsCanLinkDeviceException();
+            throw new OnlyAdminsCanLinkDeviceException;
         }
 
         $restaurantId = null;
@@ -50,7 +50,7 @@ class AuthenticateForDeviceLink
             $this->userQuickAccessRepository->recordAccess($user->id()->value(), $command->deviceId);
         }
 
-        return new AuthenticateForDeviceLinkResponse(
+        return AuthenticateForDeviceLinkResponse::create(
             id: $user->id()->value(),
             name: $user->name()->value(),
             email: $user->email()->value(),

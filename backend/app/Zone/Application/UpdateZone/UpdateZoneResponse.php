@@ -2,24 +2,26 @@
 
 namespace App\Zone\Application\UpdateZone;
 
-use App\Zone\Domain\Entity\Zone;
-
 final readonly class UpdateZoneResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $name,
         public string $createdAt,
         public string $updatedAt,
     ) {}
 
-    public static function create(Zone $zone): self
-    {
+    public static function create(
+        string $id,
+        string $name,
+        string $createdAt,
+        string $updatedAt,
+    ): self {
         return new self(
-            id: $zone->id()->value(),
-            name: $zone->name()->value(),
-            createdAt: $zone->createdAt()->format(\DateTimeInterface::ATOM),
-            updatedAt: $zone->updatedAt()->format(\DateTimeInterface::ATOM),
+            id: $id,
+            name: $name,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
         );
     }
 

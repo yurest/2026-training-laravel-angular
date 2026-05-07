@@ -3,6 +3,7 @@
 namespace Tests\Unit\Zone;
 
 use App\Zone\Application\CreateZone\CreateZone;
+use App\Zone\Application\CreateZone\CreateZoneCommand;
 use App\Zone\Application\CreateZone\CreateZoneResponse;
 use App\Zone\Domain\Entity\Zone;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
@@ -28,7 +29,7 @@ class CreateZoneTest extends TestCase
             }));
 
         $createZone = new CreateZone($repository);
-        $response = $createZone('Salon');
+        $response = $createZone(new CreateZoneCommand('Salon'));
 
         $this->assertInstanceOf(CreateZoneResponse::class, $response);
         $this->assertSame('Salon', $response->name);

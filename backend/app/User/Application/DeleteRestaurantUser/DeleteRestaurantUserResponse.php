@@ -4,9 +4,16 @@ namespace App\User\Application\DeleteRestaurantUser;
 
 final readonly class DeleteRestaurantUserResponse
 {
-    public function __construct(
+    private function __construct(
         public string $uuid,
     ) {}
+
+    public static function create(string $uuid): self
+    {
+        return new self(
+            uuid: $uuid,
+        );
+    }
 
     public function toArray(): array
     {

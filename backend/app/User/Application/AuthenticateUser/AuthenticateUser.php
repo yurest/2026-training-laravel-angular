@@ -25,7 +25,7 @@ class AuthenticateUser
             ?? throw UserNotFoundException::withEmail($command->email);
 
         if (! $user->verifyPassword($command->plainPassword, $this->passwordHasher)) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException;
         }
 
         $role = $user->role()?->value();
@@ -45,7 +45,7 @@ class AuthenticateUser
             $this->userQuickAccessRepository->recordAccess($user->id()->value(), $command->deviceId);
         }
 
-        return new AuthenticateUserResponse(
+        return AuthenticateUserResponse::create(
             id: $user->id()->value(),
             name: $user->name()->value(),
             email: $user->email()->value(),

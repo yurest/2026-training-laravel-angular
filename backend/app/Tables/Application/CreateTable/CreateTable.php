@@ -4,9 +4,9 @@ namespace App\Tables\Application\CreateTable;
 
 use App\Shared\Domain\ValueObject\Uuid;
 use App\Tables\Domain\Entity\Table;
+use App\Tables\Domain\Exception\TableNameAlreadyExistsInZoneException;
 use App\Tables\Domain\Interfaces\TableRepositoryInterface;
 use App\Tables\Domain\ValueObject\TableName;
-use InvalidArgumentException;
 
 class CreateTable
 {
@@ -14,22 +14,27 @@ class CreateTable
         private TableRepositoryInterface $tableRepository,
     ) {}
 
-    public function __invoke(string $zoneId, string $name): CreateTableResponse
+    public function __invoke(CreateTableCommand $command): CreateTableResponse
     {
-        $zoneIdVO = Uuid::create($zoneId);
+        $zoneIdVO = Uuid::create($command->zoneId);
 
-        $existingTable = $this->tableRepository->findByZoneIdAndName($zoneIdVO, $name);
-        if ($existingTable !== null) {
-            throw new InvalidArgumentException('Ya existe una mesa con ese nombre en esta zona.');
+        if ($this->tableRepository->findByZoneIdAndName($zoneIdVO, $command->name) !== null) {
+            throw TableNameAlreadyExistsInZoneException::withName($command->name);
         }
 
         $table = Table::dddCreate(
             $zoneIdVO,
-            TableName::create($name),
+            TableName::create($command->name),
         );
 
         $this->tableRepository->save($table);
 
-        return CreateTableResponse::create($table);
+        return CreateTableResponse::create(
+            id: $table->id()->value(),
+            zoneId: $table->zoneId()->value(),
+            name: $table->name()->value(),
+            createdAt: $table->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $table->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

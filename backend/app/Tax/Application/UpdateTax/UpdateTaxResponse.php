@@ -2,11 +2,9 @@
 
 namespace App\Tax\Application\UpdateTax;
 
-use App\Tax\Domain\Entity\Tax;
-
 final readonly class UpdateTaxResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $name,
         public int $percentage,
@@ -14,14 +12,19 @@ final readonly class UpdateTaxResponse
         public string $updatedAt,
     ) {}
 
-    public static function create(Tax $tax): self
-    {
+    public static function create(
+        string $id,
+        string $name,
+        int $percentage,
+        string $createdAt,
+        string $updatedAt,
+    ): self {
         return new self(
-            id: $tax->id()->value(),
-            name: $tax->name()->value(),
-            percentage: $tax->percentage()->value(),
-            createdAt: $tax->createdAt()->format(\DateTimeInterface::ATOM),
-            updatedAt: $tax->updatedAt()->format(\DateTimeInterface::ATOM),
+            id: $id,
+            name: $name,
+            percentage: $percentage,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
         );
     }
 

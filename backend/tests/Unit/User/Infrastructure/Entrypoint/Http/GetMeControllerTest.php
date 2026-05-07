@@ -23,7 +23,7 @@ class GetMeControllerTest extends TestCase
         $session->expects($this->once())->method('get')->with('auth_user_id')->willReturn(null);
         $session->expects($this->never())->method('forget');
 
-        $request = new GetMeRequest();
+        $request = new GetMeRequest;
         $request->setLaravelSession($session);
 
         $response = (new GetMeController($getMe))($request);
@@ -45,7 +45,7 @@ class GetMeControllerTest extends TestCase
         $session->expects($this->once())->method('get')->with('auth_user_id')->willReturn('user-id');
         $session->expects($this->once())->method('forget')->with('auth_user_id');
 
-        $request = new GetMeRequest();
+        $request = new GetMeRequest;
         $request->setLaravelSession($session);
 
         $response = (new GetMeController($getMe))($request);
@@ -57,7 +57,7 @@ class GetMeControllerTest extends TestCase
 
     public function test_returns_successful_response(): void
     {
-        $getMeResponse = new GetMeResponse(
+        $getMeResponse = GetMeResponse::create(
             id: 'uuid',
             name: 'Test User',
             email: 'test@example.com',
@@ -76,7 +76,7 @@ class GetMeControllerTest extends TestCase
         $session->expects($this->once())->method('get')->with('auth_user_id')->willReturn('user-id');
         $session->expects($this->never())->method('forget');
 
-        $request = new GetMeRequest();
+        $request = new GetMeRequest;
         $request->setLaravelSession($session);
 
         $response = (new GetMeController($getMe))($request);

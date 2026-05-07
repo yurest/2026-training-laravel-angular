@@ -2,6 +2,7 @@
 
 namespace App\Product\Application\UpdateProduct;
 
+use App\Product\Domain\Exception\ProductNotFoundException;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Product\Domain\ValueObject\ProductImageSrc;
 use App\Product\Domain\ValueObject\ProductName;
@@ -15,34 +16,34 @@ class UpdateProduct
         private ProductRepositoryInterface $productRepository,
     ) {}
 
-    public function __invoke(
-        string $id,
-        string $familyId,
-        string $taxId,
-        ?string $imageSrc,
-        string $name,
-        int $price,
-        int $stock,
-        bool $active,
-    ): ?UpdateProductResponse {
-        $product = $this->productRepository->findById($id);
-
-        if ($product === null) {
-            return null;
-        }
+    public function __invoke(UpdateProductCommand $command): UpdateProductResponse
+    {
+        $product = $this->productRepository->findById($command->id)
+            ?? throw ProductNotFoundException::withId($command->id);
 
         $product->update(
-            familyId: Uuid::create($familyId),
-            taxId: Uuid::create($taxId),
-            imageSrc: ProductImageSrc::create($imageSrc),
-            name: ProductName::create($name),
-            price: ProductPrice::create($price),
-            stock: ProductStock::create($stock),
-            active: $active,
+            familyId: Uuid::create($command->familyId),
+            taxId: Uuid::create($command->taxId),
+            imageSrc: ProductImageSrc::create($command->imageSrc),
+            name: ProductName::create($command->name),
+            price: ProductPrice::create($command->price),
+            stock: ProductStock::create($command->stock),
+            active: $command->active,
         );
 
         $this->productRepository->save($product);
 
-        return UpdateProductResponse::create($product);
+        return UpdateProductResponse::create(
+            id: $product->id()->value(),
+            familyId: $product->familyId()->value(),
+            taxId: $product->taxId()->value(),
+            imageSrc: $product->imageSrc()->value(),
+            name: $product->name()->value(),
+            price: $product->price()->value(),
+            stock: $product->stock()->value(),
+            active: $product->isActive(),
+            createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

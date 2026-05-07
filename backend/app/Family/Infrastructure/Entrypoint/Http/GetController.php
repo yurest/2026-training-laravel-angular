@@ -3,20 +3,26 @@
 namespace App\Family\Infrastructure\Entrypoint\Http;
 
 use App\Family\Application\GetFamily\GetFamily;
+use App\Family\Domain\Exception\FamilyNotFoundException;
+use App\Family\Infrastructure\Entrypoint\Http\Requests\GetFamilyRequest;
 use Illuminate\Http\JsonResponse;
 
-class GetController
+final class GetController
 {
     public function __construct(
         private GetFamily $getFamily,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(GetFamilyRequest $request, string $id): JsonResponse
     {
-        $response = ($this->getFamily)($id);
+        try {
+            $response = ($this->getFamily)($request->toCommand($id));
+        } catch (FamilyNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Family not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());

@@ -2,6 +2,7 @@
 
 namespace App\Zone\Application\UpdateZone;
 
+use App\Zone\Domain\Exception\ZoneNotFoundException;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 use App\Zone\Domain\ValueObject\ZoneName;
 
@@ -11,17 +12,19 @@ class UpdateZone
         private ZoneRepositoryInterface $zoneRepository,
     ) {}
 
-    public function __invoke(string $id, string $name): ?UpdateZoneResponse
+    public function __invoke(UpdateZoneCommand $command): UpdateZoneResponse
     {
-        $zone = $this->zoneRepository->findById($id);
+        $zone = $this->zoneRepository->findById($command->id)
+            ?? throw ZoneNotFoundException::withId($command->id);
 
-        if ($zone === null) {
-            return null;
-        }
-
-        $zone->rename(ZoneName::create($name));
+        $zone->rename(ZoneName::create($command->name));
         $this->zoneRepository->save($zone);
 
-        return UpdateZoneResponse::create($zone);
+        return UpdateZoneResponse::create(
+            id: $zone->id()->value(),
+            name: $zone->name()->value(),
+            createdAt: $zone->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $zone->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

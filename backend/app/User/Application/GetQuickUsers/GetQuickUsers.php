@@ -14,6 +14,6 @@ class GetQuickUsers
     {
         $users = $this->userQuickAccessRepository->getQuickUsersByDeviceId($command->deviceId, $command->restaurantUuid);
 
-        return new GetQuickUsersResponse($users);
+        return GetQuickUsersResponse::create($users);
     }
 }

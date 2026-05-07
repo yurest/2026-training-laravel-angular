@@ -2,6 +2,7 @@
 
 namespace App\Family\Application\SetFamilyActive;
 
+use App\Family\Domain\Exception\FamilyNotFoundException;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 
 class SetFamilyActive
@@ -10,15 +11,12 @@ class SetFamilyActive
         private FamilyRepositoryInterface $familyRepository,
     ) {}
 
-    public function __invoke(string $id, bool $active): ?SetFamilyActiveResponse
+    public function __invoke(SetFamilyActiveCommand $command): SetFamilyActiveResponse
     {
-        $family = $this->familyRepository->findById($id);
+        $family = $this->familyRepository->findById($command->id)
+            ?? throw FamilyNotFoundException::withId($command->id);
 
-        if ($family === null) {
-            return null;
-        }
-
-        if ($active) {
+        if ($command->active) {
             $family->activate();
         } else {
             $family->deactivate();
@@ -26,6 +24,12 @@ class SetFamilyActive
 
         $this->familyRepository->save($family);
 
-        return SetFamilyActiveResponse::create($family);
+        return SetFamilyActiveResponse::create(
+            id: $family->id()->value(),
+            name: $family->name()->value(),
+            active: $family->isActive(),
+            createdAt: $family->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $family->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

@@ -10,16 +10,21 @@ class ListTaxes
         private TaxRepositoryInterface $taxRepository,
     ) {}
 
-    /**
-     * @return array<int, array<string, int|string>>
-     */
-    public function __invoke(bool $includeDeleted = false): array
+    public function __invoke(ListTaxesCommand $command): ListTaxesResponse
     {
-        $taxes = $this->taxRepository->findAll($includeDeleted);
+        $taxes = $this->taxRepository->findAll($command->includeDeleted ?? false);
 
-        return array_map(
-            static fn ($tax): array => ListTaxesItemResponse::create($tax)->toArray(),
+        $items = array_map(
+            static fn ($tax): array => [
+                'id' => $tax->id()->value(),
+                'name' => $tax->name()->value(),
+                'percentage' => $tax->percentage()->value(),
+                'created_at' => $tax->createdAt()->format(\DateTimeInterface::ATOM),
+                'updated_at' => $tax->updatedAt()->format(\DateTimeInterface::ATOM),
+            ],
             $taxes,
         );
+
+        return ListTaxesResponse::create($items);
     }
 }

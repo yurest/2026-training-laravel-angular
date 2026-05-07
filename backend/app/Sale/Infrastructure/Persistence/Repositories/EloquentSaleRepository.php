@@ -11,8 +11,6 @@ use App\Sale\Infrastructure\Persistence\Models\EloquentSale;
 use App\Shared\Domain\ValueObject\Uuid;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
 
-
-
 final class EloquentSaleRepository implements SaleRepositoryInterface
 {
     public function __construct(

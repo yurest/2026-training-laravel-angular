@@ -23,7 +23,7 @@ class CreateRestaurantUser
             : null;
 
         if ($pinHash !== null && $this->userRepository->pinHashExistsForRestaurant($pinHash, $command->restaurantUuid)) {
-            throw new PinAlreadyInUseException();
+            throw new PinAlreadyInUseException;
         }
 
         $this->userRepository->saveWithRestaurant(
@@ -36,7 +36,7 @@ class CreateRestaurantUser
             $pinHash,
         );
 
-        return new CreateRestaurantUserResponse(
+        return CreateRestaurantUserResponse::create(
             uuid: $userUuid,
             name: $command->name,
             email: $command->email,

@@ -2,6 +2,7 @@
 
 namespace App\Zone\Application\DeleteZone;
 
+use App\Zone\Domain\Exception\ZoneNotFoundException;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 
 class DeleteZone
@@ -10,8 +11,11 @@ class DeleteZone
         private ZoneRepositoryInterface $zoneRepository,
     ) {}
 
-    public function __invoke(string $id): bool
+    public function __invoke(DeleteZoneCommand $command): void
     {
-        return $this->zoneRepository->deleteById($id);
+        $zone = $this->zoneRepository->findById($command->id)
+            ?? throw ZoneNotFoundException::withId($command->id);
+
+        $this->zoneRepository->deleteById($zone->id()->value());
     }
 }

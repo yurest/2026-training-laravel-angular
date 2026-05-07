@@ -2,6 +2,7 @@
 
 namespace App\Tax\Application\DeleteTax;
 
+use App\Tax\Domain\Exception\TaxNotFoundException;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 
 class DeleteTax
@@ -10,8 +11,11 @@ class DeleteTax
         private TaxRepositoryInterface $taxRepository,
     ) {}
 
-    public function __invoke(string $id): bool
+    public function __invoke(DeleteTaxCommand $command): void
     {
-        return $this->taxRepository->deleteById($id);
+        $tax = $this->taxRepository->findById($command->id)
+            ?? throw TaxNotFoundException::withId($command->id);
+
+        $this->taxRepository->deleteById($command->id);
     }
 }

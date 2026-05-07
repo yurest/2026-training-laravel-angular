@@ -6,7 +6,7 @@ use App\Product\Domain\Entity\Product;
 
 final readonly class ListProductsItemResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $familyId,
         public string $taxId,
@@ -19,19 +19,30 @@ final readonly class ListProductsItemResponse
         public string $updatedAt,
     ) {}
 
-    public static function create(Product $product): self
+    public static function create(
+        string $id,
+        string $familyId,
+        string $taxId,
+        ?string $imageSrc,
+        string $name,
+        int $price,
+        int $stock,
+        bool $active,
+        string $createdAt,
+        string $updatedAt,
+    ): self
     {
         return new self(
-            id: $product->id()->value(),
-            familyId: $product->familyId()->value(),
-            taxId: $product->taxId()->value(),
-            imageSrc: $product->imageSrc()->value(),
-            name: $product->name()->value(),
-            price: $product->price()->value(),
-            stock: $product->stock()->value(),
-            active: $product->isActive(),
-            createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
-            updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
+            id: $id,
+            familyId: $familyId,
+            taxId: $taxId,
+            imageSrc: $imageSrc,
+            name: $name,
+            price: $price,
+            stock: $stock,
+            active: $active,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
         );
     }
 

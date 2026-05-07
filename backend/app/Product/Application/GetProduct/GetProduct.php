@@ -2,6 +2,7 @@
 
 namespace App\Product\Application\GetProduct;
 
+use App\Product\Domain\Exception\ProductNotFoundException;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 
 class GetProduct
@@ -10,14 +11,22 @@ class GetProduct
         private ProductRepositoryInterface $productRepository,
     ) {}
 
-    public function __invoke(string $id): ?GetProductResponse
+    public function __invoke(GetProductCommand $command): GetProductResponse
     {
-        $product = $this->productRepository->findById($id);
+        $product = $this->productRepository->findById($command->id)
+            ?? throw ProductNotFoundException::withId($command->id);
 
-        if ($product === null) {
-            return null;
-        }
-
-        return GetProductResponse::create($product);
+        return GetProductResponse::create(
+            id: $product->id()->value(),
+            familyId: $product->familyId()->value(),
+            taxId: $product->taxId()->value(),
+            imageSrc: $product->imageSrc()->value(),
+            name: $product->name()->value(),
+            price: $product->price()->value(),
+            stock: $product->stock()->value(),
+            active: $product->isActive(),
+            createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

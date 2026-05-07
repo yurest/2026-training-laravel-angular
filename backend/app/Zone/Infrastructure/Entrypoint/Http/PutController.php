@@ -2,37 +2,27 @@
 
 namespace App\Zone\Infrastructure\Entrypoint\Http;
 
-use App\Shared\Infrastructure\Tenant\TenantContext;
 use App\Zone\Application\UpdateZone\UpdateZone;
+use App\Zone\Domain\Exception\ZoneNotFoundException;
+use App\Zone\Infrastructure\Entrypoint\Http\Requests\UpdateZoneRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
-class PutController
+final class PutController
 {
     public function __construct(
         private UpdateZone $updateZone,
-        private TenantContext $tenantContext,
     ) {}
 
-    public function __invoke(Request $request, string $id): JsonResponse
+    public function __invoke(UpdateZoneRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('zones', 'name')
-                    ->ignore($id, 'uuid')
-                    ->where('restaurant_id', $this->tenantContext->requireRestaurantId())
-                    ->whereNull('deleted_at'),
-            ],
-        ]);
+        try {
+            $response = ($this->updateZone)($request->toCommand($id));
+        } catch (ZoneNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        $response = ($this->updateZone)($id, $validated['name']);
-
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Zone not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());

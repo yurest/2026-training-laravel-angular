@@ -19,20 +19,20 @@ class AuthorizeRestaurantAccess
     public function __invoke(AuthorizeRestaurantAccessCommand $command): AuthorizeRestaurantAccessResponse
     {
         if ($command->authUserUuid === '') {
-            throw new NotAuthenticatedException();
+            throw new NotAuthenticatedException;
         }
 
         $user = $this->userRepository->findById($command->authUserUuid);
 
         if ($user === null || $user->restaurantId() === null) {
-            throw new NotAuthenticatedException();
+            throw new NotAuthenticatedException;
         }
 
         $linkedRestaurant = $this->restaurantRepository->findByInternalId($user->restaurantId()->toInt());
         $targetRestaurant = $this->restaurantRepository->findByUuid(Uuid::create($command->targetRestaurantUuid));
 
         if ($linkedRestaurant === null || $targetRestaurant === null) {
-            throw new RestaurantNotFoundException();
+            throw new RestaurantNotFoundException;
         }
 
         $linkedTaxId = $linkedRestaurant->taxId()?->value();
@@ -40,16 +40,16 @@ class AuthorizeRestaurantAccess
 
         if (! is_string($linkedTaxId) || $linkedTaxId === '') {
             if ($targetRestaurant->uuid()->value() !== $linkedRestaurant->uuid()->value()) {
-                throw new ForbiddenRestaurantAccessException();
+                throw new ForbiddenRestaurantAccessException;
             }
 
-            return new AuthorizeRestaurantAccessResponse();
+            return AuthorizeRestaurantAccessResponse::create();
         }
 
         if ($linkedTaxId !== $targetTaxId) {
-            throw new ForbiddenRestaurantAccessException();
+            throw new ForbiddenRestaurantAccessException;
         }
 
-        return new AuthorizeRestaurantAccessResponse();
+        return AuthorizeRestaurantAccessResponse::create();
     }
 }

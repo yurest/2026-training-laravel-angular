@@ -12,17 +12,30 @@ class ListProducts
         private ProductRepositoryInterface $productRepository,
     ) {}
 
-    public function __invoke(bool $includeDeleted = false, bool $onlyActive = false): array
+    public function __invoke(ListProductsCommand $command): ListProductsResponse
     {
-        $products = $this->productRepository->findAll($includeDeleted);
+        $products = $this->productRepository->findAll($command->includeDeleted);
 
-        if ($onlyActive) {
+        if ($command->onlyActive) {
             $products = array_filter($products, fn ($p) => $p->isActive());
         }
 
-        return array_map(
-            static fn ($product): array => ListProductsItemResponse::create($product)->toArray(),
+        $items = array_values(array_map(
+            static fn ($product): ListProductsItemResponse => ListProductsItemResponse::create(
+                id: $product->id()->value(),
+                familyId: $product->familyId()->value(),
+                taxId: $product->taxId()->value(),
+                imageSrc: $product->imageSrc()->value(),
+                name: $product->name()->value(),
+                price: $product->price()->value(),
+                stock: $product->stock()->value(),
+                active: $product->isActive(),
+                createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
+                updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
+            ),
             $products,
-        );
+        ));
+
+        return ListProductsResponse::create($items);
     }
 }

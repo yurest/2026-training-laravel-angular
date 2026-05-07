@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Family\Application\ListActiveFamilies;
 
 use App\Family\Application\ListFamilies\ListFamilies;
+use App\Family\Application\ListFamilies\ListFamiliesCommand;
+use App\Family\Application\ListFamilies\ListFamiliesResponse;
 
 final class ListActiveFamilies
 {
@@ -12,8 +14,13 @@ final class ListActiveFamilies
         private ListFamilies $listFamilies,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(ListActiveFamiliesCommand $command): ListFamiliesResponse
     {
-        return ($this->listFamilies)(includeDeleted: false, onlyActive: true);
+        return ($this->listFamilies)(
+            new ListFamiliesCommand(
+                includeDeleted: false,
+                onlyActive: true,
+            ),
+        );
     }
 }

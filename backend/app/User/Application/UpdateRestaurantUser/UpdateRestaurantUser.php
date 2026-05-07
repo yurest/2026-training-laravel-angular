@@ -36,7 +36,7 @@ class UpdateRestaurantUser
             && $command->role !== ''
             && ! Role::create($command->role)->isAdmin()
         ) {
-            throw new CannotDemoteSelfAdminException();
+            throw new CannotDemoteSelfAdminException;
         }
 
         $updates = [];
@@ -60,17 +60,17 @@ class UpdateRestaurantUser
         if ($command->plainPin !== null) {
             $pinHash = $this->passwordHasher->hash($command->plainPin);
             if ($this->userRepository->pinHashExistsForRestaurant($pinHash, $command->restaurantUuid, $command->userUuid)) {
-                throw new PinAlreadyInUseException();
+                throw new PinAlreadyInUseException;
             }
             $updates['pin'] = $pinHash;
         }
 
         if (empty($updates)) {
-            return new UpdateRestaurantUserResponse($command->userUuid);
+            return UpdateRestaurantUserResponse::create($command->userUuid);
         }
 
         $this->userRepository->updatePartial($command->userUuid, $updates);
 
-        return new UpdateRestaurantUserResponse($command->userUuid);
+        return UpdateRestaurantUserResponse::create($command->userUuid);
     }
 }

@@ -2,11 +2,9 @@
 
 namespace App\Family\Application\ListFamilies;
 
-use App\Family\Domain\Entity\Family;
-
 final readonly class ListFamiliesItemResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $name,
         public bool $active,
@@ -14,14 +12,19 @@ final readonly class ListFamiliesItemResponse
         public string $updatedAt,
     ) {}
 
-    public static function create(Family $family): self
-    {
+    public static function create(
+        string $id,
+        string $name,
+        bool $active,
+        string $createdAt,
+        string $updatedAt,
+    ): self {
         return new self(
-            id: $family->id()->value(),
-            name: $family->name()->value(),
-            active: $family->isActive(),
-            createdAt: $family->createdAt()->format(\DateTimeInterface::ATOM),
-            updatedAt: $family->updatedAt()->format(\DateTimeInterface::ATOM),
+            id: $id,
+            name: $name,
+            active: $active,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
         );
     }
 

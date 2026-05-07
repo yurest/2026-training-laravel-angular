@@ -14,6 +14,6 @@ class GetRestaurantUsers
     {
         $users = $this->userRepository->getByRestaurantUuid($command->restaurantUuid);
 
-        return new GetRestaurantUsersResponse($users);
+        return GetRestaurantUsersResponse::create($users);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Zone\Application\GetZone;
 
+use App\Zone\Domain\Exception\ZoneNotFoundException;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 
 class GetZone
@@ -10,14 +11,16 @@ class GetZone
         private ZoneRepositoryInterface $zoneRepository,
     ) {}
 
-    public function __invoke(string $id): ?GetZoneResponse
+    public function __invoke(GetZoneCommand $command): GetZoneResponse
     {
-        $zone = $this->zoneRepository->findById($id);
+        $zone = $this->zoneRepository->findById($command->id)
+            ?? throw ZoneNotFoundException::withId($command->id);
 
-        if ($zone === null) {
-            return null;
-        }
-
-        return GetZoneResponse::create($zone);
+        return GetZoneResponse::create(
+            id: $zone->id()->value(),
+            name: $zone->name()->value(),
+            createdAt: $zone->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $zone->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

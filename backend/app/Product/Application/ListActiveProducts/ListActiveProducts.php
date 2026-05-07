@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Product\Application\ListActiveProducts;
 
 use App\Product\Application\ListProducts\ListProducts;
+use App\Product\Application\ListProducts\ListProductsCommand;
+use App\Product\Application\ListProducts\ListProductsResponse;
 
 final class ListActiveProducts
 {
@@ -12,8 +14,13 @@ final class ListActiveProducts
         private ListProducts $listProducts,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(ListActiveProductsCommand $command): ListProductsResponse
     {
-        return ($this->listProducts)(includeDeleted: false, onlyActive: true);
+        return ($this->listProducts)(
+            new ListProductsCommand(
+                includeDeleted: false,
+                onlyActive: true,
+            ),
+        );
     }
 }

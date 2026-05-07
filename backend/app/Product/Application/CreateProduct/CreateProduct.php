@@ -16,27 +16,31 @@ class CreateProduct
         private ProductRepositoryInterface $productRepository,
     ) {}
 
-    public function __invoke(
-        string $familyId,
-        string $taxId,
-        ?string $imageSrc,
-        string $name,
-        int $price,
-        int $stock,
-        bool $active,
-    ): CreateProductResponse {
+    public function __invoke(CreateProductCommand $command): CreateProductResponse
+    {
         $product = Product::dddCreate(
-            familyId: Uuid::create($familyId),
-            taxId: Uuid::create($taxId),
-            imageSrc: ProductImageSrc::create($imageSrc),
-            name: ProductName::create($name),
-            price: ProductPrice::create($price),
-            stock: ProductStock::create($stock),
-            active: $active,
+            familyId: Uuid::create($command->familyId),
+            taxId: Uuid::create($command->taxId),
+            imageSrc: ProductImageSrc::create($command->imageSrc),
+            name: ProductName::create($command->name),
+            price: ProductPrice::create($command->price),
+            stock: ProductStock::create($command->stock),
+            active: $command->active,
         );
 
         $this->productRepository->save($product);
 
-        return CreateProductResponse::create($product);
+        return CreateProductResponse::create(
+            id: $product->id()->value(),
+            familyId: $product->familyId()->value(),
+            taxId: $product->taxId()->value(),
+            imageSrc: $product->imageSrc()->value(),
+            name: $product->name()->value(),
+            price: $product->price()->value(),
+            stock: $product->stock()->value(),
+            active: $product->isActive(),
+            createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

@@ -3,20 +3,26 @@
 namespace App\Zone\Infrastructure\Entrypoint\Http;
 
 use App\Zone\Application\GetZone\GetZone;
+use App\Zone\Domain\Exception\ZoneNotFoundException;
+use App\Zone\Infrastructure\Entrypoint\Http\Requests\GetZoneRequest;
 use Illuminate\Http\JsonResponse;
 
-class GetController
+final class GetController
 {
     public function __construct(
         private GetZone $getZone,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(GetZoneRequest $request, string $id): JsonResponse
     {
-        $response = ($this->getZone)($id);
+        try {
+            $response = ($this->getZone)($request->toCommand($id));
+        } catch (ZoneNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Zone not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());

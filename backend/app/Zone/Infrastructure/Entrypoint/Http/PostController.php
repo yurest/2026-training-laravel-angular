@@ -2,33 +2,25 @@
 
 namespace App\Zone\Infrastructure\Entrypoint\Http;
 
-use App\Shared\Infrastructure\Tenant\TenantContext;
 use App\Zone\Application\CreateZone\CreateZone;
+use App\Zone\Infrastructure\Entrypoint\Http\Requests\CreateZoneRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
-class PostController
+final class PostController
 {
     public function __construct(
         private CreateZone $createZone,
-        private TenantContext $tenantContext,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(CreateZoneRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('zones', 'name')
-                    ->where('restaurant_id', $this->tenantContext->requireRestaurantId())
-                    ->whereNull('deleted_at'),
-            ],
-        ]);
+        try {
+            $response = ($this->createZone)($request->toCommand());
+        } catch (\Throwable $e) {
+            report($e);
 
-        $response = ($this->createZone)($validated['name']);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
+        }
 
         return new JsonResponse($response->toArray(), 201);
     }

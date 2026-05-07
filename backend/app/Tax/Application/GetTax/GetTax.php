@@ -2,6 +2,7 @@
 
 namespace App\Tax\Application\GetTax;
 
+use App\Tax\Domain\Exception\TaxNotFoundException;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 
 class GetTax
@@ -10,14 +11,20 @@ class GetTax
         private TaxRepositoryInterface $taxRepository,
     ) {}
 
-    public function __invoke(string $id): ?GetTaxResponse
+    public function __invoke(GetTaxCommand $command): GetTaxResponse
     {
-        $tax = $this->taxRepository->findById($id);
+        $tax = $this->taxRepository->findById($command->id);
 
         if ($tax === null) {
-            return null;
+            throw TaxNotFoundException::withId($command->id);
         }
 
-        return GetTaxResponse::create($tax);
+        return GetTaxResponse::create(
+            id: $tax->id()->value(),
+            name: $tax->name()->value(),
+            percentage: $tax->percentage()->value(),
+            createdAt: $tax->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $tax->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

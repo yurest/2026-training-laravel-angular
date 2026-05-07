@@ -70,7 +70,8 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * Crea una cash session activa para tests de cobros.
-     * @param array<string, mixed> $tenant
+     *
+     * @param  array<string, mixed>  $tenant
      */
     protected function createCashSessionForTests(array $tenant, string $deviceId = 'test-device-001'): void
     {

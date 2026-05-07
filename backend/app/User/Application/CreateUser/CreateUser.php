@@ -24,7 +24,7 @@ class CreateUser
         $user = User::dddCreate($emailVO, $nameVO, $passwordHashVO);
         $this->userRepository->save($user);
 
-        return new CreateUserResponse(
+        return CreateUserResponse::create(
             id: $user->id()->value(),
             name: $user->name()->value(),
             email: $user->email()->value(),

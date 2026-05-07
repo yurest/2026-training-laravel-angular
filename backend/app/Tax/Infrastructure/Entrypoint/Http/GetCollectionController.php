@@ -3,19 +3,25 @@
 namespace App\Tax\Infrastructure\Entrypoint\Http;
 
 use App\Tax\Application\ListTaxes\ListTaxes;
+use App\Tax\Infrastructure\Entrypoint\Http\Requests\ListTaxesRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
-class GetCollectionController
+final class GetCollectionController
 {
     public function __construct(
         private ListTaxes $listTaxes,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(ListTaxesRequest $request): JsonResponse
     {
-        $includeDeleted = $request->query('all') === 'true';
+        try {
+            $response = ($this->listTaxes)($request->toCommand());
+        } catch (\Throwable $e) {
+            report($e);
 
-        return new JsonResponse(($this->listTaxes)($includeDeleted));
+            return new JsonResponse(['message' => 'Internal error.'], 500);
+        }
+
+        return new JsonResponse($response->toArray());
     }
 }

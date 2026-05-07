@@ -3,20 +3,26 @@
 namespace App\Tables\Infrastructure\Entrypoint\Http;
 
 use App\Tables\Application\DeleteTable\DeleteTable;
+use App\Tables\Domain\Exception\TableNotFoundException;
+use App\Tables\Infrastructure\Entrypoint\Http\Requests\DeleteTableRequest;
 use Illuminate\Http\JsonResponse;
 
-class DeleteController
+final class DeleteController
 {
     public function __construct(
         private DeleteTable $deleteTable,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(DeleteTableRequest $request, string $id): JsonResponse
     {
-        $deleted = ($this->deleteTable)($id);
+        try {
+            ($this->deleteTable)($request->toCommand($id));
+        } catch (TableNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if (! $deleted) {
-            return new JsonResponse(['message' => 'Table not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse(null, 204);

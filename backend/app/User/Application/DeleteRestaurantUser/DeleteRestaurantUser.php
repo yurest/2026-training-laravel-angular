@@ -26,6 +26,6 @@ class DeleteRestaurantUser
 
         $this->userRepository->delete($command->userUuid);
 
-        return new DeleteRestaurantUserResponse($command->userUuid);
+        return DeleteRestaurantUserResponse::create($command->userUuid);
     }
 }

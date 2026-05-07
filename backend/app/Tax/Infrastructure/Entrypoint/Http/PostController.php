@@ -3,9 +3,9 @@
 namespace App\Tax\Infrastructure\Entrypoint\Http;
 
 use App\Tax\Application\CreateTax\CreateTax;
+use App\Tax\Domain\Exception\TaxNameAlreadyExistsException;
+use App\Tax\Infrastructure\Entrypoint\Http\Requests\CreateTaxRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class PostController
 {
@@ -13,19 +13,17 @@ class PostController
         private CreateTax $createTax,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(CreateTaxRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('taxes', 'name')->whereNull('deleted_at'),
-            ],
-            'percentage' => ['required', 'integer', 'between:0,100'],
-        ]);
+        try {
+            $response = ($this->createTax)($request->toCommand());
+        } catch (TaxNameAlreadyExistsException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 409);
+        } catch (\Throwable $e) {
+            report($e);
 
-        $response = ($this->createTax)($validated['name'], $validated['percentage']);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
+        }
 
         return new JsonResponse($response->toArray(), 201);
     }

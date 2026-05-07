@@ -2,6 +2,7 @@
 
 namespace App\Zone\Application\ListZones;
 
+use App\Zone\Domain\Entity\Zone;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 
 class ListZones
@@ -10,16 +11,22 @@ class ListZones
         private ZoneRepositoryInterface $zoneRepository,
     ) {}
 
-    /**
-     * @return array<int, array<string, string>>
-     */
-    public function __invoke(bool $includeDeleted = false): array
+    public function __invoke(ListZonesCommand $command): ListZonesResponse
     {
-        $zones = $this->zoneRepository->findAll($includeDeleted);
+        $zones = $this->zoneRepository->findAll($command->includeDeleted ?? false);
 
-        return array_map(
-            static fn ($zone): array => ListZonesItemResponse::create($zone)->toArray(),
+        $items = array_map(
+            static fn (Zone $zone): array => ListZonesItemResponse::create(
+                id: $zone->id()->value(),
+                name: $zone->name()->value(),
+                createdAt: $zone->createdAt()->format(\DateTimeInterface::ATOM),
+                updatedAt: $zone->updatedAt()->format(\DateTimeInterface::ATOM),
+            )->toArray(),
             $zones,
+        );
+
+        return ListZonesResponse::create(
+            items: $items,
         );
     }
 }

@@ -30,7 +30,7 @@ class GetMe
             }
         }
 
-        return new GetMeResponse(
+        return GetMeResponse::create(
             id: $user->id()->value(),
             name: $user->name()->value(),
             email: $user->email()->value(),

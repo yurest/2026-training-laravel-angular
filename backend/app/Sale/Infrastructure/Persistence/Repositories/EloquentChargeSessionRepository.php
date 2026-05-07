@@ -113,6 +113,7 @@ final class EloquentChargeSessionRepository implements ChargeSessionRepositoryIn
         if ($value instanceof \DateTimeInterface) {
             return \DateTimeImmutable::createFromInterface($value);
         }
+
         return new \DateTimeImmutable((string) $value);
     }
 }

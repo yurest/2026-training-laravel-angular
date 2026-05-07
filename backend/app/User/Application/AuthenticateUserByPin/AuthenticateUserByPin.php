@@ -23,14 +23,14 @@ final class AuthenticateUserByPin
         $persistedPin = $this->userRepository->findPinByUuid($command->userUuid, $command->restaurantUuid);
 
         if ($persistedPin === null) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException;
         }
 
         $isValidHashedPin = $this->passwordHasher->verify($command->pin, $persistedPin);
         $isValidLegacyPin = hash_equals($persistedPin, $command->pin);
 
         if (! $isValidHashedPin && ! $isValidLegacyPin) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException;
         }
 
         if ($isValidLegacyPin) {
@@ -57,7 +57,7 @@ final class AuthenticateUserByPin
             $this->userQuickAccessRepository->recordAccess($user->id()->value(), $command->deviceId);
         }
 
-        return new AuthenticateUserByPinResponse(
+        return AuthenticateUserByPinResponse::create(
             id: $user->id()->value(),
             name: $user->name()->value(),
             email: $user->email()->value(),

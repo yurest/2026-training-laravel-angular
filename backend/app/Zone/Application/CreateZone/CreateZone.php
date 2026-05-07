@@ -12,11 +12,16 @@ class CreateZone
         private ZoneRepositoryInterface $zoneRepository,
     ) {}
 
-    public function __invoke(string $name): CreateZoneResponse
+    public function __invoke(CreateZoneCommand $command): CreateZoneResponse
     {
-        $zone = Zone::dddCreate(ZoneName::create($name));
+        $zone = Zone::dddCreate(ZoneName::create($command->name));
         $this->zoneRepository->save($zone);
 
-        return CreateZoneResponse::create($zone);
+        return CreateZoneResponse::create(
+            id: $zone->id()->value(),
+            name: $zone->name()->value(),
+            createdAt: $zone->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $zone->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

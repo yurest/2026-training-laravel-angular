@@ -2,6 +2,7 @@
 
 namespace App\Tax\Application\UpdateTax;
 
+use App\Tax\Domain\Exception\TaxNotFoundException;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 use App\Tax\Domain\ValueObject\TaxName;
 use App\Tax\Domain\ValueObject\TaxPercentage;
@@ -12,20 +13,26 @@ class UpdateTax
         private TaxRepositoryInterface $taxRepository,
     ) {}
 
-    public function __invoke(string $id, ?string $name = null, ?int $percentage = null): ?UpdateTaxResponse
+    public function __invoke(UpdateTaxCommand $command): UpdateTaxResponse
     {
-        $tax = $this->taxRepository->findById($id);
+        $tax = $this->taxRepository->findById($command->id);
 
         if ($tax === null) {
-            return null;
+            throw TaxNotFoundException::withId($command->id);
         }
 
         $tax->update(
-            $name !== null ? TaxName::create($name) : null, // : null replace to : $tax->name; $tax->name
-            $percentage !== null ? TaxPercentage::create($percentage) : null // : null replace to : $tax->percentage
+            $command->name !== null ? TaxName::create($command->name) : null,
+            $command->percentage !== null ? TaxPercentage::create($command->percentage) : null,
         );
         $this->taxRepository->save($tax);
 
-        return UpdateTaxResponse::create($tax);
+        return UpdateTaxResponse::create(
+            id: $tax->id()->value(),
+            name: $tax->name()->value(),
+            percentage: $tax->percentage()->value(),
+            createdAt: $tax->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $tax->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

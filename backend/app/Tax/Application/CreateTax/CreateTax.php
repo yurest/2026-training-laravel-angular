@@ -3,6 +3,7 @@
 namespace App\Tax\Application\CreateTax;
 
 use App\Tax\Domain\Entity\Tax;
+use App\Tax\Domain\Exception\TaxNameAlreadyExistsException;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 use App\Tax\Domain\ValueObject\TaxName;
 use App\Tax\Domain\ValueObject\TaxPercentage;
@@ -13,11 +14,24 @@ class CreateTax
         private TaxRepositoryInterface $taxRepository,
     ) {}
 
-    public function __invoke(string $name, int $percentage): CreateTaxResponse
+    public function __invoke(CreateTaxCommand $command): CreateTaxResponse
     {
-        $tax = Tax::dddCreate(TaxName::create($name), TaxPercentage::create($percentage));
+        if ($this->taxRepository->existsByName($command->name)) {
+            throw TaxNameAlreadyExistsException::withName($command->name);
+        }
+
+        $tax = Tax::dddCreate(
+            TaxName::create($command->name),
+            TaxPercentage::create($command->percentage),
+        );
         $this->taxRepository->save($tax);
 
-        return CreateTaxResponse::create($tax);
+        return CreateTaxResponse::create(
+            id: $tax->id()->value(),
+            name: $tax->name()->value(),
+            percentage: $tax->percentage()->value(),
+            createdAt: $tax->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $tax->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

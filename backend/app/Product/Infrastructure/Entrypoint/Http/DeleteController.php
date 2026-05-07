@@ -3,20 +3,26 @@
 namespace App\Product\Infrastructure\Entrypoint\Http;
 
 use App\Product\Application\DeleteProduct\DeleteProduct;
+use App\Product\Domain\Exception\ProductNotFoundException;
+use App\Product\Infrastructure\Entrypoint\Http\Requests\DeleteProductRequest;
 use Illuminate\Http\JsonResponse;
 
-class DeleteController
+final class DeleteController
 {
     public function __construct(
         private DeleteProduct $deleteProduct,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(DeleteProductRequest $request, string $id): JsonResponse
     {
-        $deleted = ($this->deleteProduct)($id);
+        try {
+            ($this->deleteProduct)($request->toCommand($id));
+        } catch (ProductNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if (! $deleted) {
-            return new JsonResponse(['message' => 'Product not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse(null, 204);

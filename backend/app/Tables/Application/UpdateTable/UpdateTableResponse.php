@@ -2,11 +2,9 @@
 
 namespace App\Tables\Application\UpdateTable;
 
-use App\Tables\Domain\Entity\Table;
-
 final readonly class UpdateTableResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $zoneId,
         public string $name,
@@ -14,14 +12,19 @@ final readonly class UpdateTableResponse
         public string $updatedAt,
     ) {}
 
-    public static function create(Table $table): self
-    {
+    public static function create(
+        string $id,
+        string $zoneId,
+        string $name,
+        string $createdAt,
+        string $updatedAt,
+    ): self {
         return new self(
-            id: $table->id()->value(),
-            zoneId: $table->zoneId()->value(),
-            name: $table->name()->value(),
-            createdAt: $table->createdAt()->format(\DateTimeInterface::ATOM),
-            updatedAt: $table->updatedAt()->format(\DateTimeInterface::ATOM),
+            id: $id,
+            zoneId: $zoneId,
+            name: $name,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
         );
     }
 

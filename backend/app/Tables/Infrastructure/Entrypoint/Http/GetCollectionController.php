@@ -3,19 +3,25 @@
 namespace App\Tables\Infrastructure\Entrypoint\Http;
 
 use App\Tables\Application\ListTables\ListTables;
+use App\Tables\Infrastructure\Entrypoint\Http\Requests\ListTablesRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
-class GetCollectionController
+final class GetCollectionController
 {
     public function __construct(
         private ListTables $listTables,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(ListTablesRequest $request): JsonResponse
     {
-        $includeDeleted = $request->query('all') === 'true';
+        try {
+            $response = ($this->listTables)($request->toCommand());
+        } catch (\Throwable $e) {
+            report($e);
 
-        return new JsonResponse(($this->listTables)($includeDeleted));
+            return new JsonResponse(['message' => 'Internal error.'], 500);
+        }
+
+        return new JsonResponse($response->toArray());
     }
 }

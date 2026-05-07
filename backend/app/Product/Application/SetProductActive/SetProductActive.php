@@ -2,6 +2,7 @@
 
 namespace App\Product\Application\SetProductActive;
 
+use App\Product\Domain\Exception\ProductNotFoundException;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 
 class SetProductActive
@@ -10,15 +11,12 @@ class SetProductActive
         private ProductRepositoryInterface $productRepository,
     ) {}
 
-    public function __invoke(string $id, bool $active): ?SetProductActiveResponse
+    public function __invoke(SetProductActiveCommand $command): SetProductActiveResponse
     {
-        $product = $this->productRepository->findById($id);
+        $product = $this->productRepository->findById($command->id)
+            ?? throw ProductNotFoundException::withId($command->id);
 
-        if ($product === null) {
-            return null;
-        }
-
-        if ($active) {
+        if ($command->active) {
             $product->activate();
         } else {
             $product->deactivate();
@@ -26,6 +24,17 @@ class SetProductActive
 
         $this->productRepository->save($product);
 
-        return SetProductActiveResponse::create($product);
+        return SetProductActiveResponse::create(
+            id: $product->id()->value(),
+            familyId: $product->familyId()->value(),
+            taxId: $product->taxId()->value(),
+            imageSrc: $product->imageSrc()->value(),
+            name: $product->name()->value(),
+            price: $product->price()->value(),
+            stock: $product->stock()->value(),
+            active: $product->isActive(),
+            createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

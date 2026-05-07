@@ -2,7 +2,7 @@
 
 namespace App\Tables\Application\GetTable;
 
-use App\Shared\Domain\ValueObject\Uuid;
+use App\Tables\Domain\Exception\TableNotFoundException;
 use App\Tables\Domain\Interfaces\TableRepositoryInterface;
 
 class GetTable
@@ -11,15 +11,17 @@ class GetTable
         private TableRepositoryInterface $tableRepository,
     ) {}
 
-    public function __invoke(string $id): ?GetTableResponse
+    public function __invoke(GetTableCommand $command): GetTableResponse
     {
-        $tableId = Uuid::create($id);
-        $table = $this->tableRepository->findById($tableId->value());
+        $table = $this->tableRepository->findById($command->id)
+            ?? throw TableNotFoundException::withId($command->id);
 
-        if ($table === null) {
-            return null;
-        }
-
-        return GetTableResponse::create($table);
+        return GetTableResponse::create(
+            id: $table->id()->value(),
+            zoneId: $table->zoneId()->value(),
+            name: $table->name()->value(),
+            createdAt: $table->createdAt()->format(\DateTimeInterface::ATOM),
+            updatedAt: $table->updatedAt()->format(\DateTimeInterface::ATOM),
+        );
     }
 }

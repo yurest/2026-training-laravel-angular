@@ -3,9 +3,9 @@
 namespace App\Tax\Infrastructure\Entrypoint\Http;
 
 use App\Tax\Application\UpdateTax\UpdateTax;
+use App\Tax\Domain\Exception\TaxNotFoundException;
+use App\Tax\Infrastructure\Entrypoint\Http\Requests\UpdateTaxRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class PutController
 {
@@ -13,26 +13,16 @@ class PutController
         private UpdateTax $updateTax,
     ) {}
 
-    public function __invoke(Request $request, string $id): JsonResponse
+    public function __invoke(UpdateTaxRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => [
-                'sometimes',
-                'string',
-                'max:255',
-                Rule::unique('taxes', 'name')->ignore($id, 'uuid')->whereNull('deleted_at'),
-            ],
-            'percentage' => ['sometimes', 'integer', 'between:0,100'],
-        ]);
+        try {
+            $response = ($this->updateTax)($request->toCommand($id));
+        } catch (TaxNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        $response = ($this->updateTax)(
-            $id,
-            $validated['name'] ?? null,
-            $validated['percentage'] ?? null
-        );
-
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Tax not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());

@@ -15,6 +15,7 @@ class ChargeSessionTest extends TestCase
 
     /**
      * Helper para crear una orden con líneas usando DB directamente
+     *
      * @return array{id: int, uuid: string}
      */
     private function createOrderWithLines(array $tenant, int $diners = 4, int $totalCents = 10000): array
@@ -232,7 +233,7 @@ class ChargeSessionTest extends TestCase
 
         // Consultar sesión activa
         $response = $this->withSession($tenant['session'])->getJson(
-            '/api/tpv/charge-sessions/current?order_id=' . $order['uuid']
+            '/api/tpv/charge-sessions/current?order_id='.$order['uuid']
         );
 
         $response->assertStatus(200);
@@ -248,7 +249,7 @@ class ChargeSessionTest extends TestCase
         $order = $this->createOrderWithLines($tenant);
 
         $response = $this->withSession($tenant['session'])->getJson(
-            '/api/tpv/charge-sessions/current?order_id=' . $order['uuid']
+            '/api/tpv/charge-sessions/current?order_id='.$order['uuid']
         );
 
         $response->assertStatus(404);
@@ -691,7 +692,7 @@ class ChargeSessionTest extends TestCase
 
         // Paso 6: Verificar que la sesión se completó
         $getResponse = $this->withSession($tenant['session'])->getJson(
-            '/api/tpv/charge-sessions/current?order_id=' . $order['uuid']
+            '/api/tpv/charge-sessions/current?order_id='.$order['uuid']
         );
         $getResponse->assertStatus(200);
         $this->assertEquals('completed', $getResponse->json('status'));

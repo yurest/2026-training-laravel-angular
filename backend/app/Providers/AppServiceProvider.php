@@ -81,7 +81,5 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TenantContext::class, static fn (): TenantContext => new TenantContext);
     }
 
-    public function boot(): void
-    {
-    }
+    public function boot(): void {}
 }

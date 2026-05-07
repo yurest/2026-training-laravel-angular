@@ -3,6 +3,8 @@
 namespace App\Tax\Infrastructure\Entrypoint\Http;
 
 use App\Tax\Application\GetTax\GetTax;
+use App\Tax\Domain\Exception\TaxNotFoundException;
+use App\Tax\Infrastructure\Entrypoint\Http\Requests\GetTaxRequest;
 use Illuminate\Http\JsonResponse;
 
 class GetController
@@ -11,12 +13,16 @@ class GetController
         private GetTax $getTax,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(GetTaxRequest $request, string $id): JsonResponse
     {
-        $response = ($this->getTax)($id);
+        try {
+            $response = ($this->getTax)($request->toCommand($id));
+        } catch (TaxNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Tax not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());

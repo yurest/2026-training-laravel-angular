@@ -92,11 +92,23 @@ namespace App\<Module>\Application\<UseCase>;
 
 final readonly class <UseCase>Response
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $name,
         public ?string $optional,
     ) {}
+
+    public static function create(
+        string $id,
+        string $name,
+        ?string $optional,
+    ): self {
+        return new self(
+            id: $id,
+            name: $name,
+            optional: $optional,
+        );
+    }
 
     public function toArray(): array
     {
@@ -110,6 +122,11 @@ final readonly class <UseCase>Response
 ```
 
 **Rules:**
+- **Constructor must be `private`.** Construction is centralized in a public static factory (default name: `create(...)`). This is the same convention applied to Value Objects (`Email::create(...)`) and Domain Entities (`Entity::dddCreate(...)`).
+  - Use cases and any other caller **must not** use `new <UseCase>Response(...)` — it will fail because the constructor is private. They must call `<UseCase>Response::create(...)`.
+  - Inside the static factory, `new self(...)` is allowed because the call originates from the same class.
+  - Default factory signature **mirrors the constructor** (same primitive parameters). This keeps the Response a pure DTO, decoupled from Domain entities.
+  - When several use cases in the same module build the Response from the **same single Domain entity** with the same mapping (e.g. `Tax` → `CreateTaxResponse`/`GetTaxResponse`/`UpdateTaxResponse`), it is acceptable to add an extra named constructor like `public static function fromTax(Tax $tax): self` to centralize the mapping — but the primitive `create(...)` must still exist as the canonical entry point.
 - **Never** include `$success`, `$statusCode`, or `$message`. If you got a Response, it is a success. Errors are exceptions.
 - **Never** add factory methods like `::notFound()`, `::invalidCredentials()`, `::forbidden()`. Those are anti-pattern: they push HTTP semantics into Application.
 - `toArray()` is the boundary translator to JSON.
@@ -315,6 +332,7 @@ The entity protects its invariants. Getters that exist only to feed external log
 | `try/catch` with no specific catch + only `\Exception` | Catch each domain exception explicitly, then `\Throwable` last |
 | Multiple errors in one exception class | One file per business error |
 | `Response::notFound()` / `Response::failed()` factories | Domain exceptions instead |
+| `new <UseCase>Response(...)` from a use case (public ctor) | Private constructor + `<UseCase>Response::create(...)` factory |
 
 ## Refactor procedure (existing controller → pattern)
 
@@ -324,7 +342,7 @@ When fixing an inconsistent endpoint, follow this exact order to keep the codeba
 2. **Create one Domain Exception per error path** (extending `\DomainException`). Do not delete the old code yet.
 3. **Add/extend the Repository Interface** if the use case references a service that touches persistence. Implement on the Eloquent repo. Add binding in `AppServiceProvider`.
 4. **Create the Command DTO.** Move the use case's `__invoke` parameters into it.
-5. **Refactor the Response DTO:** remove `success`/`statusCode`/`message` and any failure factory methods. Keep only the success constructor and `toArray()`.
+5. **Refactor the Response DTO:** remove `success`/`statusCode`/`message` and any failure factory methods. Make the constructor `private` and expose a public static `create(...)` factory mirroring the constructor. Keep `toArray()` as the boundary translator.
 6. **Refactor the use case:** accept Command, throw exceptions instead of returning failure responses, move post-success side effects from controller into here.
 7. **Create the FormRequest** with `rules()` and `toCommand()`.
 8. **Refactor the controller:** inject FormRequest, wrap use case call in `try/catch` with one block per domain exception + final `\Throwable`. Remove validation, business orchestration, and any direct Eloquent.

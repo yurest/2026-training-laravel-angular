@@ -2,6 +2,7 @@
 
 namespace App\Tables\Application\ListTables;
 
+use App\Tables\Domain\Entity\Table;
 use App\Tables\Domain\Interfaces\TableRepositoryInterface;
 
 class ListTables
@@ -10,16 +11,23 @@ class ListTables
         private TableRepositoryInterface $tableRepository,
     ) {}
 
-    /**
-     * @return array<int, array<string, string>>
-     */
-    public function __invoke(bool $includeDeleted = false): array
+    public function __invoke(ListTablesCommand $command): ListTablesResponse
     {
-        $tables = $this->tableRepository->findAll($includeDeleted);
+        $tables = $this->tableRepository->findAll($command->includeDeleted ?? false);
 
-        return array_map(
-            static fn ($table): array => ListTablesItemResponse::create($table)->toArray(),
+        $items = array_map(
+            static fn (Table $table): array => ListTablesItemResponse::create(
+                id: $table->id()->value(),
+                zoneId: $table->zoneId()->value(),
+                name: $table->name()->value(),
+                createdAt: $table->createdAt()->format(\DateTimeInterface::ATOM),
+                updatedAt: $table->updatedAt()->format(\DateTimeInterface::ATOM),
+            )->toArray(),
             $tables,
+        );
+
+        return ListTablesResponse::create(
+            items: $items,
         );
     }
 }

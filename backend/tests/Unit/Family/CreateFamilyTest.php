@@ -3,6 +3,7 @@
 namespace Tests\Unit\Family;
 
 use App\Family\Application\CreateFamily\CreateFamily;
+use App\Family\Application\CreateFamily\CreateFamilyCommand;
 use App\Family\Application\CreateFamily\CreateFamilyResponse;
 use App\Family\Domain\Entity\Family;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
@@ -28,7 +29,7 @@ class CreateFamilyTest extends TestCase
             }));
 
         $createFamily = new CreateFamily($repository);
-        $response = $createFamily('Comida');
+        $response = $createFamily(new CreateFamilyCommand('Comida'));
 
         $this->assertInstanceOf(CreateFamilyResponse::class, $response);
         $this->assertSame('Comida', $response->name);

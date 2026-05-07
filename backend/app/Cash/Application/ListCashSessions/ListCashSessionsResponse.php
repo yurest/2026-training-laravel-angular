@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Cash\Application\ListCashSessions;
 
-use App\Cash\Domain\Entity\CashSession;
-
 final class ListCashSessionsResponse
 {
     private function __construct(private readonly array $sessions) {}

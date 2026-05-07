@@ -7,6 +7,7 @@ namespace App\Sale\Infrastructure\Entrypoint\Http;
 final class TicketTextFormatter
 {
     private const WIDTH_58 = 32;
+
     private const WIDTH_80 = 48;
 
     public function formatPayment(array $data, int $width): string
