@@ -16,8 +16,8 @@ final class PostController
     {
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
-            'family_id' => ['required', 'integer'],
-            'tax_id' => ['required', 'integer'],
+            'family_id' => ['required', 'string'],
+            'tax_id' => ['required', 'string'],
             'stock' => ['required', 'integer', 'min:0'],
             'image_src' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
@@ -26,12 +26,12 @@ final class PostController
 
         $response = ($this->createProduct)(
             (string) $validated['restaurant_id'],
-            (string) $validated['family_id'],
-            (string) $validated['tax_id'],
+            $validated['family_id'],
+            $validated['tax_id'],
             $validated['stock'],
-            $validated['image_src'] ?? null,
+            $validated['image_src'] ?? '',
             $validated['name'],
-            $validated['price']
+            $validated['price'],
         );
 
         return new JsonResponse($response->toArray(), 201);

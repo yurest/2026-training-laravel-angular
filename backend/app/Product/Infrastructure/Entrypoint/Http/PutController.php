@@ -16,8 +16,8 @@ final class PutController
     public function __invoke(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([
-            'family_id' => ['sometimes', 'integer'],
-            'tax_id' => ['sometimes', 'integer'],
+            'family_id' => ['sometimes', 'string'],
+            'tax_id' => ['sometimes', 'string'],
             'stock' => ['sometimes', 'integer', 'min:0'],
             'image_src' => ['nullable', 'string', 'max:255'],
             'name' => ['sometimes', 'string', 'max:255'],
@@ -28,8 +28,8 @@ final class PutController
         try {
             $response = ($this->updateProduct)(
                 $id,
-                isset($validated['family_id']) ? (string) $validated['family_id'] : null,
-                isset($validated['tax_id']) ? (string) $validated['tax_id'] : null,
+                isset($validated['family_id']) ? $validated['family_id'] : null,
+                isset($validated['tax_id']) ? $validated['tax_id'] : null,
                 $validated['stock'] ?? null,
                 $validated['image_src'] ?? null,
                 $validated['name'] ?? null,
