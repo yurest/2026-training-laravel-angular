@@ -5,6 +5,7 @@ namespace App\OrderLineLog\Infrastructure\Persistence\Repositories;
 use App\OrderLineLog\Domain\Entity\OrderLineLog;
 use App\OrderLineLog\Domain\Interfaces\OrderLineLogRepositoryInterface;
 use App\OrderLineLog\Infrastructure\Persistence\Models\EloquentOrderLineLog;
+use Illuminate\Support\Facades\DB;
 
 final class EloquentOrderLineLogRepository implements OrderLineLogRepositoryInterface
 {
@@ -14,11 +15,23 @@ final class EloquentOrderLineLogRepository implements OrderLineLogRepositoryInte
 
     public function save(OrderLineLog $orderLineLog): void
     {
+        $orderId = DB::table('orders')
+            ->where('uuid', $orderLineLog->orderId()->value())
+            ->value('id');
+
+        $orderLineId = null;
+
+        if ($orderLineLog->orderLineId() !== null) {
+            $orderLineId = DB::table('order_lines')
+                ->where('uuid', $orderLineLog->orderLineId())
+                ->value('id');
+        }
+
         $this->model->newQuery()->create([
             'uuid' => $orderLineLog->id()->value(),
             'restaurant_id' => $orderLineLog->restaurantId()->value(),
-            'order_id' => $orderLineLog->orderId()->value(),
-            'order_line_id' => $orderLineLog->orderLineId(),
+            'order_id' => $orderId,
+            'order_line_id' => $orderLineId,
             'user_id' => $orderLineLog->userId()->value(),
             'action' => $orderLineLog->action(),
             'old_quantity' => $orderLineLog->oldQuantity(),

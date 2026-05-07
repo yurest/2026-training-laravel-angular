@@ -16,8 +16,8 @@ final class PostController
     {
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
-            'order_id' => ['required', 'integer'],
-            'product_id' => ['required', 'integer'],
+            'order_id' => ['required', 'string'],
+            'product_id' => ['required', 'string'],
             'user_id' => ['required', 'integer'],
             'quantity' => ['required', 'integer', 'min:1'],
             'price' => ['required', 'integer', 'min:0'],
@@ -26,8 +26,8 @@ final class PostController
 
         $response = ($this->createOrderLine)(
             (string) $validated['restaurant_id'],
-            (string) $validated['order_id'],
-            (string) $validated['product_id'],
+            $validated['order_id'],
+            $validated['product_id'],
             (string) $validated['user_id'],
             $validated['quantity'],
             $validated['price'],

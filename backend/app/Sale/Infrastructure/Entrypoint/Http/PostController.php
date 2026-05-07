@@ -16,7 +16,7 @@ final class PostController
     {
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
-            'order_id' => ['required', 'integer'],
+            'order_id' => ['required', 'string'],
             'user_id' => ['required', 'integer'],
             'total' => ['required', 'integer', 'min:0'],
         ]);
