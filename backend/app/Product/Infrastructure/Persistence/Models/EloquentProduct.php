@@ -26,9 +26,4 @@ class EloquentProduct extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
-
-    public function getKeyName(): string
-    {
-        return 'id';
-    }
 }

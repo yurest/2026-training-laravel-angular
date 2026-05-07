@@ -2,7 +2,7 @@
 
 namespace App\Shared\Domain\ValueObject;
 
-class RestaurantId
+final readonly class RestaurantId
 {
     private string $value;
 

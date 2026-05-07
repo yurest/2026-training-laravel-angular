@@ -7,6 +7,9 @@ use App\Order\Domain\ValueObject\OrderStatus;
 use App\Shared\Domain\ValueObject\DomainDateTime;
 use App\Shared\Domain\ValueObject\RestaurantId;
 use App\Shared\Domain\ValueObject\Uuid;
+use App\Shared\Domain\ValueObject\TableId;
+use App\Shared\Domain\ValueObject\UserId;
+
 
 class Order
 {
@@ -14,9 +17,9 @@ class Order
         private Uuid $id,
         private RestaurantId $restaurantId,
         private OrderStatus $status,
-        private string $tableId,
-        private string $openedByUserId,
-        private ?string $closedByUserId,
+        private TableId $tableId,
+        private UserId $openedByUserId,
+        private ?UserId $closedByUserId,
         private Diners $diners,
         private DomainDateTime $openedAt,
         private ?DomainDateTime $closedAt,
@@ -26,8 +29,8 @@ class Order
 
     public static function dddCreate(
         RestaurantId $restaurantId,
-        string $tableId,
-        string $openedByUserId,
+        TableId $tableId,
+        UserId $openedByUserId,
         Diners $diners,
     ): self {
         $now = DomainDateTime::now();
@@ -64,9 +67,9 @@ class Order
             Uuid::create($id),
             RestaurantId::create($restaurantId),
             OrderStatus::create($status),
-            $tableId,
-            $openedByUserId,
-            $closedByUserId,
+            TableId::create($tableId),
+            UserId::create($openedByUserId),
+            $closedByUserId ? UserId::create($closedByUserId) : null,
             Diners::create($diners),
             DomainDateTime::create($openedAt),
             $closedAt ? DomainDateTime::create($closedAt) : null,
@@ -90,17 +93,17 @@ class Order
         return $this->status;
     }
 
-    public function tableId(): string
+    public function tableId(): TableId
     {
         return $this->tableId;
     }
 
-    public function openedByUserId(): string
+    public function openedByUserId(): UserId
     {
         return $this->openedByUserId;
     }
 
-    public function closedByUserId(): ?string
+    public function closedByUserId(): ?UserId
     {
         return $this->closedByUserId;
     }
@@ -124,9 +127,30 @@ class Order
     {
         return $this->createdAt;
     }
-
     public function updatedAt(): DomainDateTime
     {
         return $this->updatedAt;
+    }
+
+    public function update(
+        OrderStatus $status,
+        TableId $tableId,
+        ?UserId $closedByUserId,
+        Diners $diners,
+        ?DomainDateTime $closedAt,
+    ): self {
+        return new self(
+            $this->id,
+            $this->restaurantId,
+            $status,
+            $tableId,
+            $this->openedByUserId,
+            $closedByUserId,
+            $diners,
+            $this->openedAt,
+            $closedAt,
+            $this->createdAt,
+            DomainDateTime::now(),
+        );
     }
 }

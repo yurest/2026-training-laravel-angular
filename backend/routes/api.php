@@ -1,6 +1,28 @@
 <?php
 
-use App\Family\Infrastructure\Entrypoint\Http\DeleteController as FamilyDeleteController;
+//SALE LINES
+use App\SaleLine\Infrastructure\Entrypoint\Http\IndexBySaleController as SaleLineIndexBySaleController;
+use App\Sale\Infrastructure\Entrypoint\Http\CheckoutOrderPostController as CheckoutOrderPostController;
+
+// SALES
+use App\Sale\Infrastructure\Entrypoint\Http\GetController as SaleGetController;
+use App\Sale\Infrastructure\Entrypoint\Http\IndexController as SaleIndexController;
+use App\Sale\Infrastructure\Entrypoint\Http\PostController as SalePostController;
+
+//ORDER LINES
+use App\OrderLine\Infrastructure\Entrypoint\Http\PostController as OrderLinePostController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\PutController as OrderLinePutController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\GetController as OrderLineGetController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\IndexController as OrderLineIndexController;
+use App\OrderLine\Infrastructure\Entrypoint\Http\DeleteController as OrderLineDeleteController;
+
+//ORDERS
+use App\Order\Infrastructure\Entrypoint\Http\PostController as OrderPostController;
+use App\Order\Infrastructure\Entrypoint\Http\PutController as OrderPutController;
+use App\Order\Infrastructure\Entrypoint\Http\GetController as OrderGetController;
+use App\Order\Infrastructure\Entrypoint\Http\IndexController as OrderIndexController;
+use App\Order\Infrastructure\Entrypoint\Http\DeleteController as OrderDeleteController;
+
 // TAX
 use App\Family\Infrastructure\Entrypoint\Http\GetController as FamilyGetController;
 use App\Family\Infrastructure\Entrypoint\Http\IndexController as FamilyIndexController;
@@ -12,6 +34,7 @@ use App\Product\Infrastructure\Entrypoint\Http\GetController as ProductGetContro
 use App\Product\Infrastructure\Entrypoint\Http\IndexController as ProductIndexController;
 use App\Product\Infrastructure\Entrypoint\Http\PostController as ProductPostController;
 use App\Product\Infrastructure\Entrypoint\Http\PutController as ProductPutController;
+use App\Family\Infrastructure\Entrypoint\Http\DeleteController as FamilyDeleteController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\ChangePasswordPatchController as RestaurantChangePasswordPatchController;
 // PRODUCT
 use App\Restaurant\Infrastructure\Entrypoint\Http\DeleteController as RestaurantDeleteController;
@@ -113,4 +136,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tables/{id}', TableGetController::class);
     Route::put('/tables/{id}', TablePutController::class);
     Route::delete('/tables/{id}', TableDeleteController::class);
+
+    // ORDERS
+    Route::post('/orders', OrderPostController::class);
+    Route::put('/orders/{id}', OrderPutController::class);
+    Route::get('/orders', OrderIndexController::class);
+    Route::get('/orders/{id}', OrderGetController::class);
+    Route::delete('/orders/{id}', OrderDeleteController::class);
+
+    // ORDER LINES
+    Route::post('/order-lines', OrderLinePostController::class);
+    Route::put('/order-lines/{id}', OrderLinePutController::class);
+    Route::get('/order-lines', OrderLineIndexController::class);
+    Route::get('/order-lines/{id}', OrderLineGetController::class);
+    Route::delete('/order-lines/{id}', OrderLineDeleteController::class);
+
+    // SALES
+    Route::post('/sales', SalePostController::class);
+    Route::get('/sales', SaleIndexController::class);
+    Route::get('/sales/{id}', SaleGetController::class);
+
+    // SALE LINES
+    Route::get('/sales/{saleId}/lines', SaleLineIndexBySaleController::class);
+    Route::post('/orders/{orderId}/checkout', CheckoutOrderPostController::class);
 });

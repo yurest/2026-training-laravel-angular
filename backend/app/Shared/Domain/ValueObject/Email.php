@@ -2,7 +2,7 @@
 
 namespace App\Shared\Domain\ValueObject;
 
-class Email
+final readonly class Email
 {
     private string $value;
 

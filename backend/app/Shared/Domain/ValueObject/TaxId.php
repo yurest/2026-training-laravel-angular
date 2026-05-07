@@ -2,7 +2,7 @@
 
 namespace App\Shared\Domain\ValueObject;
 
-class TaxId
+final readonly class TaxId
 {
     private string $value;
 

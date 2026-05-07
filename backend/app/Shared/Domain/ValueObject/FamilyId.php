@@ -2,7 +2,7 @@
 
 namespace App\Shared\Domain\ValueObject;
 
-class FamilyId
+final readonly class FamilyId
 {
     private string $value;
 
