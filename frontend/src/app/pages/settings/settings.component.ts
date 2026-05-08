@@ -549,6 +549,9 @@ export class SettingsComponent implements OnInit {
     };
   }
 
+  // =====================
+  // FAMILY METHODS
+  // =====================
   loadFamilies(): void {
     const restaurantId = this.authService.getUser()?.restaurant_id;
 
@@ -758,7 +761,9 @@ export class SettingsComponent implements OnInit {
       active: true,
     };
   }
-
+  // =====================
+  // TAX METHODS
+  // =====================
   loadTaxes(): void {
     const restaurantId = this.authService.getUser()?.restaurant_id;
 
@@ -991,6 +996,10 @@ export class SettingsComponent implements OnInit {
     };
   }
 
+  // =====================
+  // ZONES METHODS
+  // =====================
+
   loadZones(): void {
     const restaurantId = this.authService.getUser()?.restaurant_id;
 
@@ -1221,7 +1230,10 @@ export class SettingsComponent implements OnInit {
       },
     });
   }
-  //cambios
+
+  // =====================
+  // TABLE METHODS
+  // =====================
   createTable(): void {
     const restaurantId = this.authService.getUser()?.restaurant_id;
 
@@ -1423,6 +1435,10 @@ export class SettingsComponent implements OnInit {
 
     return zone?.name ?? `Zona ${zoneId}`;
   }
+
+  // =====================
+  // PRODUCTS METHODS
+  // =====================
 
   loadProducts(): void {
     this.productsLoading = true;
