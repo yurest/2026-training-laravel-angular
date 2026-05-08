@@ -2,12 +2,13 @@
 
 //SALE LINES
 use App\SaleLine\Infrastructure\Entrypoint\Http\IndexBySaleController as SaleLineIndexBySaleController;
-use App\Sale\Infrastructure\Entrypoint\Http\CheckoutOrderPostController as CheckoutOrderPostController;
+
 
 // SALES
 use App\Sale\Infrastructure\Entrypoint\Http\GetController as SaleGetController;
 use App\Sale\Infrastructure\Entrypoint\Http\IndexController as SaleIndexController;
 use App\Sale\Infrastructure\Entrypoint\Http\PostController as SalePostController;
+use App\Sale\Infrastructure\Entrypoint\Http\CheckoutOrderPostController as CheckoutOrderPostController;
 
 //ORDER LINES
 use App\OrderLine\Infrastructure\Entrypoint\Http\PostController as OrderLinePostController;
@@ -23,52 +24,60 @@ use App\Order\Infrastructure\Entrypoint\Http\GetController as OrderGetController
 use App\Order\Infrastructure\Entrypoint\Http\IndexController as OrderIndexController;
 use App\Order\Infrastructure\Entrypoint\Http\DeleteController as OrderDeleteController;
 
-// TAX
+// FAMILY
 use App\Family\Infrastructure\Entrypoint\Http\GetController as FamilyGetController;
 use App\Family\Infrastructure\Entrypoint\Http\IndexController as FamilyIndexController;
 use App\Family\Infrastructure\Entrypoint\Http\PostController as FamilyPostController;
 use App\Family\Infrastructure\Entrypoint\Http\PutController as FamilyPutController;
-use App\Product\Infrastructure\Entrypoint\Http\DeleteController as ProductDeleteController;
-// FAMILY
+use App\Family\Infrastructure\Entrypoint\Http\DeleteController as FamilyDeleteController;
+
+// PRODUCT
 use App\Product\Infrastructure\Entrypoint\Http\GetController as ProductGetController;
 use App\Product\Infrastructure\Entrypoint\Http\IndexController as ProductIndexController;
 use App\Product\Infrastructure\Entrypoint\Http\PostController as ProductPostController;
 use App\Product\Infrastructure\Entrypoint\Http\PutController as ProductPutController;
-use App\Family\Infrastructure\Entrypoint\Http\DeleteController as FamilyDeleteController;
-use App\Restaurant\Infrastructure\Entrypoint\Http\ChangePasswordPatchController as RestaurantChangePasswordPatchController;
-// PRODUCT
+use App\Product\Infrastructure\Entrypoint\Http\DeleteController as ProductDeleteController;
+
+// RESTAURANT
 use App\Restaurant\Infrastructure\Entrypoint\Http\DeleteController as RestaurantDeleteController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\GetController as RestaurantGetController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\IndexController as RestaurantIndexController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\PostController as RestaurantPostController;
 use App\Restaurant\Infrastructure\Entrypoint\Http\PutController as RestaurantPutController;
-// RESTAURANT
+use App\Restaurant\Infrastructure\Entrypoint\Http\ChangePasswordPatchController as RestaurantChangePasswordPatchController;
+
+// TABLE
 use App\Table\Infrastructure\Entrypoint\Http\DeleteController as TableDeleteController;
 use App\Table\Infrastructure\Entrypoint\Http\GetController as TableGetController;
 use App\Table\Infrastructure\Entrypoint\Http\IndexController as TableIndexController;
 use App\Table\Infrastructure\Entrypoint\Http\PostController as TablePostController;
 use App\Table\Infrastructure\Entrypoint\Http\PutController as TablePutController;
-use App\Tax\Infrastructure\Entrypoint\Http\DeleteController as TaxDeleteController;
-// ZONE
+
+
+// TAX
 use App\Tax\Infrastructure\Entrypoint\Http\GetController as TaxGetController;
 use App\Tax\Infrastructure\Entrypoint\Http\IndexController as TaxIndexController;
 use App\Tax\Infrastructure\Entrypoint\Http\PostController as TaxPostController;
 use App\Tax\Infrastructure\Entrypoint\Http\PutController as TaxPutController;
-use App\User\Infrastructure\Entrypoint\Http\DeleteController as UserDeleteController;
-// TABLE
+use App\Tax\Infrastructure\Entrypoint\Http\DeleteController as TaxDeleteController;
+
+// USER
 use App\User\Infrastructure\Entrypoint\Http\GetController as UserGetController;
 use App\User\Infrastructure\Entrypoint\Http\IndexController as UserIndexController;
 use App\User\Infrastructure\Entrypoint\Http\LoginPostController as UserLoginPostController;
 use App\User\Infrastructure\Entrypoint\Http\LogoutPostController as UserLogoutPostController;
 use App\User\Infrastructure\Entrypoint\Http\MeGetController as UserMeGetController;
-// USER
 use App\User\Infrastructure\Entrypoint\Http\PostController as UserPostController;
 use App\User\Infrastructure\Entrypoint\Http\PutController as UserPutController;
+use App\User\Infrastructure\Entrypoint\Http\DeleteController as UserDeleteController;
+
+// ZONE
 use App\Zone\Infrastructure\Entrypoint\Http\DeleteController as ZoneDeleteController;
 use App\Zone\Infrastructure\Entrypoint\Http\GetController as ZoneGetController;
 use App\Zone\Infrastructure\Entrypoint\Http\IndexController as ZoneIndexController;
 use App\Zone\Infrastructure\Entrypoint\Http\PostController as ZonePostController;
 use App\Zone\Infrastructure\Entrypoint\Http\PutController as ZonePutController;
+
 use Illuminate\Support\Facades\Route;
 
 /*
