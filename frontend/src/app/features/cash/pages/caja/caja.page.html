@@ -66,7 +66,7 @@
     [tableLabel]="selectedTable?.table_name || ''"
     [lines]="selectedTableLines"
     [isPartialPayment]="isPartialPayment"
-    [isProcessing]="isProcessingPayment"
+    [isProcessing]="isProcessingPayment()"
     [diners]="selectedTable?.diners ?? 0"
     [paidDiners]="paidDiners"
     (closeModal)="showCobrarModal = false"
@@ -81,7 +81,7 @@
         [isOpen]="true"
         [total]="selectedTable?.total || 0"
         [tableLabel]="selectedTable?.table_name || ''"
-        [chargeSession]="loadedChargeSession"
+        [chargeSession]="loadedChargeSession()"
         [remainingCents]="selectedTable?.total || 0"
         [lines]="selectedTableLines"
         [diners]="selectedTable?.diners || 2"
@@ -96,9 +96,9 @@
         class="split-modal-sidebar"
         [diners]="selectedTable?.diners || 0"
         [total]="originalOrderTotal"
-        [remainingTotal]="loadedChargeSession?.remaining_cents ?? originalOrderTotal"
+        [remainingTotal]="loadedChargeSession()?.remaining_cents ?? originalOrderTotal"
         [paidDiners]="paidDiners"
-        [amountPerDiner]="loadedChargeSession?.suggested_per_diner_cents ?? null"
+        [amountPerDiner]="loadedChargeSession()?.suggested_per_diner_cents ?? null"
       ></app-diners-status>
     </div>
   }

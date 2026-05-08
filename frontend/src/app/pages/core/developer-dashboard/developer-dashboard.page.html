@@ -34,22 +34,22 @@
     </div>
 
     <div class="dashboard-content">
-      @if (isLoading) {
+      @if (isLoading()) {
         <ion-spinner name="crescent" class="loading-spinner"></ion-spinner>
       }
 
-      @if (error && !isLoading) {
+      @if (error() && !isLoading()) {
         <div class="error-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          <p>{{ error }}</p>
+          <p>{{ error() }}</p>
         </div>
       }
 
-      @if (!isLoading && companies.length === 0 && !error) {
+      @if (!isLoading() && companies().length === 0 && !error()) {
         <div class="empty-state">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -60,9 +60,9 @@
         </div>
       }
 
-      @if (!isLoading && companies.length > 0) {
+      @if (!isLoading() && companies().length > 0) {
         <div class="companies-grid">
-          @for (company of companies; track company) {
+          @for (company of companies(); track company) {
             <div class="company-section">
               <div class="company-header">
                 <div class="company-info">
