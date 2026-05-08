@@ -25,8 +25,7 @@ import { KpiCardComponent } from '../../../../components/kpi-card/kpi-card.compo
 import { SegmentComponent } from '../../../../shared/components/segment/segment.component';
 import { PaymentSuccessComponent } from '../../ui/payment-success/payment-success.component';
 import { DinersStatusComponent } from '../../../../shared/components/diners-status/diners-status.component';
-
-type CajaState = 'pre-apertura' | 'activa' | 'arqueo' | 'historico';
+import { CajaState } from '../../../../core/enums/caja-state.enum';
 
 interface LastClosedData {
   id: string;
@@ -307,27 +306,27 @@ export class CajaPage implements OnInit, OnDestroy {
     this.sessionFacade.loadActiveSession(this.deviceId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (session) => {
         if (session === null) {
-          this.sessionFacade.setState('pre-apertura');
+          this.sessionFacade.setState(CajaState.PRE_APERTURA);
           this.loadLastClosedData();
           this.stopRefreshInterval();
         } else {
           this.sessionFacade.setLoading(false);
           switch (session.status) {
             case 'open':
-              this.sessionFacade.setState('activa');
+              this.sessionFacade.setState(CajaState.ACTIVA);
               this.loadSessionSummary();
               this.loadActiveDashboardData();
               this.startRefreshInterval();
               break;
             case 'closing':
-              this.sessionFacade.setState('arqueo');
+              this.sessionFacade.setState(CajaState.ARQUEO);
               this.showWizard = true;
               this.loadSessionSummary();
               this.stopRefreshInterval();
               break;
             case 'closed':
             case 'abandoned':
-              this.sessionFacade.setState('historico');
+              this.sessionFacade.setState(CajaState.HISTORICO);
               this.loadClosedSessions();
               this.stopRefreshInterval();
               break;
@@ -336,7 +335,7 @@ export class CajaPage implements OnInit, OnDestroy {
       },
       error: () => {
         this.sessionFacade.setLoading(false);
-        this.sessionFacade.setState('pre-apertura');
+        this.sessionFacade.setState(CajaState.PRE_APERTURA);
         this.loadLastClosedData();
       },
     });
@@ -429,7 +428,7 @@ export class CajaPage implements OnInit, OnDestroy {
       next: (session) => {
         this.showOpenModal = false;
         this.sessionFacade.setActiveSession(session);
-        this.sessionFacade.setState('activa');
+        this.sessionFacade.setState(CajaState.ACTIVA);
         this.loadSessionSummary();
         this.startRefreshInterval();
       },
@@ -471,7 +470,7 @@ export class CajaPage implements OnInit, OnDestroy {
     if (!this.activeSession()) return;
     this.sessionFacade.startClosing({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
-        this.sessionFacade.setState('arqueo');
+        this.sessionFacade.setState(CajaState.ARQUEO);
         this.showWizard = true;
         this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
         this.loadSessionSummary();
@@ -489,7 +488,7 @@ export class CajaPage implements OnInit, OnDestroy {
     }
     this.sessionFacade.cancelClosing({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
-        this.sessionFacade.setState('activa');
+        this.sessionFacade.setState(CajaState.ACTIVA);
         this.showWizard = false;
         this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
         this.startRefreshInterval();
@@ -504,21 +503,21 @@ export class CajaPage implements OnInit, OnDestroy {
       console.log('Closing is in progress, skipping cancel');
       return;
     }
-    if (this.state() === 'arqueo' && this.activeSession()?.status === 'closing') {
+    if (this.sessionFacade.state() === CajaState.ACTIVA || this.sessionFacade.state() === CajaState.ARQUEO) {
       this.tpvService.cancelClosingCashSession({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
-          this.sessionFacade.setState('activa');
+          this.sessionFacade.setState(CajaState.ACTIVA);
           this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
           this.startRefreshInterval();
         },
         error: (error) => {
           console.error('Error al cancelar el cierre:', error);
-          this.sessionFacade.setState('activa');
+          this.sessionFacade.setState(CajaState.ACTIVA);
           this.startRefreshInterval();
         },
       });
-    } else if (this.state() === 'arqueo') {
-      this.sessionFacade.setState('activa');
+    } else if (this.state() === CajaState.ARQUEO) {
+      this.sessionFacade.setState(CajaState.ACTIVA);
       this.startRefreshInterval();
     }
   }
@@ -537,7 +536,7 @@ export class CajaPage implements OnInit, OnDestroy {
             alert('Error: La sesión no está en estado de cierre. Por favor, intente iniciar el cierre nuevamente.');
             if (session) {
               this.sessionFacade.setActiveSession(session);
-              this.sessionFacade.setState(session.status === 'open' ? 'activa' : 'arqueo');
+              this.sessionFacade.setState(session.status === 'open' ? CajaState.ACTIVA : CajaState.ARQUEO);
             }
           }
         },
@@ -562,7 +561,7 @@ export class CajaPage implements OnInit, OnDestroy {
       next: () => {
         this.showWizard = false;
         this.sessionFacade.setActiveSession(null);
-        this.sessionFacade.setState('historico');
+        this.sessionFacade.setState(CajaState.HISTORICO);
         this.loadClosedSessions();
       },
       error: (error) => {

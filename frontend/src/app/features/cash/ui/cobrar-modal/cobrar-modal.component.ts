@@ -7,8 +7,7 @@ import { ToggleComponent } from '../../../../shared/components/toggle/toggle.com
 import { NumpadComponent } from '../../../../shared/components/numpad/numpad.component';
 import { AmountDisplayComponent } from '../../../../shared/components/amount-display/amount-display.component';
 import { DinersStatusComponent } from '../../../../shared/components/diners-status/diners-status.component';
-
-type PaymentMethod = 'cash' | 'card' | 'bizum' | 'mixed' | 'invitation';
+import { PaymentMethod } from '../../../../core/enums/payment-method.enum';
 
 export interface OrderLine {
   id?: string;
@@ -38,7 +37,7 @@ export class CobrarModalComponent implements OnChanges {
   @Output() splitBill = new EventEmitter<void>();
 
   public Math = Math;
-  public method: PaymentMethod = 'cash';
+  public method: PaymentMethod = PaymentMethod.CASH;
   public inputAmount = 0;
   public tip = 0;
   public showTip = false;
@@ -49,7 +48,7 @@ export class CobrarModalComponent implements OnChanges {
   }
 
   public get change(): number {
-    if (this.method !== 'cash') return 0;
+    if (this.method !== PaymentMethod.CASH) return 0;
     return this.inputAmount - this.effectiveAmount;
   }
 
@@ -68,20 +67,20 @@ export class CobrarModalComponent implements OnChanges {
   }
 
   private methodLabels: { [key: string]: string } = {
-    cash: 'Efectivo',
-    card: 'Tarjeta',
-    bizum: 'Bizum',
-    mixed: 'Mixto',
-    invitation: 'Invitación',
+    [PaymentMethod.CASH]: 'Efectivo',
+    [PaymentMethod.CARD]: 'Tarjeta',
+    [PaymentMethod.BIZUM]: 'Bizum',
+    [PaymentMethod.MIXED]: 'Mixto',
+    [PaymentMethod.INVITATION]: 'Invitación',
   };
 
   public get methods(): Array<{ value: PaymentMethod; label: string; icon: string }> {
     return [
-      { value: 'cash', label: 'Efectivo', icon: 'cash' },
-      { value: 'card', label: 'Tarjeta', icon: 'card' },
-      { value: 'bizum', label: 'Bizum', icon: 'phone' },
-      { value: 'mixed', label: 'Mixto', icon: 'mixed' },
-      { value: 'invitation', label: 'Invitación', icon: 'gift' },
+      { value: PaymentMethod.CASH, label: 'Efectivo', icon: 'cash' },
+      { value: PaymentMethod.CARD, label: 'Tarjeta', icon: 'card' },
+      { value: PaymentMethod.BIZUM, label: 'Bizum', icon: 'phone' },
+      { value: PaymentMethod.MIXED, label: 'Mixto', icon: 'mixed' },
+      { value: PaymentMethod.INVITATION, label: 'Invitación', icon: 'gift' },
     ];
   }
 
@@ -101,7 +100,7 @@ export class CobrarModalComponent implements OnChanges {
       return;
     }
 
-    if (this.method === 'cash') {
+    if (this.method === PaymentMethod.CASH) {
       if (this.inputAmount > this.total * 2 && this.total > 0) {
         alert('El importe introducido parece demasiado alto. Por favor, verifíquelo.');
         return;
@@ -145,7 +144,7 @@ export class CobrarModalComponent implements OnChanges {
   }
 
   private resetForm(): void {
-    this.method = 'cash';
+    this.method = PaymentMethod.CASH;
     this.inputAmount = 0;
     this.tip = 0;
     this.showTip = false;

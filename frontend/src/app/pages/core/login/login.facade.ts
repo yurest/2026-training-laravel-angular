@@ -2,6 +2,7 @@ import { inject, Injectable, Signal, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { DeviceStorageService, LinkedRestaurant } from '../../../core/services/device-storage.service';
+import { UserRole } from '../../../core/enums/user-role.enum';
 
 export interface QuickUser {
   name: string;
@@ -108,11 +109,11 @@ export class LoginFacade {
   }
 
   private roleColor(role: string): string {
-    if (role === 'admin') {
+    if (role === UserRole.ADMIN) {
       return '#E8440A';
     }
 
-    if (role === 'supervisor') {
+    if (role === UserRole.SUPERVISOR) {
       return '#1A6FE8';
     }
 

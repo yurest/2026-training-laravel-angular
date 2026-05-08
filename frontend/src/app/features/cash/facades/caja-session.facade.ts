@@ -2,8 +2,7 @@ import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { catchError, finalize, switchMap, take, tap } from 'rxjs/operators';
 import { TpvService, TpvCashSession, TpvCashSessionListItem, TpvCashSessionSummary, TpvCashMovement } from '../services/tpv.service';
-
-export type CajaState = 'pre-apertura' | 'activa' | 'arqueo' | 'historico';
+import { CajaState } from '../../../core/enums/caja-state.enum';
 
 export interface LastClosedData {
   id: string;
@@ -62,7 +61,7 @@ export interface CancelClosingPayload {
 export class CajaSessionFacade {
   private readonly tpvService = inject(TpvService);
 
-  private readonly _state = signal<CajaState>('pre-apertura');
+  private readonly _state = signal<CajaState>(CajaState.PRE_APERTURA);
   private readonly _activeSession = signal<TpvCashSession | null>(null);
   private readonly _loading = signal<boolean>(true);
   private readonly _lastClosed = signal<LastClosedData | null>(null);
@@ -78,10 +77,10 @@ export class CajaSessionFacade {
   public readonly sessionSummary: Signal<TpvCashSessionSummary | null> = this._sessionSummary.asReadonly();
   public readonly isClosingInProgress: Signal<boolean> = this._isClosingInProgress.asReadonly();
 
-  public readonly isActive: Signal<boolean> = computed(() => this._state() === 'activa');
-  public readonly isPreApertura: Signal<boolean> = computed(() => this._state() === 'pre-apertura');
-  public readonly isArqueo: Signal<boolean> = computed(() => this._state() === 'arqueo');
-  public readonly isHistorico: Signal<boolean> = computed(() => this._state() === 'historico');
+  public readonly isActive: Signal<boolean> = computed(() => this._state() === CajaState.ACTIVA);
+  public readonly isPreApertura: Signal<boolean> = computed(() => this._state() === CajaState.PRE_APERTURA);
+  public readonly isArqueo: Signal<boolean> = computed(() => this._state() === CajaState.ARQUEO);
+  public readonly isHistorico: Signal<boolean> = computed(() => this._state() === CajaState.HISTORICO);
 
   public setState(value: CajaState): void {
     this._state.set(value);
@@ -118,7 +117,7 @@ export class CajaSessionFacade {
       tap((session) => {
         if (session) {
           this.setActiveSession(session);
-          this.setState('activa');
+          this.setState(CajaState.ACTIVA);
           this.setOrphanSession(null);
         }
       }),
@@ -147,7 +146,7 @@ export class CajaSessionFacade {
     return this.tpvService.openCashSession(payload).pipe(
       tap((session) => {
         this.setActiveSession(session);
-        this.setState('activa');
+        this.setState(CajaState.ACTIVA);
       }),
       finalize(() => this.setLoading(false))
     );
@@ -159,7 +158,7 @@ export class CajaSessionFacade {
     return this.tpvService.closeCashSession(payload).pipe(
       tap(() => {
         this.setActiveSession(null);
-        this.setState('pre-apertura');
+        this.setState(CajaState.PRE_APERTURA);
       }),
       finalize(() => this.setClosingInProgress(false))
     );
@@ -210,7 +209,7 @@ export class CajaSessionFacade {
   }
 
   public reset(): void {
-    this._state.set('pre-apertura');
+    this._state.set(CajaState.PRE_APERTURA);
     this._activeSession.set(null);
     this._loading.set(false);
     this._lastClosed.set(null);

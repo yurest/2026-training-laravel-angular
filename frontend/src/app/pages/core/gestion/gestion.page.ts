@@ -6,6 +6,7 @@ import { take } from 'rxjs/operators';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { DeviceStorageService } from '../../../core/services/device-storage.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { UserRole } from '../../../core/enums/user-role.enum';
 import { FamilyItem, FamilyService } from '../../../services/family.service';
 import { GestionFamiliesFacade } from './facades/gestion-families.facade';
 import { GestionTaxesFacade } from './facades/gestion-taxes.facade';
@@ -29,7 +30,6 @@ import { TaxesManagementComponent } from '../../../components/gestion/taxes-mana
 import { ZReportsManagementComponent, ZReportRow } from '../../../components/gestion/zreports-management/zreports-management.component';
 import { ManagementEntityKey } from '../../../components/gestion/entity-tabs/entity-tabs.component';
 import { TpvService } from '../../../features/cash/services/tpv.service';
-type UserRole = 'operator' | 'supervisor' | 'admin';
 
 interface ManagementRestaurant {
   id: number;
@@ -175,15 +175,15 @@ export class GestionPage {
   public userForm = {
     name: '',
     email: '',
-    role: 'operator' as UserRole,
+    role: UserRole.OPERATOR,
     pin: '',
     password: '',
   };
 
   public readonly roleOptions: Array<{ value: UserRole; label: string }> = [
-    { value: 'operator', label: 'Operario' },
-    { value: 'supervisor', label: 'Supervisor' },
-    { value: 'admin', label: 'Administrador' },
+    { value: UserRole.OPERATOR, label: 'Operario' },
+    { value: UserRole.SUPERVISOR, label: 'Supervisor' },
+    { value: UserRole.ADMIN, label: 'Administrador' },
   ];
 
   public familyForm = {
@@ -422,7 +422,7 @@ export class GestionPage {
       return true;
     }
 
-    return users[idx].role !== 'admin';
+    return users[idx].role !== UserRole.ADMIN;
   }
 
   public isRestaurantActive(restaurantId: number): boolean {
@@ -1094,7 +1094,7 @@ export class GestionPage {
       this.userForm = {
         name: selectedUser?.name ?? '',
         email: selectedUser?.email ?? '',
-        role: selectedUser?.role ?? 'operator',
+        role: selectedUser?.role ?? UserRole.OPERATOR,
         pin: '',
         password: '',
       };
@@ -1424,11 +1424,11 @@ export class GestionPage {
   public getRoleLabel(role: string): string {
     const normalizedRole = this.normalizeRole(role);
 
-    if (normalizedRole === 'admin') {
+    if (normalizedRole === UserRole.ADMIN) {
       return 'Administrador';
     }
 
-    if (normalizedRole === 'supervisor') {
+    if (normalizedRole === UserRole.SUPERVISOR) {
       return 'Supervisor';
     }
 
@@ -1438,31 +1438,31 @@ export class GestionPage {
   public getRoleBadgeClass(role: string): string {
     const normalizedRole = this.normalizeRole(role);
 
-    if (normalizedRole === 'admin') {
+    if (normalizedRole === UserRole.ADMIN) {
       return 'badge-admin';
     }
 
-    if (normalizedRole === 'supervisor') {
+    if (normalizedRole === UserRole.SUPERVISOR) {
       return 'badge-supervisor';
     }
 
     return 'badge-operator';
   }
 
-  public normalizeRole(role: string): string {
-    if (!role) return 'operator';
+  public normalizeRole(role: string): UserRole {
+    if (!role) return UserRole.OPERATOR;
 
     const lower = role.toLowerCase();
 
     if (lower === 'admin' || lower === 'administrator') {
-      return 'admin';
+      return UserRole.ADMIN;
     }
 
     if (lower === 'supervisor') {
-      return 'supervisor';
+      return UserRole.SUPERVISOR;
     }
 
-    return 'operator';
+    return UserRole.OPERATOR;
   }
 
   public async loadZReports(): Promise<void> {

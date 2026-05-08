@@ -3,8 +3,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GestionUsersFacade, UserRow, UserFormData } from '../../../pages/core/gestion/facades/gestion-users.facade';
 import { ToastService } from '../../../core/services/toast.service';
-
-export type UserRole = 'operator' | 'supervisor' | 'admin';
+import { UserRole } from '../../../core/enums/user-role.enum';
 
 export interface RoleOption {
   value: UserRole;
@@ -65,18 +64,18 @@ export class UsersManagementComponent {
 
   getRoleBadgeClass(role: string): string {
     const map: Record<string, string> = {
-      operator: 'role-badge-operator',
-      supervisor: 'role-badge-supervisor',
-      admin: 'role-badge-admin',
+      [UserRole.OPERATOR]: 'role-badge-operator',
+      [UserRole.SUPERVISOR]: 'role-badge-supervisor',
+      [UserRole.ADMIN]: 'role-badge-admin',
     };
     return map[role] ?? '';
   }
 
   getRoleLabel(role: string): string {
     const map: Record<string, string> = {
-      operator: 'Operario',
-      supervisor: 'Supervisor',
-      admin: 'Admin',
+      [UserRole.OPERATOR]: 'Operario',
+      [UserRole.SUPERVISOR]: 'Supervisor',
+      [UserRole.ADMIN]: 'Admin',
     };
     return map[role] ?? role;
   }
@@ -86,6 +85,6 @@ export class UsersManagementComponent {
     if (!user) {
       return true;
     }
-    return user.role !== 'admin';
+    return user.role !== UserRole.ADMIN;
   }
 }

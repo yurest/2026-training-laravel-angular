@@ -7,6 +7,7 @@ import { AppContextService } from '../../services/app-context.service';
 import { AuthService, AuthUser } from '../../services/auth.service';
 import { TpvService } from '../../../features/cash/services/tpv.service';
 import { AppLayoutFacade } from '../facades/app-layout.facade';
+import { UserRole } from '../../enums/user-role.enum';
 
 @Component({
   selector: 'app-layout-page',
@@ -44,7 +45,7 @@ export class AppLayoutPage implements OnInit, OnDestroy {
 
     this.userSubscription = this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
-      this.isAdminUser = user?.role === 'admin';
+      this.isAdminUser = user?.role === UserRole.ADMIN;
 
       if (user?.restaurantName) {
         this.contextService.setActiveRestaurant({
