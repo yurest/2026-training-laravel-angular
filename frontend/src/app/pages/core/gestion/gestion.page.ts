@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -7,6 +6,12 @@ import { take } from 'rxjs/operators';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { DeviceStorageService } from '../../../core/services/device-storage.service';
 import { FamilyItem, FamilyService } from '../../../services/family.service';
+import { GestionFamiliesFacade } from './facades/gestion-families.facade';
+import { GestionTaxesFacade } from './facades/gestion-taxes.facade';
+import { GestionZonesFacade } from './facades/gestion-zones.facade';
+import { GestionProductsFacade } from './facades/gestion-products.facade';
+import { GestionUsersFacade } from './facades/gestion-users.facade';
+import { GestionZReportsFacade } from './facades/gestion-zreports.facade';
 import { ProductItem, ProductService } from '../../../services/product.service';
 import { RestaurantService } from '../../../services/restaurant.service';
 import { TableItem, TableService } from '../../../services/table.service';
@@ -94,7 +99,6 @@ interface ManagementDataRow {
   templateUrl: './gestion.page.html',
   styleUrls: ['./gestion.page.scss'],
   imports: [
-    CommonModule,
     FormsModule,
     RouterModule,
     RestaurantListComponent,
@@ -105,10 +109,18 @@ interface ManagementDataRow {
     ProductsManagementComponent,
     ZonesManagementComponent,
     TaxesManagementComponent,
-    ZReportsManagementComponent,
-  ],
+    ZReportsManagementComponent
+],
+  providers: [GestionFamiliesFacade, GestionTaxesFacade, GestionZonesFacade, GestionProductsFacade, GestionUsersFacade, GestionZReportsFacade],
 })
 export class GestionPage {
+  protected readonly familiesFacade = inject(GestionFamiliesFacade);
+  protected readonly taxesFacade = inject(GestionTaxesFacade);
+  protected readonly zonesFacade = inject(GestionZonesFacade);
+  protected readonly productsFacade = inject(GestionProductsFacade);
+  protected readonly usersFacade = inject(GestionUsersFacade);
+  protected readonly zreportsFacade = inject(GestionZReportsFacade);
+
   public apiErrorMessage: string | null = null;
   public isSavingRestaurant: boolean = false;
   public isSavingUser: boolean = false;
@@ -231,160 +243,132 @@ export class GestionPage {
     }
   }
 
-  private loadFamilies(silent: boolean = false): void {
-    this.familyService
-      .listFamilies()
-      .pipe(take(1))
-      .subscribe({
-        next: (families) => {
-          const restaurant = this.selectedRestaurant;
-          if (!restaurant) {
-            return;
-          }
+  private async loadFamilies(silent: boolean = false): Promise<void> {
+    try {
+      await this.familiesFacade.load();
+      this.syncFamiliesMirror();
+      this.syncForms();
 
-          this.managementData[restaurant.id].families = families.map((family: FamilyItem): FamilyRow => ({
-            uuid: family.id,
-            name: family.name,
-            active: family.active,
-          }));
-
-          this.syncForms();
-
-          if (!silent) {
-            this.apiErrorMessage = null;
-          }
-        },
-        error: (error: unknown) => {
-          if (!silent) {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las familias.';
-          }
-        },
-      });
+      if (!silent) {
+        this.apiErrorMessage = null;
+      }
+    } catch (error: unknown) {
+      if (!silent) {
+        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las familias.';
+      }
+    }
   }
 
-  private loadTaxes(silent: boolean = false): void {
-    this.taxService
-      .listTaxes()
-      .pipe(take(1))
-      .subscribe({
-        next: (taxes) => {
-          const restaurant = this.selectedRestaurant;
-          if (!restaurant) {
-            return;
-          }
+  private syncFamiliesMirror(): void {
+    const restaurant = this.selectedRestaurant;
+    if (!restaurant) {
+      return;
+    }
 
-          this.managementData[restaurant.id].taxes = taxes.map((tax: TaxItem): TaxRow => ({
-            uuid: tax.id,
-            name: tax.name,
-            percentage: tax.percentage,
-          }));
-
-          this.syncForms();
-
-          if (!silent) {
-            this.apiErrorMessage = null;
-          }
-        },
-        error: (error: unknown) => {
-          if (!silent) {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los impuestos.';
-          }
-        },
-      });
+    const families = this.familiesFacade.families();
+    this.managementData[restaurant.id].families = families.map((family): FamilyRow => ({
+      uuid: family.uuid,
+      name: family.name,
+      active: family.active,
+    }));
   }
 
-  private loadProducts(silent: boolean = false): void {
-    this.productService
-      .listProducts()
-      .pipe(take(1))
-      .subscribe({
-        next: (products) => {
-          const restaurant = this.selectedRestaurant;
-          if (!restaurant) {
-            return;
-          }
+  private async loadTaxes(silent: boolean = false): Promise<void> {
+    try {
+      await this.taxesFacade.load();
+      this.syncTaxesMirror();
+      this.syncForms();
 
-          this.managementData[restaurant.id].products = products.map((product: ProductItem): ProductRow => ({
-            uuid: product.id,
-            name: product.name,
-            family_id: product.family_id,
-            tax_id: product.tax_id,
-            price: product.price,
-            stock: product.stock,
-            active: product.active,
-          }));
-
-          this.syncForms();
-
-          if (!silent) {
-            this.apiErrorMessage = null;
-          }
-        },
-        error: (error: unknown) => {
-          if (!silent) {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los productos.';
-          }
-        },
-      });
+      if (!silent) {
+        this.apiErrorMessage = null;
+      }
+    } catch (error: unknown) {
+      if (!silent) {
+        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los impuestos.';
+      }
+    }
   }
 
-  private loadZonesAndTables(silent: boolean = false): void {
-    this.zoneService
-      .listZones()
-      .pipe(take(1))
-      .subscribe({
-        next: (zones: ZoneItem[]) => {
-          this.tableService
-            .listTables()
-            .pipe(take(1))
-            .subscribe({
-              next: (tables: TableItem[]) => {
-                const restaurant = this.selectedRestaurant;
-                if (!restaurant) {
-                  return;
-                }
+  private syncTaxesMirror(): void {
+    const restaurant = this.selectedRestaurant;
+    if (!restaurant) {
+      return;
+    }
 
-                const zoneRows: ZoneRow[] = zones.map((zone) => ({
-                  uuid: zone.id,
-                  name: zone.name,
-                  tables: [],
-                }));
+    const taxes = this.taxesFacade.taxes();
+    this.managementData[restaurant.id].taxes = taxes.map((tax): TaxRow => ({
+      uuid: tax.uuid,
+      name: tax.name,
+      percentage: tax.percentage,
+    }));
+  }
 
-                const zoneById = new Map(zoneRows.map((zone) => [zone.uuid, zone]));
+  private async loadProducts(silent: boolean = false): Promise<void> {
+    try {
+      await this.productsFacade.load();
+      this.syncProductsMirror();
+      this.syncForms();
 
-                tables.forEach((table) => {
-                  const zone = zoneById.get(table.zone_id);
-                  if (!zone) {
-                    return;
-                  }
+      if (!silent) {
+        this.apiErrorMessage = null;
+      }
+    } catch (error: unknown) {
+      if (!silent) {
+        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los productos.';
+      }
+    }
+  }
 
-                  zone.tables.push({
-                    uuid: table.id,
-                    name: table.name,
-                  });
-                });
+  private syncProductsMirror(): void {
+    const restaurant = this.selectedRestaurant;
+    if (!restaurant) {
+      return;
+    }
 
-                this.managementData[restaurant.id].zones = zoneRows;
-                this.updateRestaurantKpis(restaurant.id);
-                this.syncForms();
+    const products = this.productsFacade.products();
+    this.managementData[restaurant.id].products = products.map((product): ProductRow => ({
+      uuid: product.uuid,
+      name: product.name,
+      family_id: product.family_id,
+      tax_id: product.tax_id,
+      price: product.price,
+      stock: product.stock,
+      active: product.active,
+    }));
+  }
 
-                if (!silent) {
-                  this.apiErrorMessage = null;
-                }
-              },
-              error: (error: unknown) => {
-                if (!silent) {
-                  this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las mesas.';
-                }
-              },
-            });
-        },
-        error: (error: unknown) => {
-          if (!silent) {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las zonas.';
-          }
-        },
-      });
+  private async loadZonesAndTables(silent: boolean = false): Promise<void> {
+    try {
+      await this.zonesFacade.load();
+      this.syncZonesMirror();
+      this.updateRestaurantKpis(this.managementState.restaurantId);
+      this.syncForms();
+
+      if (!silent) {
+        this.apiErrorMessage = null;
+      }
+    } catch (error: unknown) {
+      if (!silent) {
+        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las zonas.';
+      }
+    }
+  }
+
+  private syncZonesMirror(): void {
+    const restaurant = this.selectedRestaurant;
+    if (!restaurant) {
+      return;
+    }
+
+    const zones = this.zonesFacade.zones();
+    this.managementData[restaurant.id].zones = zones.map((zone): ZoneRow => ({
+      uuid: zone.uuid,
+      name: zone.name,
+      tables: zone.tables.map((table): TableRow => ({
+        uuid: table.uuid,
+        name: table.name,
+      })),
+    }));
   }
 
   public get selectedRestaurant(): ManagementRestaurant | null {
@@ -500,6 +484,19 @@ export class GestionPage {
     this.managementState.selectedIndex[entityKey] = index;
     if (entityKey === 'zones') {
       this.managementState.selectedIndex.tables = 0;
+      this.zonesFacade.selectZone(index);
+    }
+    if (entityKey === 'families') {
+      this.familiesFacade.select(index);
+    }
+    if (entityKey === 'taxes') {
+      this.taxesFacade.select(index);
+    }
+    if (entityKey === 'products') {
+      this.productsFacade.select(index);
+    }
+    if (entityKey === 'users') {
+      this.usersFacade.select(index);
     }
     this.syncForms();
   }
@@ -509,6 +506,19 @@ export class GestionPage {
     if (entityKey === 'zones') {
       this.managementState.selectedIndex.tables = -1;
       this.tableForm = { name: '' };
+      this.zonesFacade.startCreateZone();
+    }
+    if (entityKey === 'families') {
+      this.familiesFacade.startCreate();
+    }
+    if (entityKey === 'taxes') {
+      this.taxesFacade.startCreate();
+    }
+    if (entityKey === 'products') {
+      this.productsFacade.startCreate();
+    }
+    if (entityKey === 'users') {
+      this.usersFacade.startCreate();
     }
     this.syncForms();
   }
@@ -536,22 +546,17 @@ export class GestionPage {
         return;
       }
 
-      this.familyService
-        .deleteFamily(family.uuid)
-        .pipe(take(1))
-        .subscribe({
-          next: () => {
-            rows.splice(idx, 1);
-            this.managementState.selectedIndex[entityKey] = rows.length ? Math.min(idx, rows.length - 1) : -1;
-            this.updateRestaurantKpis(this.managementState.restaurantId);
-            this.syncForms();
-            this.apiErrorMessage = null;
-            window.alert('Familia eliminada.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo eliminar la familia.';
-          },
-        });
+      this.familiesFacade.delete(family.uuid).then((result) => {
+        if (result.ok) {
+          this.syncFamiliesMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert('Familia eliminada.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo eliminar la familia.';
+        }
+      });
 
       return;
     }
@@ -569,22 +574,24 @@ export class GestionPage {
         return;
       }
 
-      this.restaurantService
-        .deleteRestaurantUser(this.selectedRestaurant.uuid, user.uuid)
-        .pipe(take(1))
-        .subscribe({
-          next: () => {
-            rows.splice(idx, 1);
-            this.managementState.selectedIndex[entityKey] = rows.length ? Math.min(idx, rows.length - 1) : -1;
-            this.updateRestaurantKpis(this.managementState.restaurantId);
-            this.syncForms();
-            this.apiErrorMessage = null;
-            window.alert('Usuario eliminado.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo eliminar el usuario.';
-          },
-        });
+      const restaurant = this.selectedRestaurant;
+      if (!restaurant?.uuid) {
+        window.alert('No hay restaurante seleccionado.');
+
+        return;
+      }
+
+      this.usersFacade.delete(restaurant.uuid, user.uuid).then((result) => {
+        if (result.ok) {
+          this.syncUsersMirror(restaurant.uuid!);
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert('Usuario eliminado.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo eliminar el usuario.';
+        }
+      });
 
       return;
     }
@@ -608,23 +615,17 @@ export class GestionPage {
         return;
       }
 
-      this.zoneService
-        .deleteZone(selectedZone.uuid)
-        .pipe(take(1))
-        .subscribe({
-          next: () => {
-            this.managementState.selectedIndex.tables = 0;
-            rows.splice(idx, 1);
-            this.managementState.selectedIndex[entityKey] = rows.length ? Math.min(idx, rows.length - 1) : -1;
-            this.updateRestaurantKpis(this.managementState.restaurantId);
-            this.syncForms();
-            this.apiErrorMessage = null;
-            window.alert('Zona eliminada.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo eliminar la zona.';
-          },
-        });
+      this.zonesFacade.deleteZone(selectedZone.uuid).then((result) => {
+        if (result.ok) {
+          this.syncZonesMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert('Zona eliminada.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo eliminar la zona.';
+        }
+      });
 
       return;
     }
@@ -642,22 +643,17 @@ export class GestionPage {
         return;
       }
 
-      this.taxService
-        .deleteTax(tax.uuid)
-        .pipe(take(1))
-        .subscribe({
-          next: () => {
-            rows.splice(idx, 1);
-            this.managementState.selectedIndex[entityKey] = rows.length ? Math.min(idx, rows.length - 1) : -1;
-            this.updateRestaurantKpis(this.managementState.restaurantId);
-            this.syncForms();
-            this.apiErrorMessage = null;
-            window.alert('Impuesto eliminado.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo eliminar el impuesto.';
-          },
-        });
+      this.taxesFacade.delete(tax.uuid).then((result) => {
+        if (result.ok) {
+          this.syncTaxesMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert('Impuesto eliminado.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo eliminar el impuesto.';
+        }
+      });
 
       return;
     }
@@ -675,22 +671,17 @@ export class GestionPage {
         return;
       }
 
-      this.productService
-        .deleteProduct(product.uuid)
-        .pipe(take(1))
-        .subscribe({
-          next: () => {
-            rows.splice(idx, 1);
-            this.managementState.selectedIndex[entityKey] = rows.length ? Math.min(idx, rows.length - 1) : -1;
-            this.updateRestaurantKpis(this.managementState.restaurantId);
-            this.syncForms();
-            this.apiErrorMessage = null;
-            window.alert('Producto eliminado.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo eliminar el producto.';
-          },
-        });
+      this.productsFacade.delete(product.uuid).then((result) => {
+        if (result.ok) {
+          this.syncProductsMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert('Producto eliminado.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo eliminar el producto.';
+        }
+      });
 
       return;
     }
@@ -782,70 +773,26 @@ export class GestionPage {
         return;
       }
 
-      if (selectedUser?.uuid) {
-        this.isSavingUser = true;
-        this.restaurantService
-          .updateRestaurantUser(this.selectedRestaurant.uuid, selectedUser.uuid, {
-            name,
-            email,
-            role,
-            ...(password ? { password } : {}),
-            ...(pin ? { pin } : {}),
-          })
-          .pipe(take(1))
-          .subscribe({
-            next: () => {
-              selectedUser.name = name;
-              selectedUser.email = email;
-              selectedUser.role = role as UserRole;
-              this.userForm.password = '';
-              this.userForm.pin = '';
-              this.apiErrorMessage = null;
-              this.isSavingUser = false;
-              this.syncForms();
-              window.alert('Usuario actualizado.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el usuario.';
-              this.isSavingUser = false;
-            },
-          });
-      } else {
-        this.isSavingUser = true;
-        this.restaurantService
-          .createRestaurantUser(this.selectedRestaurant.uuid, {
-            name,
-            email,
-            password,
-            role,
-            ...(pin ? { pin } : {}),
-          })
-          .pipe(take(1))
-          .subscribe({
-            next: (response) => {
-              const newUser: UserRow = {
-                uuid: response.uuid,
-                name: response.name,
-                email: response.email,
-                role: this.normalizeRole(response.role ?? role) as UserRole,
-              };
+      const restaurantUuid = this.selectedRestaurant.uuid;
 
-              (rows as UserRow[]).push(newUser);
-              this.managementState.selectedIndex[entityKey] = rows.length - 1;
-              this.userForm.password = '';
-              this.userForm.pin = '';
-              this.apiErrorMessage = null;
-              this.updateRestaurantKpis(this.managementState.restaurantId);
-              this.syncForms();
-              window.alert('Usuario creado.');
-              this.isSavingUser = false;
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo crear el usuario.';
-              this.isSavingUser = false;
-            },
-          });
+      if (selectedUser?.uuid) {
+        this.usersFacade.select(idx);
+      } else {
+        this.usersFacade.startCreate();
       }
+
+      this.usersFacade.setForm({ name, email, role, pin, password });
+      this.usersFacade.save(restaurantUuid).then((result) => {
+        if (result.ok) {
+          this.syncUsersMirror(restaurantUuid);
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert(result.message || 'Usuario guardado.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo guardar el usuario.';
+        }
+      });
 
       return;
     }
@@ -858,80 +805,26 @@ export class GestionPage {
         return;
       }
 
-      const desiredActive = this.familyForm.active;
       const selectedFamily = idx >= 0 && idx < rows.length ? (rows[idx] as FamilyRow) : null;
 
-      this.isSavingFamily = true;
-
       if (selectedFamily?.uuid) {
-        this.familyService
-          .updateFamily(selectedFamily.uuid, { name })
-          .pipe(take(1))
-          .subscribe({
-            next: (updated) => {
-              const applyActivation$ = desiredActive
-                ? this.familyService.activateFamily(updated.id)
-                : this.familyService.deactivateFamily(updated.id);
-
-              applyActivation$.pipe(take(1)).subscribe({
-                next: (finalFamily) => {
-                  selectedFamily.uuid = finalFamily.id;
-                  selectedFamily.name = finalFamily.name;
-                  selectedFamily.active = finalFamily.active;
-                  this.apiErrorMessage = null;
-                  this.isSavingFamily = false;
-                  this.syncForms();
-                  window.alert('Familia actualizada.');
-                },
-                error: (error: unknown) => {
-                  this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el estado de la familia.';
-                  this.isSavingFamily = false;
-                },
-              });
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar la familia.';
-              this.isSavingFamily = false;
-            },
-          });
+        this.familiesFacade.select(idx);
       } else {
-        this.familyService
-          .createFamily({ name })
-          .pipe(take(1))
-          .subscribe({
-            next: (created) => {
-              const applyActivation$ = desiredActive
-                ? this.familyService.activateFamily(created.id)
-                : this.familyService.deactivateFamily(created.id);
-
-              applyActivation$.pipe(take(1)).subscribe({
-                next: (finalFamily) => {
-                  const newFamily: FamilyRow = {
-                    uuid: finalFamily.id,
-                    name: finalFamily.name,
-                    active: finalFamily.active,
-                  };
-
-                  (rows as FamilyRow[]).push(newFamily);
-                  this.managementState.selectedIndex[entityKey] = rows.length - 1;
-                  this.apiErrorMessage = null;
-                  this.isSavingFamily = false;
-                  this.updateRestaurantKpis(this.managementState.restaurantId);
-                  this.syncForms();
-                  window.alert('Familia creada.');
-                },
-                error: (error: unknown) => {
-                  this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el estado de la familia.';
-                  this.isSavingFamily = false;
-                },
-              });
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo crear la familia.';
-              this.isSavingFamily = false;
-            },
-          });
+        this.familiesFacade.startCreate();
       }
+
+      this.familiesFacade.setForm({ name, active: this.familyForm.active });
+      this.familiesFacade.save().then((result) => {
+        if (result.ok) {
+          this.syncFamiliesMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert(result.message || 'Familia guardada.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo guardar la familia.';
+        }
+      });
 
       return;
     }
@@ -952,60 +845,24 @@ export class GestionPage {
 
       const selectedProduct = idx >= 0 && idx < rows.length ? (rows[idx] as ProductRow) : null;
 
-      this.isSavingProduct = true;
-
       if (selectedProduct?.uuid) {
-        this.productService
-          .updateProduct(selectedProduct.uuid, { name, family_id: familyId, tax_id: taxId, price, stock, active })
-          .pipe(take(1))
-          .subscribe({
-            next: (updated) => {
-              selectedProduct.uuid = updated.id;
-              selectedProduct.name = updated.name;
-              selectedProduct.family_id = updated.family_id;
-              selectedProduct.tax_id = updated.tax_id;
-              selectedProduct.price = updated.price;
-              selectedProduct.stock = updated.stock;
-              selectedProduct.active = updated.active;
-              this.apiErrorMessage = null;
-              this.isSavingProduct = false;
-              this.syncForms();
-              window.alert('Producto actualizado.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el producto.';
-              this.isSavingProduct = false;
-            },
-          });
+        this.productsFacade.select(idx);
       } else {
-        this.productService
-          .createProduct({ name, family_id: familyId, tax_id: taxId, price, stock, active })
-          .pipe(take(1))
-          .subscribe({
-            next: (created) => {
-              const newProduct: ProductRow = {
-                uuid: created.id,
-                name: created.name,
-                family_id: created.family_id,
-                tax_id: created.tax_id,
-                price: created.price,
-                stock: created.stock,
-                active: created.active,
-              };
-              (rows as ProductRow[]).push(newProduct);
-              this.managementState.selectedIndex[entityKey] = rows.length - 1;
-              this.apiErrorMessage = null;
-              this.isSavingProduct = false;
-              this.updateRestaurantKpis(this.managementState.restaurantId);
-              this.syncForms();
-              window.alert('Producto creado.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo crear el producto.';
-              this.isSavingProduct = false;
-            },
-          });
+        this.productsFacade.startCreate();
       }
+
+      this.productsFacade.setForm({ name, family_id: familyId, tax_id: taxId, price, stock, active });
+      this.productsFacade.save().then((result) => {
+        if (result.ok) {
+          this.syncProductsMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert(result.message || 'Producto guardado.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo guardar el producto.';
+        }
+      });
 
       return;
     }
@@ -1021,41 +878,23 @@ export class GestionPage {
       const selectedZone = idx >= 0 && idx < rows.length ? (rows[idx] as ZoneRow) : null;
 
       if (selectedZone?.uuid) {
-        this.zoneService
-          .updateZone(selectedZone.uuid, { name })
-          .pipe(take(1))
-          .subscribe({
-            next: (updated) => {
-              selectedZone.uuid = updated.id;
-              selectedZone.name = updated.name;
-              this.managementState.selectedIndex.tables = 0;
-              this.apiErrorMessage = null;
-              this.syncForms();
-              window.alert('Zona actualizada.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar la zona.';
-            },
-          });
+        this.zonesFacade.selectZone(idx);
       } else {
-        this.zoneService
-          .createZone({ name })
-          .pipe(take(1))
-          .subscribe({
-            next: (created) => {
-              const payload: ZoneRow = { uuid: created.id, name: created.name, tables: [] };
-              this.upsertRow(rows, idx, payload, entityKey);
-              this.managementState.selectedIndex.tables = 0;
-              this.updateRestaurantKpis(this.managementState.restaurantId);
-              this.apiErrorMessage = null;
-              this.syncForms();
-              window.alert('Zona creada.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo crear la zona.';
-            },
-          });
+        this.zonesFacade.startCreateZone();
       }
+
+      this.zonesFacade.setZoneForm({ name });
+      this.zonesFacade.saveZone().then((result) => {
+        if (result.ok) {
+          this.syncZonesMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert(result.message || 'Zona guardada.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo guardar la zona.';
+        }
+      });
 
       return;
     }
@@ -1071,52 +910,24 @@ export class GestionPage {
 
       const selectedTax = idx >= 0 && idx < rows.length ? (rows[idx] as TaxRow) : null;
 
-      this.isSavingTax = true;
-
       if (selectedTax?.uuid) {
-        this.taxService
-          .updateTax(selectedTax.uuid, { name, percentage })
-          .pipe(take(1))
-          .subscribe({
-            next: (updated) => {
-              selectedTax.uuid = updated.id;
-              selectedTax.name = updated.name;
-              selectedTax.percentage = updated.percentage;
-              this.apiErrorMessage = null;
-              this.isSavingTax = false;
-              this.syncForms();
-              window.alert('Impuesto actualizado.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el impuesto.';
-              this.isSavingTax = false;
-            },
-          });
+        this.taxesFacade.select(idx);
       } else {
-        this.taxService
-          .createTax({ name, percentage })
-          .pipe(take(1))
-          .subscribe({
-            next: (created) => {
-              const newTax: TaxRow = {
-                uuid: created.id,
-                name: created.name,
-                percentage: created.percentage,
-              };
-              (rows as TaxRow[]).push(newTax);
-              this.managementState.selectedIndex[entityKey] = rows.length - 1;
-              this.apiErrorMessage = null;
-              this.isSavingTax = false;
-              this.updateRestaurantKpis(this.managementState.restaurantId);
-              this.syncForms();
-              window.alert('Impuesto creado.');
-            },
-            error: (error: unknown) => {
-              this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo crear el impuesto.';
-              this.isSavingTax = false;
-            },
-          });
+        this.taxesFacade.startCreate();
       }
+
+      this.taxesFacade.setForm({ name, percentage });
+      this.taxesFacade.save().then((result) => {
+        if (result.ok) {
+          this.syncTaxesMirror();
+          this.updateRestaurantKpis(this.managementState.restaurantId);
+          this.syncForms();
+          this.apiErrorMessage = null;
+          window.alert(result.message || 'Impuesto guardado.');
+        } else {
+          this.apiErrorMessage = result.error || 'No se pudo guardar el impuesto.';
+        }
+      });
 
       return;
     }
@@ -1125,15 +936,17 @@ export class GestionPage {
   public startCreateManagementTable(): void {
     this.managementState.selectedIndex.tables = -1;
     this.tableForm = { name: '' };
+    this.zonesFacade.startCreateTable();
   }
 
   public selectManagementTable(index: number): void {
     this.managementState.selectedIndex.tables = index;
+    this.zonesFacade.selectTable(index);
     const selectedTable = this.selectedTable;
     this.tableForm = { name: selectedTable?.name ?? '' };
   }
 
-  public saveManagementTable(): void {
+  public async saveManagementTable(): Promise<void> {
     const zone = this.selectedZone;
     if (!zone) {
       window.alert('Selecciona una zona antes de gestionar mesas.');
@@ -1166,43 +979,20 @@ export class GestionPage {
       return;
     }
 
-    if (selectedTable?.uuid) {
-      this.tableService
-        .updateTable(selectedTable.uuid, { zone_id: zone.uuid, name })
-        .pipe(take(1))
-        .subscribe({
-          next: (updated) => {
-            zone.tables[idx] = { uuid: updated.id, name: updated.name };
-            this.tableForm = { name: updated.name };
-            this.apiErrorMessage = null;
-            this.syncForms();
-            window.alert('Mesa actualizada.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar la mesa.';
-          },
-        });
+    this.zonesFacade.setTableForm({ name });
+    const result = await this.zonesFacade.saveTable();
+
+    if (result.ok) {
+      this.syncZonesMirror();
+      this.syncForms();
+      this.apiErrorMessage = null;
+      window.alert(result.message || 'Mesa guardada.');
     } else {
-      this.tableService
-        .createTable({ zone_id: zone.uuid, name })
-        .pipe(take(1))
-        .subscribe({
-          next: (created) => {
-            zone.tables.push({ uuid: created.id, name: created.name });
-            this.managementState.selectedIndex.tables = zone.tables.length - 1;
-            this.tableForm = { name: created.name };
-            this.apiErrorMessage = null;
-            this.syncForms();
-            window.alert('Mesa creada.');
-          },
-          error: (error: unknown) => {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo crear la mesa.';
-          },
-        });
+      this.apiErrorMessage = result.error || 'No se pudo guardar la mesa.';
     }
   }
 
-  public deleteSelectedManagementTable(): void {
+  public async deleteSelectedManagementTable(): Promise<void> {
     const zone = this.selectedZone;
     if (!zone) {
       window.alert('No hay zona seleccionada.');
@@ -1224,22 +1014,17 @@ export class GestionPage {
       return;
     }
 
-    this.tableService
-      .deleteTable(selectedTable.uuid)
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          zone.tables.splice(idx, 1);
-          this.managementState.selectedIndex.tables = zone.tables.length ? Math.min(idx, zone.tables.length - 1) : -1;
-          this.tableForm = { name: this.selectedTable?.name ?? '' };
-          this.apiErrorMessage = null;
-          this.syncForms();
-          window.alert('Mesa eliminada.');
-        },
-        error: (error: unknown) => {
-          this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo eliminar la mesa.';
-        },
-      });
+    const result = await this.zonesFacade.deleteSelectedTable();
+
+    if (result.ok) {
+      this.syncZonesMirror();
+      this.tableForm = { name: '' };
+      this.apiErrorMessage = null;
+      this.syncForms();
+      window.alert('Mesa eliminada.');
+    } else {
+      this.apiErrorMessage = result.error || 'No se pudo eliminar la mesa.';
+    }
   }
 
   public toEuroFromCents(cents: number): string {
@@ -1316,44 +1101,97 @@ export class GestionPage {
     };
 
     const selectedUser = this.selectedItem('users', this.selectedData.users);
-    this.userForm = {
-      name: selectedUser?.name ?? '',
-      email: selectedUser?.email ?? '',
-      role: selectedUser?.role ?? 'operator',
-      pin: '',
-      password: '',
-    };
+    if (this.managementState.entity === 'users') {
+      const facadeForm = this.usersFacade.formData();
+      this.userForm = {
+        name: facadeForm.name,
+        email: facadeForm.email,
+        role: facadeForm.role as UserRole,
+        pin: facadeForm.pin,
+        password: facadeForm.password,
+      };
+    } else {
+      this.userForm = {
+        name: selectedUser?.name ?? '',
+        email: selectedUser?.email ?? '',
+        role: selectedUser?.role ?? 'operator',
+        pin: '',
+        password: '',
+      };
+    }
 
     const selectedFamily = this.selectedItem('families', this.selectedData.families);
-    this.familyForm = {
-      name: selectedFamily?.name ?? '',
-      active: selectedFamily?.active ?? true,
-    };
+    if (this.managementState.entity === 'families') {
+      const facadeForm = this.familiesFacade.formData();
+      this.familyForm = {
+        name: facadeForm.name,
+        active: facadeForm.active,
+      };
+    } else {
+      this.familyForm = {
+        name: selectedFamily?.name ?? '',
+        active: selectedFamily?.active ?? true,
+      };
+    }
 
     const selectedProduct = this.selectedItem('products', this.selectedData.products);
-    this.productForm = {
-      name: selectedProduct?.name ?? '',
-      family_id: selectedProduct?.family_id ?? this.selectedData.families[0]?.uuid ?? '',
-      tax_id: selectedProduct?.tax_id ?? this.selectedData.taxes[0]?.uuid ?? '',
-      price: selectedProduct ? (selectedProduct.price / 100).toFixed(2) : '',
-      stock: selectedProduct?.stock ?? 0,
-      active: selectedProduct?.active ?? true,
-    };
+    if (this.managementState.entity === 'products') {
+      const facadeForm = this.productsFacade.formData();
+      this.productForm = {
+        name: facadeForm.name,
+        family_id: facadeForm.family_id,
+        tax_id: facadeForm.tax_id,
+        price: facadeForm.price > 0 ? (facadeForm.price / 100).toFixed(2) : '',
+        stock: facadeForm.stock,
+        active: facadeForm.active,
+      };
+    } else {
+      this.productForm = {
+        name: selectedProduct?.name ?? '',
+        family_id: selectedProduct?.family_id ?? this.selectedData.families[0]?.uuid ?? '',
+        tax_id: selectedProduct?.tax_id ?? this.selectedData.taxes[0]?.uuid ?? '',
+        price: selectedProduct ? (selectedProduct.price / 100).toFixed(2) : '',
+        stock: selectedProduct?.stock ?? 0,
+        active: selectedProduct?.active ?? true,
+      };
+    }
 
     const selectedZone = this.selectedItem('zones', this.selectedData.zones);
-    this.zoneForm = {
-      name: selectedZone?.name ?? '',
-    };
+    if (this.managementState.entity === 'zones') {
+      const facadeForm = this.zonesFacade.zoneFormData();
+      this.zoneForm = {
+        name: facadeForm.name,
+      };
+    } else {
+      this.zoneForm = {
+        name: selectedZone?.name ?? '',
+      };
+    }
 
-    this.tableForm = {
-      name: this.selectedTable?.name ?? '',
-    };
+    if (this.managementState.entity === 'zones') {
+      const facadeForm = this.zonesFacade.tableFormData();
+      this.tableForm = {
+        name: facadeForm.name,
+      };
+    } else {
+      this.tableForm = {
+        name: this.selectedTable?.name ?? '',
+      };
+    }
 
     const selectedTax = this.selectedItem('taxes', this.selectedData.taxes);
-    this.taxForm = {
-      name: selectedTax?.name ?? '',
-      percentage: selectedTax?.percentage ?? 10,
-    };
+    if (this.managementState.entity === 'taxes') {
+      const facadeForm = this.taxesFacade.formData();
+      this.taxForm = {
+        name: facadeForm.name,
+        percentage: facadeForm.percentage,
+      };
+    } else {
+      this.taxForm = {
+        name: selectedTax?.name ?? '',
+        percentage: selectedTax?.percentage ?? 10,
+      };
+    }
   }
 
   private loadRestaurantsFromApi(): void {
@@ -1572,38 +1410,35 @@ export class GestionPage {
     }
   }
 
-  private loadRestaurantUsers(restaurantUuid: string, silent: boolean = false): void {
-    this.restaurantService
-      .getRestaurantUsers(restaurantUuid)
-      .pipe(take(1))
-      .subscribe({
-        next: (response) => {
-          const restaurant = this.managementRestaurants.find((r) => r.uuid === restaurantUuid);
-          if (!restaurant) {
-            return;
-          }
+  private async loadRestaurantUsers(restaurantUuid: string, silent: boolean = false): Promise<void> {
+    try {
+      await this.usersFacade.load(restaurantUuid);
+      this.syncUsersMirror(restaurantUuid);
+      this.syncForms();
 
-          const users: UserRow[] = response.users.map((user) => ({
-            uuid: user.uuid,
-            name: user.name,
-            email: user.email,
-            role: this.normalizeRole(user.role) as UserRole,
-          }));
+      if (!silent) {
+        this.apiErrorMessage = null;
+      }
+    } catch (error: unknown) {
+      if (!silent) {
+        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los usuarios.';
+      }
+    }
+  }
 
-          this.managementData[restaurant.id].users = users;
-          restaurant.users = users.length;
-          this.syncForms();
+  private syncUsersMirror(restaurantUuid: string): void {
+    const restaurant = this.managementRestaurants.find((r) => r.uuid === restaurantUuid);
+    if (!restaurant) {
+      return;
+    }
 
-          if (!silent) {
-            this.apiErrorMessage = null;
-          }
-        },
-        error: (error: unknown) => {
-          if (!silent) {
-            this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los usuarios.';
-          }
-        },
-      });
+    const users = this.usersFacade.users();
+    this.managementData[restaurant.id].users = users.map((user): UserRow => ({
+      uuid: user.uuid,
+      name: user.name,
+      email: user.email,
+      role: user.role as UserRole,
+    }));
   }
 
   public getRoleLabel(role: string): string {
@@ -1650,42 +1485,22 @@ export class GestionPage {
     return 'operator';
   }
 
-  public loadZReports(): void {
+  public async loadZReports(): Promise<void> {
     const restaurant = this.selectedRestaurant;
     if (!restaurant || !restaurant.uuid) return;
 
-    this.isLoadingZReports = true;
-    this.tpvService.listCashSessions().pipe(take(1)).subscribe({
-      next: (response) => {
-        this.managementData[restaurant.id].zreports = response.sessions.map((session): ZReportRow => ({
-          id: session.uuid,
-          zNum: session.z_report_number || 0,
-          date: session.closed_at || session.opened_at || '',
-          opened: session.opened_at || '',
-          closed: session.closed_at || '',
-          tickets: session.tickets || 0,
-          diners: session.diners || 0,
-          gross: session.gross || 0,
-          discounts: session.discounts || 0,
-          invitations: session.invitations || 0,
-          invValue: session.inv_value || 0,
-          cancellations: session.cancellations || 0,
-          net: session.net || session.final_amount_cents || session.expected_amount_cents || 0,
-          initial: session.initial_amount_cents,
-          movIn: session.mov_in || 0,
-          movOut: session.mov_out || 0,
-          expected: session.expected_amount_cents || 0,
-          counted: session.final_amount_cents || 0,
-          diff: session.discrepancy_cents || 0,
-          diffReason: session.discrepancy_reason || undefined,
-        }));
-        this.isLoadingZReports = false;
-      },
-      error: (error) => {
-        console.error('Error loading Z reports:', error);
-        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los Z reports.';
-        this.isLoadingZReports = false;
-      },
-    });
+    try {
+      await this.zreportsFacade.load();
+      this.syncZReportsMirror(restaurant.id);
+      this.isLoadingZReports = false;
+    } catch (error) {
+      this.isLoadingZReports = false;
+      this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los Z-Reports.';
+    }
+  }
+
+  private syncZReportsMirror(restaurantId: number): void {
+    const reports = this.zreportsFacade.reports();
+    this.managementData[restaurantId].zreports = reports;
   }
 }

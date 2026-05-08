@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -14,7 +14,7 @@ export interface PinAuthResult {
   selector: 'app-pin-auth-modal',
   templateUrl: './pin-auth-modal.component.html',
   styleUrls: ['./pin-auth-modal.component.scss'],
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   standalone: true,
 })
 export class PinAuthModalComponent implements OnDestroy {

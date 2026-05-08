@@ -1,11 +1,11 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-numpad',
   templateUrl: './numpad.component.html',
   styleUrls: ['./numpad.component.scss'],
-  imports: [CommonModule],
+  imports: [],
   standalone: true,
 })
 export class NumpadComponent {

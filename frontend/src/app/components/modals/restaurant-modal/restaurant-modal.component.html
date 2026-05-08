@@ -1,140 +1,160 @@
-<div *ngIf="isOpen" class="modal-overlay" (click)="onClose()">
-  <div class="modal-shell" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3 class="modal-title">
-        {{ modalData.mode === 'create' ? 'Crear Restaurante' : 'Editar Restaurante' }}
-      </h3>
-      <button type="button" (click)="onClose()" class="btn-close" aria-label="Cerrar modal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-
-    <div class="modal-content">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-wrapper">
-      <div *ngIf="error" class="error-banner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <p>{{ error }}</p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Nombre del Restaurante</label>
-        <input
-          type="text"
-          formControlName="name"
-          class="form-input"
-          placeholder="Ej: Restaurant Zentral"
-          [disabled]="isSubmitting"
-        />
-        <ion-text *ngIf="form.get('name')?.hasError('required') && form.get('name')?.touched" class="error-text">
-          Nombre requerido
-        </ion-text>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Nombre Legal</label>
-        <input
-          type="text"
-          formControlName="legal_name"
-          class="form-input"
-          placeholder="Ej: Restaurant Zentral SL"
-          [disabled]="isSubmitting"
-        />
-        <ion-text *ngIf="form.get('legal_name')?.hasError('required') && form.get('legal_name')?.touched" class="error-text">
-          Nombre legal requerido
-        </ion-text>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          {{ modalData.mode === 'create' && modalData.presetTaxId ? 'CIF/NIF de la compañía' : 'CIF/NIF' }}
-        </label>
-        <input
-          type="text"
-          formControlName="tax_id"
-          class="form-input"
-          placeholder="Ej: B12345678"
-          [disabled]="isSubmitting || modalData.mode === 'edit'"
-        />
-        <div *ngIf="modalData.mode === 'create' && modalData.presetTaxId" class="field-hint">
-          Compañía detectada: {{ modalData.presetTaxId }}. Este CIF/NIF está bloqueado para mantener la consistencia de la compañía.
-        </div>
-        <ion-text *ngIf="form.get('tax_id')?.hasError('required') && form.get('tax_id')?.touched" class="error-text">
-          CIF/NIF requerido
-        </ion-text>
-        <ion-text *ngIf="form.get('tax_id')?.hasError('pattern') && form.get('tax_id')?.touched" class="error-text">
-          Formato inválido
-        </ion-text>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <div class="email-input-wrapper">
-          <input
-            type="email"
-            formControlName="email"
-            class="form-input"
-            placeholder="contacto@restaurant.com"
-            [disabled]="isSubmitting || modalData.mode === 'edit'"
-          />
-          <div *ngIf="modalData.mode === 'create'" class="field-hint email-hint">El correo no puede contener caracteres especiales como ñ o ç.</div>
-        </div>
-        <ion-text *ngIf="form.get('email')?.hasError('required') && form.get('email')?.touched" class="error-text">
-          Email requerido
-        </ion-text>
-      </div>
-
-      <div *ngIf="modalData.mode === 'create'" class="form-group">
-        <label class="form-label">Contraseña</label>
-        <input
-          type="password"
-          formControlName="password"
-          class="form-input"
-          placeholder="Mínimo 8 caracteres"
-          [disabled]="isSubmitting"
-        />
-        <ion-text *ngIf="form.get('password')?.hasError('required') && form.get('password')?.touched" class="error-text">
-          Contraseña requerida
-        </ion-text>
-      </div>
-
-      <div *ngIf="modalData.mode === 'create'" class="form-group">
-        <label class="form-label">PIN del Admin</label>
-        <div class="pin-input-wrapper">
-          <input
-            type="text"
-            inputmode="numeric"
-            maxlength="4"
-            formControlName="pin"
-            class="form-input"
-            placeholder="Ej: 1234"
-            [disabled]="isSubmitting"
-          />
-          <div class="field-hint pin-hint">Este PIN sera el acceso rapido del admin.</div>
-        </div>
-        <ion-text *ngIf="form.get('pin')?.hasError('required') && form.get('pin')?.touched" class="error-text">
-          PIN requerido
-        </ion-text>
-        <ion-text *ngIf="form.get('pin')?.hasError('pattern') && form.get('pin')?.touched" class="error-text">
-          El PIN debe tener exactamente 4 dígitos
-        </ion-text>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" (click)="onClose()" class="btn-cancel" [disabled]="isSubmitting">
-          Cancelar
-        </button>
-        <button type="submit" class="btn-submit" [disabled]="!form.valid || isSubmitting">
-          {{ isSubmitting ? 'Guardando...' : (modalData.mode === 'create' ? 'Crear' : 'Actualizar') }}
+@if (isOpen) {
+  <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-shell" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          {{ modalData.mode === 'create' ? 'Crear Restaurante' : 'Editar Restaurante' }}
+        </h3>
+        <button type="button" (click)="onClose()" class="btn-close" aria-label="Cerrar modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
       </div>
-      </form>
+      <div class="modal-content">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-wrapper">
+          @if (error) {
+            <div class="error-banner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>{{ error }}</p>
+            </div>
+          }
+          <div class="form-group">
+            <label class="form-label">Nombre del Restaurante</label>
+            <input
+              type="text"
+              formControlName="name"
+              class="form-input"
+              placeholder="Ej: Restaurant Zentral"
+              [disabled]="isSubmitting"
+              />
+            @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+              <ion-text class="error-text">
+                Nombre requerido
+              </ion-text>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre Legal</label>
+            <input
+              type="text"
+              formControlName="legal_name"
+              class="form-input"
+              placeholder="Ej: Restaurant Zentral SL"
+              [disabled]="isSubmitting"
+              />
+            @if (form.get('legal_name')?.hasError('required') && form.get('legal_name')?.touched) {
+              <ion-text class="error-text">
+                Nombre legal requerido
+              </ion-text>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              {{ modalData.mode === 'create' && modalData.presetTaxId ? 'CIF/NIF de la compañía' : 'CIF/NIF' }}
+            </label>
+            <input
+              type="text"
+              formControlName="tax_id"
+              class="form-input"
+              placeholder="Ej: B12345678"
+              [disabled]="isSubmitting || modalData.mode === 'edit'"
+              />
+            @if (modalData.mode === 'create' && modalData.presetTaxId) {
+              <div class="field-hint">
+                Compañía detectada: {{ modalData.presetTaxId }}. Este CIF/NIF está bloqueado para mantener la consistencia de la compañía.
+              </div>
+            }
+            @if (form.get('tax_id')?.hasError('required') && form.get('tax_id')?.touched) {
+              <ion-text class="error-text">
+                CIF/NIF requerido
+              </ion-text>
+            }
+            @if (form.get('tax_id')?.hasError('pattern') && form.get('tax_id')?.touched) {
+              <ion-text class="error-text">
+                Formato inválido
+              </ion-text>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <div class="email-input-wrapper">
+              <input
+                type="email"
+                formControlName="email"
+                class="form-input"
+                placeholder="contacto@restaurant.com"
+                [disabled]="isSubmitting || modalData.mode === 'edit'"
+                />
+              @if (modalData.mode === 'create') {
+                <div class="field-hint email-hint">El correo no puede contener caracteres especiales como ñ o ç.</div>
+              }
+            </div>
+            @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+              <ion-text class="error-text">
+                Email requerido
+              </ion-text>
+            }
+          </div>
+          @if (modalData.mode === 'create') {
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input
+                type="password"
+                formControlName="password"
+                class="form-input"
+                placeholder="Mínimo 8 caracteres"
+                [disabled]="isSubmitting"
+                />
+              @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+                <ion-text class="error-text">
+                  Contraseña requerida
+                </ion-text>
+              }
+            </div>
+          }
+          @if (modalData.mode === 'create') {
+            <div class="form-group">
+              <label class="form-label">PIN del Admin</label>
+              <div class="pin-input-wrapper">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="4"
+                  formControlName="pin"
+                  class="form-input"
+                  placeholder="Ej: 1234"
+                  [disabled]="isSubmitting"
+                  />
+                <div class="field-hint pin-hint">Este PIN sera el acceso rapido del admin.</div>
+              </div>
+              @if (form.get('pin')?.hasError('required') && form.get('pin')?.touched) {
+                <ion-text class="error-text">
+                  PIN requerido
+                </ion-text>
+              }
+              @if (form.get('pin')?.hasError('pattern') && form.get('pin')?.touched) {
+                <ion-text class="error-text">
+                  El PIN debe tener exactamente 4 dígitos
+                </ion-text>
+              }
+            </div>
+          }
+          <div class="form-actions">
+            <button type="button" (click)="onClose()" class="btn-cancel" [disabled]="isSubmitting">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-submit" [disabled]="!form.valid || isSubmitting">
+              {{ isSubmitting ? 'Guardando...' : (modalData.mode === 'create' ? 'Crear' : 'Actualizar') }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
+}

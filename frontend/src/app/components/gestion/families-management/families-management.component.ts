@@ -1,52 +1,54 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { Component, computed, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-export interface FamilyRow {
-  uuid?: string;
-  name: string;
-  active: boolean;
-}
-
-export interface FamilyFormData {
-  name: string;
-  active: boolean;
-}
+import { GestionFamiliesFacade, FamilyRow, FamilyFormData } from '../../../pages/core/gestion/facades/gestion-families.facade';
 
 @Component({
   selector: 'app-families-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './families-management.component.html',
   styleUrls: ['./families-management.component.scss'],
 })
 export class FamiliesManagementComponent {
-  @Input() families: FamilyRow[] = [];
-  @Input() formData: FamilyFormData = { name: '', active: true };
-  @Input() selectedIndex: number = 0;
-  @Input() isSaving: boolean = false;
-  @Output() selectItem = new EventEmitter<number>();
-  @Output() createNew = new EventEmitter<void>();
-  @Output() deleteSelected = new EventEmitter<void>();
-  @Output() saveChanges = new EventEmitter<void>();
+  public readonly facade = input.required<GestionFamiliesFacade>();
+
+  public readonly families = computed(() => this.facade().families());
+  public readonly formData = computed(() => this.facade().formData());
+  public readonly selectedIndex = computed(() => this.facade().selectedIndex());
+  public readonly isSaving = computed(() => this.facade().isSaving());
 
   isSelected(index: number): boolean {
-    return this.selectedIndex === index;
+    return this.selectedIndex() === index;
   }
 
   onSelect(index: number): void {
-    this.selectItem.emit(index);
+    this.facade().select(index);
   }
 
   onCreate(): void {
-    this.createNew.emit();
+    this.facade().startCreate();
   }
 
-  onDelete(): void {
-    this.deleteSelected.emit();
+  async onDelete(): Promise<void> {
+    const result = await this.facade().deleteSelected();
+    if (result.ok) {
+      window.alert(result.message || 'Familia eliminada.');
+    } else {
+      window.alert(result.error || 'No se pudo eliminar la familia.');
+    }
   }
 
-  onSubmit(): void {
-    this.saveChanges.emit();
+  async onSubmit(): Promise<void> {
+    const result = await this.facade().save();
+    if (result.ok) {
+      window.alert(result.message || 'Familia guardada.');
+    } else {
+      window.alert(result.error || 'No se pudo guardar la familia.');
+    }
+  }
+
+  updateForm<K extends keyof FamilyFormData>(key: K, value: FamilyFormData[K]): void {
+    this.facade().updateForm(key, value);
   }
 }

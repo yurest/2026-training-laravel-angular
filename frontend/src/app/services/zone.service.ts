@@ -1,8 +1,6 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
+import { BaseApiService } from '../core/services/api/base-api.service';
 
 export interface ZoneItem {
   id: string;
@@ -22,45 +20,22 @@ interface UpdateZonePayload {
 @Injectable({
   providedIn: 'root',
 })
-export class ZoneService {
-  private readonly baseUrl: string = environment.apiUrl;
-
-  constructor(private readonly http: HttpClient) {}
+export class ZoneService extends BaseApiService {
+  protected override readonly defaultErrorMessage = 'No se pudo completar la peticion de zonas.';
 
   public listZones(): Observable<ZoneItem[]> {
-    return this.http
-      .get<ZoneItem[]>(`${this.baseUrl}/admin/zones`, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.get<ZoneItem[]>('/admin/zones');
   }
 
   public createZone(payload: CreateZonePayload): Observable<ZoneItem> {
-    return this.http
-      .post<ZoneItem>(`${this.baseUrl}/admin/zones`, payload, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.post<ZoneItem>('/admin/zones', payload);
   }
 
   public updateZone(id: string, payload: UpdateZonePayload): Observable<ZoneItem> {
-    return this.http
-      .put<ZoneItem>(`${this.baseUrl}/admin/zones/${id}`, payload, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.put<ZoneItem>(`/admin/zones/${id}`, payload);
   }
 
-  public deleteZone(id: string): Observable<unknown> {
-    return this.http
-      .delete(`${this.baseUrl}/admin/zones/${id}`, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
-  }
-
-  private extractErrorMessage(error: HttpErrorResponse): string {
-    const payload: unknown = error.error;
-
-    if (payload && typeof payload === 'object') {
-      const data = payload as { message?: unknown };
-      if (typeof data.message === 'string' && data.message.trim() !== '') {
-        return data.message;
-      }
-    }
-
-    return 'No se pudo completar la peticion de zonas.';
+  public deleteZone(id: string): Observable<void> {
+    return this.delete<void>(`/admin/zones/${id}`);
   }
 }

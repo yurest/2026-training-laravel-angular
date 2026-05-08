@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BtnComponent } from '../../../../shared/components/btn/btn.component';
 
@@ -16,7 +16,7 @@ export interface CashMovement {
   selector: 'app-movimientos-list',
   templateUrl: './movimientos-list.component.html',
   styleUrls: ['./movimientos-list.component.scss'],
-  imports: [CommonModule, CardComponent, BtnComponent],
+  imports: [CardComponent, BtnComponent],
   standalone: true,
 })
 export class MovimientosListComponent {

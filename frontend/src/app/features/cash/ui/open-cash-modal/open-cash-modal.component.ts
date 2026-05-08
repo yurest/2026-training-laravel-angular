@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NumpadComponent } from '../../../../shared/components/numpad/numpad.component';
@@ -9,7 +9,7 @@ import { BtnComponent } from '../../../../shared/components/btn/btn.component';
   selector: 'app-open-cash-modal',
   templateUrl: './open-cash-modal.component.html',
   styleUrls: ['./open-cash-modal.component.scss'],
-  imports: [CommonModule, FormsModule, NumpadComponent, AmountDisplayComponent, BtnComponent],
+  imports: [FormsModule, NumpadComponent, AmountDisplayComponent, BtnComponent],
   standalone: true,
 })
 export class OpenCashModalComponent {

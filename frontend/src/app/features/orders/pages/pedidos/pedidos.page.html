@@ -1,146 +1,149 @@
 <div class="pedidos-page">
 
-  <div *ngIf="loading" class="loading-state">Cargando pedidos...</div>
+  @if (facade.loading()) {
+    <div class="loading-state">Cargando pedidos...</div>
+  }
 
-  <div *ngIf="!loading" class="pedidos-layout">
-
-    <!-- Left column -->
-    <section class="pedidos-left">
-
-      <!-- Tabs -->
-      <div class="pedidos-tabs">
-        <button class="pedidos-tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">Todo el turno</button>
-        <button class="pedidos-tab" [class.active]="activeTab === 'open'" (click)="setTab('open')">Activos</button>
-        <button class="pedidos-tab" [class.active]="activeTab === 'to-charge'" (click)="setTab('to-charge')">Para cobrar</button>
-        <button class="pedidos-tab" [class.active]="activeTab === 'invoiced'" (click)="setTab('invoiced')">Cerrados hoy</button>
-        <button class="pedidos-tab" [class.active]="activeTab === 'cancelled'" (click)="setTab('cancelled')">Cancelados</button>
-      </div>
-
-      <!-- KPIs -->
-      <div class="summary-strip">
-        <div class="kpi-card">
-          <div class="kpi-label">Abiertos</div>
-          <div class="kpi-value">{{ kpiOpen }}</div>
+  @if (!facade.loading()) {
+    <div class="pedidos-layout">
+      <!-- Left column -->
+      <section class="pedidos-left">
+        <!-- Tabs -->
+        <div class="pedidos-tabs">
+          <button class="pedidos-tab" [class.active]="facade.activeTab() === 'all'" (click)="setTab('all')">Todo el turno</button>
+          <button class="pedidos-tab" [class.active]="facade.activeTab() === 'open'" (click)="setTab('open')">Activos</button>
+          <button class="pedidos-tab" [class.active]="facade.activeTab() === 'to-charge'" (click)="setTab('to-charge')">Para cobrar</button>
+          <button class="pedidos-tab" [class.active]="facade.activeTab() === 'invoiced'" (click)="setTab('invoiced')">Cerrados hoy</button>
+          <button class="pedidos-tab" [class.active]="facade.activeTab() === 'cancelled'" (click)="setTab('cancelled')">Cancelados</button>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Para Cobrar</div>
-          <div class="kpi-value">{{ kpiToCharge }}</div>
+        <!-- KPIs -->
+        <div class="summary-strip">
+          <div class="kpi-card">
+            <div class="kpi-label">Abiertos</div>
+            <div class="kpi-value">{{ facade.kpiOpen() }}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Para Cobrar</div>
+            <div class="kpi-value">{{ facade.kpiToCharge() }}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Cerrados</div>
+            <div class="kpi-value">{{ facade.kpiInvoiced() }}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Ticket Medio</div>
+            <div class="kpi-value">{{ formatCents(facade.kpiTicketMedium()) }}</div>
+          </div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Cerrados</div>
-          <div class="kpi-value">{{ kpiInvoiced }}</div>
+        <!-- Toolbar -->
+        <div class="pedidos-toolbar">
+          <select class="pedidos-input" [ngModel]="facade.filters().status" (ngModelChange)="updateFilter('status', $event)">
+            <option value="all">Todos los estados</option>
+            <option value="open">Abiertos</option>
+            <option value="to-charge">Para cobrar</option>
+            <option value="invoiced">Cerrados</option>
+            <option value="cancelled">Cancelados</option>
+          </select>
+          <select class="pedidos-input" [ngModel]="facade.filters().user" (ngModelChange)="updateFilter('user', $event)">
+            <option value="all">Todos los camareros</option>
+            @for (user of $any(facade.users()); track user) {
+              <option [value]="user.user_uuid">{{ user.name }}</option>
+            }
+          </select>
+          <input class="pedidos-input" type="date" [ngModel]="facade.filters().date" (ngModelChange)="updateFilter('date', $event)" />
+          <input class="pedidos-input" type="text" placeholder="Buscar por ID..." [ngModel]="facade.filters().search" (ngModelChange)="updateFilter('search', $event)" />
+          <button class="btn-reset" (click)="resetFilters()" title="Limpiar filtros">↺</button>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Ticket Medio</div>
-          <div class="kpi-value">{{ formatCents(kpiTicketMedium) }}</div>
+        <!-- List -->
+        <div class="pedidos-list-wrap">
+          <div class="pedidos-list-head">
+            <div>Mesa</div>
+            <div>Apertura</div>
+            <div>Total</div>
+            <div>Estado</div>
+          </div>
+          <div class="pedidos-list">
+            @for (order of facade.filteredOrders(); track order) {
+              <div
+                class="pedido-row"
+                [class.active]="facade.selectedOrder()?.id === order.id"
+                (click)="selectOrder(order)"
+                >
+                <div class="pedido-main">
+                  <div class="pedido-main-title">{{ getTableName(order.table_id) }}</div>
+                  <div class="pedido-main-sub">{{ order.diners }} comensal{{ order.diners !== 1 ? 'es' : '' }}</div>
+                </div>
+                <div class="pedido-meta">{{ formatTime(order.opened_at) }}</div>
+                <div class="pedido-meta">{{ formatCents(order.total) }}</div>
+                <div>
+                  <span class="status-pill" [class]="'status-' + order.status">
+                    {{ statusLabel(order.status) }}
+                  </span>
+                </div>
+              </div>
+            }
+            @if (facade.filteredOrders().length === 0) {
+              <div class="pedidos-empty">
+                No hay pedidos con los filtros actuales.
+              </div>
+            }
+          </div>
         </div>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="pedidos-toolbar">
-        <select class="pedidos-input" [(ngModel)]="filterStatus">
-          <option value="all">Todos los estados</option>
-          <option value="open">Abiertos</option>
-          <option value="to-charge">Para cobrar</option>
-          <option value="invoiced">Cerrados</option>
-          <option value="cancelled">Cancelados</option>
-        </select>
-        <select class="pedidos-input" [(ngModel)]="filterUser">
-          <option value="all">Todos los camareros</option>
-          <option *ngFor="let user of users" [value]="user.user_uuid">{{ user.name }}</option>
-        </select>
-        <input class="pedidos-input" type="date" [(ngModel)]="filterDate" />
-        <input class="pedidos-input" type="text" placeholder="Buscar por ID..." [(ngModel)]="filterSearch" />
-        <button class="btn-reset" (click)="resetFilters()" title="Limpiar filtros">↺</button>
-      </div>
-
-      <!-- List -->
-      <div class="pedidos-list-wrap">
-        <div class="pedidos-list-head">
-          <div>Mesa</div>
-          <div>Apertura</div>
-          <div>Total</div>
-          <div>Estado</div>
-        </div>
-        <div class="pedidos-list">
-          <div
-            *ngFor="let order of filteredOrders"
-            class="pedido-row"
-            [class.active]="selectedOrder?.id === order.id"
-            (click)="selectOrder(order)"
-          >
-            <div class="pedido-main">
-              <div class="pedido-main-title">{{ getTableName(order.table_id) }}</div>
-              <div class="pedido-main-sub">{{ order.diners }} comensal{{ order.diners !== 1 ? 'es' : '' }}</div>
-            </div>
-            <div class="pedido-meta">{{ formatTime(order.opened_at) }}</div>
-            <div class="pedido-meta">{{ formatCents(order.total) }}</div>
+      </section>
+      <!-- Right: detail panel -->
+      <aside class="pedido-detail">
+        @if (!facade.selectedOrder()) {
+          <div class="pedido-detail-empty">
+            Selecciona un pedido para ver su detalle.
+          </div>
+        }
+        @if (facade.selectedOrder(); as selectedOrder) {
+          <div class="pedido-detail-head">
             <div>
-              <span class="status-pill" [class]="'status-' + order.status">
-                {{ statusLabel(order.status) }}
-              </span>
+              <div class="pedido-detail-title">Pedido {{ selectedOrder.id.slice(0, 8) }}...</div>
+              <div class="pedido-detail-sub">
+                {{ formatTime(selectedOrder.opened_at) }} · {{ selectedOrder.diners }} comensales
+              </div>
             </div>
+            <div class="pedido-detail-total">{{ formatCents(facade.detailTotal()) }}</div>
           </div>
-          <div *ngIf="filteredOrders.length === 0" class="pedidos-empty">
-            No hay pedidos con los filtros actuales.
+          <div class="pedido-detail-lines">
+            @if (facade.loadingLines()) {
+              <div class="pedido-detail-empty" style="padding:24px">Cargando...</div>
+            }
+            @if (!facade.loadingLines() && facade.selectedLines().length === 0) {
+              <div class="pedido-detail-empty" style="padding:24px">
+                Sin líneas
+              </div>
+            }
+            @for (line of facade.selectedLines(); track line) {
+              <div class="pedido-detail-line">
+                <div class="pedido-line-qty">{{ line.quantity }}</div>
+                <div>
+                  <div class="pedido-line-name">{{ line.product_name ?? 'Producto' }}</div>
+                  <div class="pedido-line-meta">{{ formatCents(line.price) }} / ud.</div>
+                </div>
+                <div class="pedido-line-price">{{ formatCents(line.price * line.quantity) }}</div>
+              </div>
+            }
           </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Right: detail panel -->
-    <aside class="pedido-detail">
-
-      <div *ngIf="!selectedOrder" class="pedido-detail-empty">
-        Selecciona un pedido para ver su detalle.
-      </div>
-
-      <ng-container *ngIf="selectedOrder">
-        <div class="pedido-detail-head">
-          <div>
-            <div class="pedido-detail-title">Pedido {{ selectedOrder.id.slice(0, 8) }}...</div>
-            <div class="pedido-detail-sub">
-              {{ formatTime(selectedOrder.opened_at) }} · {{ selectedOrder.diners }} comensales
-            </div>
+          <div class="pedido-detail-summary">
+            <div class="pedido-summary-row"><span>Subtotal</span><span>{{ formatCents(facade.detailSubtotal()) }}</span></div>
+            <div class="pedido-summary-row"><span>Impuestos</span><span>{{ formatCents(facade.detailTax()) }}</span></div>
+            <div class="pedido-summary-row total"><span>Total</span><span>{{ formatCents(facade.detailTotal()) }}</span></div>
           </div>
-          <div class="pedido-detail-total">{{ formatCents(detailTotal) }}</div>
-        </div>
-
-        <div class="pedido-detail-lines">
-          <div *ngIf="loadingLines" class="pedido-detail-empty" style="padding:24px">Cargando...</div>
-          <div *ngIf="!loadingLines && selectedLines.length === 0" class="pedido-detail-empty" style="padding:24px">
-            Sin líneas
+          <div class="pedido-detail-actions">
+            <button class="btn-small" (click)="goToMesa()">Abrir en mesa</button>
+            <button class="btn-small">Imprimir ticket</button>
+            <button class="btn-small primary" (click)="markAsCharged()" [disabled]="selectedOrder.status !== 'open'">
+              Marcar cobrado
+            </button>
+            <button class="btn-small" (click)="cancelOrder()" [disabled]="selectedOrder.status === 'invoiced' || selectedOrder.status === 'cancelled'">
+              Cancelar pedido
+            </button>
           </div>
-          <div *ngFor="let line of selectedLines" class="pedido-detail-line">
-            <div class="pedido-line-qty">{{ line.quantity }}</div>
-            <div>
-              <div class="pedido-line-name">{{ line.product_name ?? 'Producto' }}</div>
-              <div class="pedido-line-meta">{{ formatCents(line.price) }} / ud.</div>
-            </div>
-            <div class="pedido-line-price">{{ formatCents(line.price * line.quantity) }}</div>
-          </div>
-        </div>
-
-        <div class="pedido-detail-summary">
-          <div class="pedido-summary-row"><span>Subtotal</span><span>{{ formatCents(detailSubtotal) }}</span></div>
-          <div class="pedido-summary-row"><span>Impuestos</span><span>{{ formatCents(detailTax) }}</span></div>
-          <div class="pedido-summary-row total"><span>Total</span><span>{{ formatCents(detailTotal) }}</span></div>
-        </div>
-
-        <div class="pedido-detail-actions">
-          <button class="btn-small" (click)="goToMesa()">Abrir en mesa</button>
-          <button class="btn-small">Imprimir ticket</button>
-          <button class="btn-small primary" (click)="markAsCharged()" [disabled]="selectedOrder.status !== 'open'">
-            Marcar cobrado
-          </button>
-          <button class="btn-small" (click)="cancelOrder()" [disabled]="selectedOrder.status === 'invoiced' || selectedOrder.status === 'cancelled'">
-            Cancelar pedido
-          </button>
-        </div>
-      </ng-container>
-
-    </aside>
-
-  </div>
+        }
+      </aside>
+    </div>
+  }
 </div>

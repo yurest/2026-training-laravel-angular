@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 export interface DinerPayment {
   number: number;
@@ -11,7 +11,7 @@ export interface DinerPayment {
   selector: 'app-diners-status',
   templateUrl: './diners-status.component.html',
   styleUrls: ['./diners-status.component.scss'],
-  imports: [CommonModule],
+  imports: [],
   standalone: true,
 })
 export class DinersStatusComponent {

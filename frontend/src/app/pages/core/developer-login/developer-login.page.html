@@ -24,13 +24,17 @@
             formControlName="email"
             placeholder="superadmin@tpv.local"
             [disabled]="isSubmitting"
-          />
-          <div *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched" class="error-msg">
-            El correo es requerido
-          </div>
-          <div *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched" class="error-msg">
-            Correo no válido
-          </div>
+            />
+          @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
+            <div class="error-msg">
+              El correo es requerido
+            </div>
+          }
+          @if (loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched) {
+            <div class="error-msg">
+              Correo no válido
+            </div>
+          }
         </div>
 
         <div class="form-group">
@@ -41,21 +45,25 @@
             formControlName="password"
             placeholder="Tu contraseña"
             [disabled]="isSubmitting"
-          />
-          <div *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched" class="error-msg">
-            La contraseña es requerida
-          </div>
+            />
+          @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+            <div class="error-msg">
+              La contraseña es requerida
+            </div>
+          }
         </div>
 
-        <div *ngIf="errorMessage" class="error-banner">
-          {{ errorMessage }}
-        </div>
+        @if (errorMessage) {
+          <div class="error-banner">
+            {{ errorMessage }}
+          </div>
+        }
 
         <button
           class="btn-submit"
           type="submit"
           [disabled]="isSubmitting || loginForm.invalid"
-        >
+          >
           {{ isSubmitting ? 'Iniciando sesión...' : 'Acceder' }}
         </button>
       </form>

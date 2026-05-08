@@ -1,23 +1,11 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
-import { PinAuthModalComponent, PinAuthResult } from '../../../../components/pin-auth-modal/pin-auth-modal.component';
-import { AuthService, QuickAccessUserResponse } from '../../../../core/services/auth.service';
-import { PinAuthService } from '../../../../core/services/pin-auth.service';
-import { TpvOrder, TpvOrderLine, TpvService, TpvTableItem, TpvZoneItem } from '../../../cash/services/tpv.service';
-import { DinersStatusComponent } from '../../../../shared/components/diners-status/diners-status.component';
-import { ChargeSessionService } from '../../../cash/services/charge-session.service';
 
-interface TableWithStatus extends TpvTableItem {
-  occupied: boolean;
-  status?: 'open' | 'to-charge';
-  order_id?: string;
-  diners?: number;
-  opened_at?: string;
-  total?: number;
-  remaining_total?: number;
-}
+import { Component, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { PinAuthModalComponent, PinAuthResult } from '../../../../components/pin-auth-modal/pin-auth-modal.component';
+import { PinAuthService } from '../../../../core/services/pin-auth.service';
+import { DinersStatusComponent } from '../../../../shared/components/diners-status/diners-status.component';
+import { FilterByPipe } from '../../../../pipes';
+import { MesasFacade, TableWithStatus } from '../../services/mesas.facade';
 
 const AVATAR_COLORS = ['#E8440A', '#1A6FE8', '#1A9E5A', '#9B59B6', '#F39C12', '#E74C3C'];
 
@@ -25,204 +13,118 @@ const AVATAR_COLORS = ['#E8440A', '#1A6FE8', '#1A9E5A', '#9B59B6', '#F39C12', '#
   selector: 'app-mesas',
   templateUrl: './mesas.page.html',
   styleUrls: ['./mesas.page.scss'],
-  imports: [CommonModule, PinAuthModalComponent, DinersStatusComponent],
+  imports: [PinAuthModalComponent, DinersStatusComponent, FilterByPipe],
+  providers: [MesasFacade],
 })
 export class MesasPage implements OnInit {
-  zones: TpvZoneItem[] = [];
-  tables: TableWithStatus[] = [];
-  openOrders: TpvOrder[] = [];
-  activeZoneId: string | null = null;
-  selectedTable: TableWithStatus | null = null;
-  orderLines: TpvOrderLine[] = [];
-  loadingLines = false;
-  loading = true;
+  protected readonly facade = inject(MesasFacade);
+  private readonly pinAuthService = inject(PinAuthService);
+  private readonly router = inject(Router);
 
-  modalOpen = false;
-  showPinAuthModal = false;
-  diners = 1;
-  openingOrder = false;
-  openingError: string | null = null;
-  cajaError: string | null = null;
+  // ----- UI state: open-table modal -----
+  public modalOpen = false;
+  public showPinAuthModal = false;
+  public diners = 1;
+  public openingOrder = false;
+  public openingError: string | null = null;
+  public cajaError: string | null = null;
 
-  showPinAuthModalForCloseAccount = false;
-  closeAccountModalOpen = false;
-  closingAccount = false;
-  closeAccountError: string | null = null;
+  // ----- UI state: close-account modal -----
+  public showPinAuthModalForCloseAccount = false;
+  public closeAccountModalOpen = false;
+  public closingAccount = false;
+  public closeAccountError: string | null = null;
 
-  showPinAuthModalForCharge = false;
+  // ----- UI state: cobrar -----
+  public showPinAuthModalForCharge = false;
 
-  tableMenuOpen = false;
-  tableMenuTable: TableWithStatus | null = null;
-  tableMenuPosition = { x: 0, y: 0 };
+  // ----- UI state: floating table menu -----
+  public tableMenuOpen = false;
+  public tableMenuTable: TableWithStatus | null = null;
+  public tableMenuPosition = { x: 0, y: 0 };
 
-  editDinersModalOpen = false;
-  editDinersValue = 1;
-  editDinersLoading = false;
-  editDinersError: string | null = null;
-  editDinersOrderId: string | null = null;
-  editDinersTable: TableWithStatus | null = null;
-  editDinersCheckingChargeSession = false;
+  // ----- UI state: edit-diners modal -----
+  public editDinersModalOpen = false;
+  public editDinersValue = 1;
+  public editDinersLoading = false;
+  public editDinersError: string | null = null;
+  public editDinersOrderId: string | null = null;
+  public editDinersTable: TableWithStatus | null = null;
+  public editDinersCheckingChargeSession = false;
 
-  constructor(
-    private readonly tpvService: TpvService,
-    private readonly authService: AuthService,
-    private readonly pinAuthService: PinAuthService,
-    private readonly chargeSessionService: ChargeSessionService,
-    private readonly router: Router,
-  ) {}
-
-  async ngOnInit(): Promise<void> {
-    await this.loadData();
+  public async ngOnInit(): Promise<void> {
+    await this.facade.loadData();
   }
 
-  async loadData(): Promise<void> {
-    this.loading = true;
-    try {
-      const [zones, tables, orders] = await Promise.all([
-        firstValueFrom(this.tpvService.listZones()),
-        firstValueFrom(this.tpvService.listTables()),
-        firstValueFrom(this.tpvService.listOrders()),
-      ]);
-
-      this.zones = zones;
-      if (zones.length > 0) this.activeZoneId = zones[0].id;
-
-      const activeOrders = orders.filter((o) => o.status === 'open' || o.status === 'to-charge');
-      this.openOrders = activeOrders;
-      const orderByTable = new Map<string, TpvOrder>();
-      for (const order of activeOrders) orderByTable.set(order.table_id, order);
-
-      const paidTotals = new Map<string, number>();
-      for (const order of activeOrders) {
-        try {
-          const response = await firstValueFrom(this.tpvService.getOrderPaidTotal(order.id));
-          paidTotals.set(order.id, response.total_cents);
-        } catch (error) {
-          console.error('Error fetching paid total for order:', order.id, error);
-          paidTotals.set(order.id, 0);
-        }
-      }
-
-      this.tables = tables.map((t) => {
-        const order = orderByTable.get(t.id);
-        const total = order?.total || 0;
-        const paidTotal = order ? paidTotals.get(order.id) || 0 : 0;
-        const remainingTotal = Math.max(0, total - paidTotal);
-
-        return {
-          ...t,
-          occupied: !!order,
-          status: order?.status as 'open' | 'to-charge' | undefined,
-          order_id: order?.id,
-          diners: order?.diners,
-          opened_at: order?.opened_at,
-          total,
-          remaining_total: remainingTotal,
-        };
-      });
-    } finally {
-      this.loading = false;
-    }
+  public setZone(zoneId: string): void {
+    this.facade.setZone(zoneId);
   }
 
-  get tablesForActiveZone(): TableWithStatus[] {
-    return this.tables.filter((t) => t.zone_id === this.activeZoneId);
-  }
-
-  setZone(zoneId: string): void {
-    this.activeZoneId = zoneId;
-    this.selectedTable = null;
-    this.orderLines = [];
-  }
-
-  async selectTable(table: TableWithStatus): Promise<void> {
-    this.selectedTable = table;
+  public async selectTable(table: TableWithStatus): Promise<void> {
     this.cajaError = null;
-    this.orderLines = [];
-    if (table.occupied && table.order_id) {
-      this.loadingLines = true;
-      try {
-        this.orderLines = await firstValueFrom(this.tpvService.getOrderLines(table.order_id));
-      } catch {
-        this.orderLines = [];
-      } finally {
-        this.loadingLines = false;
-      }
-    }
+    await this.facade.selectTable(table);
   }
 
-  async openModal(): Promise<void> {
+  // ----- Open table flow -----
+  public async openModal(): Promise<void> {
     this.cajaError = null;
-    const deviceId = this.authService.getDeviceId();
-    try {
-      const session = await firstValueFrom(this.tpvService.getActiveCashSession(deviceId));
-      if (!session || session.status !== 'open') {
-        this.cajaError = 'La caja está cerrada. Ábrela antes de operar mesas.';
-        return;
-      }
-    } catch {
-      this.cajaError = 'No se pudo verificar el estado de la caja.';
+
+    const result = await this.facade.ensureCashSessionOpen();
+
+    if (!result.ok) {
+      this.cajaError = result.error;
+
       return;
     }
 
     if (this.pinAuthService.requiresPin('normal')) {
       this.showPinAuthModal = true;
     } else {
-      this.modalOpen = true;
-      this.openingError = null;
-      this.diners = 1;
+      this.openOpenTableModal();
     }
   }
 
-  onPinAuthenticated(result: PinAuthResult): void {
-    const now = Date.now();
-    this.pinAuthService.setAuthContext({
-      userId: result.userId,
-      userName: result.userName,
-      userRole: result.userRole,
-      authenticatedAt: now,
-      lastActivityAt: now,
-    });
+  public onPinAuthenticated(result: PinAuthResult): void {
+    this.applyPinAuth(result);
     this.showPinAuthModal = false;
-    this.modalOpen = true;
-    this.openingError = null;
-    this.diners = 1;
+    this.openOpenTableModal();
   }
 
-  closeModal(): void {
+  public closeModal(): void {
     this.modalOpen = false;
   }
 
-  incrementDiners(): void {
-    if (this.diners < 99) this.diners++;
+  public incrementDiners(): void {
+    if (this.diners < 99) {
+      this.diners++;
+    }
   }
 
-  decrementDiners(): void {
-    if (this.diners > 1) this.diners--;
+  public decrementDiners(): void {
+    if (this.diners > 1) {
+      this.diners--;
+    }
   }
 
-  async confirmOpen(): Promise<void> {
-    if (!this.selectedTable || this.openingOrder) return;
+  public async confirmOpen(): Promise<void> {
+    if (this.openingOrder) {
+      return;
+    }
+
+    const selectedTable = this.facade.selectedTable();
+
+    if (!selectedTable) {
+      return;
+    }
 
     this.openingOrder = true;
     this.openingError = null;
 
     try {
-      const currentUser = await firstValueFrom(this.authService.currentUser$);
-      if (!currentUser) {
-        this.openingError = 'No hay sesión activa';
-        this.openingOrder = false;
-        return;
-      }
-
-      const order = await firstValueFrom(this.tpvService.createOrder({
-        table_id: this.selectedTable.id,
-        opened_by_user_id: currentUser.id,
-        diners: this.diners,
-      }));
+      const order = await this.facade.createOrderForSelectedTable(this.diners);
       this.modalOpen = false;
       void this.router.navigate(['/app/pedidos'], {
-        queryParams: { orderId: order.id, tableId: this.selectedTable.id },
+        queryParams: { orderId: order.id, tableId: selectedTable.id },
       });
     } catch (err) {
       this.openingError = err instanceof Error ? err.message : 'No se pudo abrir la mesa.';
@@ -231,8 +133,11 @@ export class MesasPage implements OnInit {
     }
   }
 
-  async openCloseAccountModal(): Promise<void> {
-    if (!this.selectedTable?.order_id) return;
+  // ----- Close account flow -----
+  public openCloseAccountModal(): void {
+    if (!this.facade.selectedTable()?.order_id) {
+      return;
+    }
 
     if (this.pinAuthService.requiresPin('normal')) {
       this.showPinAuthModalForCloseAccount = true;
@@ -242,50 +147,32 @@ export class MesasPage implements OnInit {
     }
   }
 
-  onPinAuthenticatedForCloseAccount(result: PinAuthResult): void {
-    const now = Date.now();
-    this.pinAuthService.setAuthContext({
-      userId: result.userId,
-      userName: result.userName,
-      userRole: result.userRole,
-      authenticatedAt: now,
-      lastActivityAt: now,
-    });
+  public onPinAuthenticatedForCloseAccount(result: PinAuthResult): void {
+    this.applyPinAuth(result);
     this.showPinAuthModalForCloseAccount = false;
     this.closeAccountModalOpen = true;
     this.closeAccountError = null;
   }
 
-  closeCloseAccountModal(): void {
+  public closeCloseAccountModal(): void {
     this.closeAccountModalOpen = false;
   }
 
-  async confirmCloseAccount(): Promise<void> {
-    if (!this.selectedTable?.order_id || this.closingAccount) return;
+  public async confirmCloseAccount(): Promise<void> {
+    if (this.closingAccount) {
+      return;
+    }
+
+    if (!this.facade.selectedTable()?.order_id) {
+      return;
+    }
 
     this.closingAccount = true;
     this.closeAccountError = null;
 
     try {
-      const currentUser = await firstValueFrom(this.authService.currentUser$);
-      if (!currentUser) {
-        this.closeAccountError = 'No hay sesión activa';
-        this.closingAccount = false;
-        return;
-      }
-
-      await firstValueFrom(this.tpvService.updateOrder(this.selectedTable.order_id, {
-        action: 'mark-to-charge',
-        closed_by_user_id: currentUser.id,
-      }));
+      await this.facade.closeAccountForSelectedTable();
       this.closeAccountModalOpen = false;
-      const previouslySelectedId = this.selectedTable.id;
-      await this.loadData();
-      const refreshed = this.tables.find((t) => t.id === previouslySelectedId) ?? null;
-      this.selectedTable = refreshed;
-      if (refreshed?.order_id) {
-        this.orderLines = await firstValueFrom(this.tpvService.getOrderLines(refreshed.order_id));
-      }
     } catch (err) {
       this.closeAccountError = err instanceof Error ? err.message : 'No se pudo cerrar la cuenta.';
     } finally {
@@ -293,104 +180,46 @@ export class MesasPage implements OnInit {
     }
   }
 
-  goToCobrar(): void {
-    if (!this.selectedTable?.order_id) return;
+  // ----- Charge flow -----
+  public goToCobrar(): void {
+    if (!this.facade.selectedTable()?.order_id) {
+      return;
+    }
 
     if (this.pinAuthService.requiresPin('normal')) {
       this.showPinAuthModalForCharge = true;
     } else {
-      void this.router.navigate(['/app/caja'], {
-        queryParams: { orderId: this.selectedTable.order_id, fromMesas: 'true' },
-      });
+      this.navigateToCaja();
     }
   }
 
-  onPinAuthenticatedForCharge(result: PinAuthResult): void {
-    const now = Date.now();
-    this.pinAuthService.setAuthContext({
-      userId: result.userId,
-      userName: result.userName,
-      userRole: result.userRole,
-      authenticatedAt: now,
-      lastActivityAt: now,
-    });
+  public onPinAuthenticatedForCharge(result: PinAuthResult): void {
+    this.applyPinAuth(result);
     this.showPinAuthModalForCharge = false;
-    if (!this.selectedTable?.order_id) return;
-    void this.router.navigate(['/app/caja'], {
-      queryParams: { orderId: this.selectedTable.order_id, fromMesas: 'true' },
-    });
+    this.navigateToCaja();
   }
 
-  goToComanda(): void {
-    if (this.selectedTable?.order_id) {
-      void this.router.navigate(['/app/comanda'], {
-        queryParams: { orderId: this.selectedTable.order_id },
-      });
+  // ----- Navigation -----
+  public goToComanda(): void {
+    const orderId = this.facade.selectedTable()?.order_id;
+
+    if (orderId) {
+      void this.router.navigate(['/app/comanda'], { queryParams: { orderId } });
     }
   }
 
-  goToPedido(): void {
-    if (this.selectedTable?.order_id) {
+  public goToPedido(): void {
+    const table = this.facade.selectedTable();
+
+    if (table?.order_id) {
       void this.router.navigate(['/app/pedidos'], {
-        queryParams: { orderId: this.selectedTable.order_id, tableId: this.selectedTable.id },
+        queryParams: { orderId: table.order_id, tableId: table.id },
       });
     }
   }
 
-  get linesSubtotal(): number {
-    return this.orderLines.reduce((acc, l) => acc + Math.round((l.price * l.quantity) / (1 + l.tax_percentage / 100)), 0);
-  }
-
-  get linesTax(): number {
-    return this.orderLines.reduce((acc, l) => acc + (l.price * l.quantity - Math.round((l.price * l.quantity) / (1 + l.tax_percentage / 100))), 0);
-  }
-
-  get linesTotal(): number {
-    return this.orderLines.reduce((acc, l) => acc + l.price * l.quantity, 0);
-  }
-
-  formatCents(cents: number): string {
-    return (cents / 100).toFixed(2).replace('.', ',') + '€';
-  }
-
-  getPaidDinersForTable(table: TableWithStatus): number[] {
-    if (!table.diners || !table.total || table.total <= 0) return [];
-
-    const total = table.total ?? 0;
-    const remaining = table.remaining_total ?? 0;
-    const paidTotal = total - remaining;
-    const diners = table.diners;
-
-    const perDiner = Math.floor(total / diners);
-    if (perDiner <= 0) return paidTotal > 0 ? [1] : [];
-
-    const paidCount = Math.min(Math.floor(paidTotal / perDiner), diners);
-    return Array.from({ length: paidCount }, (_, i) => i + 1);
-  }
-
-  formatTime(isoDate: string | undefined): string {
-    if (!isoDate) return '';
-    const diffMin = Math.floor((Date.now() - new Date(isoDate).getTime()) / 60000);
-    if (diffMin < 60) return `hace ${diffMin} min`;
-    const h = Math.floor(diffMin / 60);
-    if (h < 24) return `hace ${h}h`;
-    return `hace ${Math.floor(h / 24)}d`;
-  }
-
-  getZoneName(zoneId: string): string {
-    return this.zones.find((z) => z.id === zoneId)?.name ?? '';
-  }
-
-  getUserInitials(name: string): string {
-    const parts = name.trim().split(/\s+/);
-    return (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? parts[0]?.[1] ?? '');
-  }
-
-  avatarColor(index: number): string {
-    return AVATAR_COLORS[index % AVATAR_COLORS.length];
-  }
-
-  openTableMenu(event: Event, table: TableWithStatus): void {
+  // ----- Floating menu -----
+  public openTableMenu(event: Event, table: TableWithStatus): void {
     event.stopPropagation();
     this.tableMenuTable = table;
     this.tableMenuOpen = true;
@@ -402,134 +231,123 @@ export class MesasPage implements OnInit {
     };
   }
 
-  closeTableMenu(): void {
+  public closeTableMenu(): void {
     this.tableMenuOpen = false;
     this.tableMenuTable = null;
   }
 
-  async onEditDiners(): Promise<void> {
-    const table = this.tableMenuTable;
+  // ----- Edit-diners flow -----
+  public async onEditDiners(): Promise<void> {
+    const menuTable = this.tableMenuTable;
     this.closeTableMenu();
 
-    if (!table?.order_id) {
-      console.log('[onEditDiners] No order_id disponible');
+    if (!menuTable?.order_id) {
       return;
     }
 
-    const updatedTable = this.tables.find((t) => t.id === table.id);
-    this.editDinersTable = updatedTable || table;
-    this.editDinersOrderId = table.order_id;
+    const tableInState = this.facade.tables().find((candidate) => candidate.id === menuTable.id);
+    this.editDinersTable = tableInState ?? menuTable;
+    this.editDinersOrderId = menuTable.order_id;
 
-    try {
-      const freshOrder = await firstValueFrom(this.tpvService.getOrder(table.order_id));
-      if (freshOrder && this.editDinersTable) {
-        this.editDinersTable.total = freshOrder.total;
-        this.editDinersTable.remaining_total = freshOrder.remaining_total ?? freshOrder.total;
-        this.editDinersTable.diners = freshOrder.diners;
-        console.log('[onEditDiners] Datos frescos recargados - total:', freshOrder.total,
-          'remaining:', freshOrder.remaining_total,
-          'diners:', freshOrder.diners);
-      }
-    } catch (e) {
-      console.log('[onEditDiners] Error recargando orden (usando datos locales):', e);
+    const fresh = await this.facade.fetchFreshOrder(menuTable.order_id);
+
+    if (fresh && this.editDinersTable) {
+      this.editDinersTable = {
+        ...this.editDinersTable,
+        total: fresh.total,
+        remaining_total: fresh.remaining_total ?? fresh.total,
+        diners: fresh.diners,
+      };
     }
 
     this.editDinersCheckingChargeSession = true;
     this.editDinersError = null;
 
-    try {
-      const chargeSession = await firstValueFrom(
-        this.chargeSessionService.getCurrentChargeSession(table.order_id)
-      );
+    const paidFromSession = await this.facade.getPaidDinersCountFromChargeSession(menuTable.order_id);
+    this.editDinersCheckingChargeSession = false;
 
-      const paidCount = chargeSession?.paid_diner_numbers?.length ?? 0;
-      if (paidCount > 0) {
-        this.editDinersError = `Ya hay ${paidCount} pago${paidCount === 1 ? '' : 's'} registrado${paidCount === 1 ? '' : 's'} en la sesión de cobro. No se puede modificar el número de comensales.`;
-        this.editDinersCheckingChargeSession = false;
-        this.editDinersValue = this.editDinersTable.diners ?? 1;
-        this.editDinersModalOpen = true;
-        return;
-      }
-    } catch (error: unknown) {
-      const httpError = error as { status?: number };
-      if (httpError.status !== 404) {
-        console.error('[onEditDiners] Error consultando charge session:', error);
-      }
-    } finally {
-      this.editDinersCheckingChargeSession = false;
-    }
-
-    const paidDiners = this.getPaidDinersForTable(this.editDinersTable);
-    if (paidDiners.length > 0) {
-      this.editDinersError = `Ya hay ${paidDiners.length} pago${paidDiners.length === 1 ? '' : 's'} registrado${paidDiners.length === 1 ? '' : 's'}. No se puede modificar el número de comensales.`;
+    if (paidFromSession > 0) {
+      this.editDinersError = `Ya hay ${paidFromSession} pago${paidFromSession === 1 ? '' : 's'} registrado${paidFromSession === 1 ? '' : 's'} en la sesión de cobro. No se puede modificar el número de comensales.`;
     } else {
-      this.editDinersError = null;
+      const paidDiners = this.editDinersTable
+        ? this.facade.getPaidDinersForTable(this.editDinersTable)
+        : [];
+
+      if (paidDiners.length > 0) {
+        this.editDinersError = `Ya hay ${paidDiners.length} pago${paidDiners.length === 1 ? '' : 's'} registrado${paidDiners.length === 1 ? '' : 's'}. No se puede modificar el número de comensales.`;
+      }
     }
 
-    this.editDinersValue = this.editDinersTable.diners ?? 1;
+    this.editDinersValue = this.editDinersTable?.diners ?? 1;
     this.editDinersModalOpen = true;
-    console.log('[onEditDiners] Modal abierto para', this.editDinersTable?.name,
-      'con', this.editDinersValue, 'comensales');
   }
 
-  closeEditDinersModal(): void {
+  public closeEditDinersModal(): void {
     this.editDinersModalOpen = false;
     this.editDinersOrderId = null;
     this.editDinersTable = null;
     this.editDinersError = null;
   }
 
-  get currentPaidDinersCount(): number {
-    if (!this.editDinersTable) return 0;
-    const paidDiners = this.getPaidDinersForTable(this.editDinersTable);
-    console.log('[currentPaidDinersCount] Table:', this.editDinersTable.name, 'total:', this.editDinersTable.total, 'remaining:', this.editDinersTable.remaining_total, 'diners:', this.editDinersTable.diners, 'paidDiners:', paidDiners);
-    return paidDiners.length;
+  public get currentPaidDinersCount(): number {
+    if (!this.editDinersTable) {
+      return 0;
+    }
+
+    return this.facade.getPaidDinersForTable(this.editDinersTable).length;
   }
 
-  get canReduceDiners(): boolean {
-    if (!this.editDinersTable) return true;
+  public get canReduceDiners(): boolean {
+    if (!this.editDinersTable) {
+      return true;
+    }
 
     if (this.editDinersValue < (this.editDinersTable.diners ?? 1)) {
-      const paidCount = this.currentPaidDinersCount;
-      const canReduce = this.editDinersValue >= paidCount;
-      console.log('[canReduceDiners] editDinersValue:', this.editDinersValue, 'paidCount:', paidCount, 'canReduce:', canReduce);
-      return canReduce;
+      return this.editDinersValue >= this.currentPaidDinersCount;
     }
 
     return true;
   }
 
-  get dinersValidationMessage(): string | null {
-    if (!this.editDinersTable) return null;
-    
+  public get dinersValidationMessage(): string | null {
+    if (!this.editDinersTable) {
+      return null;
+    }
+
     const paidCount = this.currentPaidDinersCount;
-    if (paidCount === 0) return null;
-    
+
+    if (paidCount === 0) {
+      return null;
+    }
+
     if (this.editDinersValue < paidCount) {
       return `⚠️ Atención: Ya ${paidCount === 1 ? 'ha pagado' : 'han pagado'} ${paidCount} comensal${paidCount === 1 ? '' : 'es'}. Debes mantener al menos ${paidCount} comensales.`;
     }
-    
+
     return null;
   }
 
-  incrementEditDiners(): void {
+  public incrementEditDiners(): void {
     if (this.editDinersValue < 99) {
       this.editDinersValue++;
     }
   }
 
-  decrementEditDiners(): void {
+  public decrementEditDiners(): void {
     if (this.editDinersValue > 1) {
       this.editDinersValue--;
     }
   }
 
-  async confirmEditDiners(): Promise<void> {
-    if (!this.editDinersOrderId || this.editDinersLoading) return;
+  public async confirmEditDiners(): Promise<void> {
+    if (!this.editDinersOrderId || this.editDinersLoading) {
+      return;
+    }
 
     if (!this.canReduceDiners) {
       const paidCount = this.currentPaidDinersCount;
       this.editDinersError = `No puedes reducir a ${this.editDinersValue} comensales porque ya ${paidCount === 1 ? 'ha pagado' : 'han pagado'} ${paidCount}.`;
+
       return;
     }
 
@@ -537,37 +355,93 @@ export class MesasPage implements OnInit {
     this.editDinersError = null;
 
     try {
-      await firstValueFrom(
-        this.tpvService.updateOrder(this.editDinersOrderId, {
-          diners: this.editDinersValue,
-        })
-      );
-
-      await this.loadData();
-
-      if (this.selectedTable) {
-        const updatedTable = this.tables.find((t) => t.id === this.selectedTable!.id);
-        if (updatedTable) {
-          this.selectedTable = updatedTable;
-        }
-      }
-
+      await this.facade.updateDiners(this.editDinersOrderId, this.editDinersValue);
       this.closeEditDinersModal();
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al actualizar comensales';
-      this.editDinersError = errorMsg;
+    } catch (err) {
+      this.editDinersError = err instanceof Error ? err.message : 'Error al actualizar comensales';
     } finally {
       this.editDinersLoading = false;
     }
   }
 
-  onJoinTable(): void {
-    console.log('[Menu] Juntar mesa:', this.tableMenuTable?.name);
+  public onJoinTable(): void {
     this.closeTableMenu();
   }
 
-  onTransferAccount(): void {
-    console.log('[Menu] Traspasar cuenta:', this.tableMenuTable?.name);
+  public onTransferAccount(): void {
     this.closeTableMenu();
+  }
+
+  // ----- Pure UI helpers -----
+  public formatCents(cents: number): string {
+    return (cents / 100).toFixed(2).replace('.', ',') + '€';
+  }
+
+  public formatTime(isoDate: string | undefined): string {
+    if (!isoDate) {
+      return '';
+    }
+
+    const diffMin = Math.floor((Date.now() - new Date(isoDate).getTime()) / 60000);
+
+    if (diffMin < 60) {
+      return `hace ${diffMin} min`;
+    }
+
+    const hours = Math.floor(diffMin / 60);
+
+    if (hours < 24) {
+      return `hace ${hours}h`;
+    }
+
+    return `hace ${Math.floor(hours / 24)}d`;
+  }
+
+  public getZoneName(zoneId: string): string {
+    return this.facade.getZoneName(zoneId);
+  }
+
+  public getPaidDinersForTable(table: TableWithStatus): number[] {
+    return this.facade.getPaidDinersForTable(table);
+  }
+
+  public getUserInitials(name: string): string {
+    const parts = name.trim().split(/\s+/);
+
+    return (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? parts[0]?.[1] ?? '');
+  }
+
+  public avatarColor(index: number): string {
+    return AVATAR_COLORS[index % AVATAR_COLORS.length];
+  }
+
+  // ----- Private helpers -----
+  private openOpenTableModal(): void {
+    this.modalOpen = true;
+    this.openingError = null;
+    this.diners = 1;
+  }
+
+  private navigateToCaja(): void {
+    const orderId = this.facade.selectedTable()?.order_id;
+
+    if (!orderId) {
+      return;
+    }
+
+    void this.router.navigate(['/app/caja'], {
+      queryParams: { orderId, fromMesas: 'true' },
+    });
+  }
+
+  private applyPinAuth(result: PinAuthResult): void {
+    const now = Date.now();
+    this.pinAuthService.setAuthContext({
+      userId: result.userId,
+      userName: result.userName,
+      userRole: result.userRole,
+      authenticatedAt: now,
+      lastActivityAt: now,
+    });
   }
 }

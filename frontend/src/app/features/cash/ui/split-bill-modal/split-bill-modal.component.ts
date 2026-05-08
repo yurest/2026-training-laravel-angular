@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { BtnComponent } from '../../../../shared/components/btn/btn.component';
@@ -18,7 +18,7 @@ export interface BillLine {
   selector: 'app-split-bill-modal',
   templateUrl: './split-bill-modal.component.html',
   styleUrls: ['./split-bill-modal.component.scss'],
-  imports: [CommonModule, FormsModule, CardComponent, BtnComponent, BadgeComponent, DinersStatusComponent],
+  imports: [FormsModule, CardComponent, BtnComponent, BadgeComponent, DinersStatusComponent],
   standalone: true,
 })
 export class SplitBillModalComponent implements OnChanges, OnInit {

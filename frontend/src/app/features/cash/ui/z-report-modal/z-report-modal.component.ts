@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
@@ -30,7 +30,7 @@ export interface ZReportSession {
   selector: 'app-z-report-modal',
   templateUrl: './z-report-modal.component.html',
   styleUrls: ['./z-report-modal.component.scss'],
-  imports: [CommonModule, CardComponent, BadgeComponent, BtnComponent],
+  imports: [CardComponent, BadgeComponent, BtnComponent],
   standalone: true,
 })
 export class ZReportModalComponent {

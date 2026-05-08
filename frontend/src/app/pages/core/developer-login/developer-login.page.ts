@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,7 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-developer-login',
   templateUrl: './developer-login.page.html',
   styleUrls: ['./developer-login.page.scss'],
-  imports: [CommonModule, ReactiveFormsModule, IonContent],
+  imports: [ReactiveFormsModule, IonContent],
 })
 export class DeveloperLoginPage {
   public readonly loginForm = this.formBuilder.nonNullable.group({

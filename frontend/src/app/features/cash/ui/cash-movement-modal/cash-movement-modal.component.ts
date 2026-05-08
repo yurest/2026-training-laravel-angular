@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NumpadComponent } from '../../../../shared/components/numpad/numpad.component';
@@ -147,7 +147,7 @@ export interface MovementReason {
       border-top: 1px solid var(--gray-200);
     }
   `],
-  imports: [CommonModule, FormsModule, NumpadComponent, AmountDisplayComponent, BtnComponent, SegmentComponent],
+  imports: [FormsModule, NumpadComponent, AmountDisplayComponent, BtnComponent, SegmentComponent],
   standalone: true,
 })
 export class CashMovementModalComponent {

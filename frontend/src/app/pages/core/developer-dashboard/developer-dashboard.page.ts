@@ -1,11 +1,12 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { take } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { RestaurantModalComponent } from '../../../components/modals/restaurant-modal/restaurant-modal.component';
 import { UserModalComponent } from '../../../components/modals/user-modal/user-modal.component';
+import { DeveloperDashboardFacade } from './facades/developer-dashboard.facade';
 
 interface Restaurant {
     uuid: string;
@@ -25,23 +26,23 @@ interface CompanyGroup {
     selector: 'app-developer-dashboard',
     templateUrl: './developer-dashboard.page.html',
     styleUrls: ['./developer-dashboard.page.scss'],
-    imports: [CommonModule, IonContent, IonSpinner, RestaurantModalComponent, UserModalComponent],
+    imports: [IonContent, IonSpinner, RestaurantModalComponent, UserModalComponent],
+    providers: [DeveloperDashboardFacade],
 })
 export class DeveloperDashboardPage implements OnInit {
-    public companies: CompanyGroup[] = [];
-    public isLoading: boolean = true;
-    public error: string | null = null;
+    protected readonly dashboardFacade = inject(DeveloperDashboardFacade);
+    private readonly router = inject(Router);
+
+    // Computed signals from facade
+    public readonly companies = computed(() => this.dashboardFacade.dashboardCompanies());
+    public readonly isLoading = computed(() => this.dashboardFacade.dashboardLoading());
+    public readonly error = computed(() => this.dashboardFacade.dashboardError());
 
     public restaurantModalOpen = false;
     public restaurantModalData: any = { mode: 'create' };
 
     public userModalOpen = false;
     public userModalData: any = { mode: 'list', restaurantUuid: '', restaurantName: '' };
-
-    constructor(
-        private readonly authService: AuthService,
-        private readonly router: Router,
-    ) { }
 
     ngOnInit(): void {
         this.loadRestaurants();
@@ -76,12 +77,12 @@ export class DeveloperDashboardPage implements OnInit {
             return;
         }
 
-        this.authService.deleteRestaurant(restaurant.uuid).pipe(take(1)).subscribe({
+        this.dashboardFacade.deleteRestaurant(restaurant.uuid).subscribe({
             next: () => {
-                this.loadRestaurants();
+                this.dashboardFacade.loadRestaurants();
             },
             error: (error) => {
-                this.error = error instanceof Error ? error.message : 'Error al eliminar restaurante';
+                this.dashboardFacade.setError(error instanceof Error ? error.message : 'Error al eliminar restaurante');
             },
         });
     }
@@ -94,64 +95,14 @@ export class DeveloperDashboardPage implements OnInit {
     }
 
     public logout(): void {
-        this.authService.superAdminLogout().pipe(take(1)).subscribe({
+        this.dashboardFacade.logout().subscribe({
             next: () => {
-                this.router.navigateByUrl('/');
+                this.dashboardFacade.navigateToHome();
             },
         });
     }
 
     private loadRestaurants(): void {
-        this.isLoading = true;
-        this.error = null;
-
-        this.authService
-            .getSuperAdminRestaurants()
-            .pipe(take(1))
-            .subscribe({
-                next: (restaurants) => {
-                    this.companies = this.groupByTaxId(restaurants);
-                    this.isLoading = false;
-                },
-                error: (error) => {
-                    this.error = error instanceof Error ? error.message : 'Error al cargar restaurantes';
-                    this.isLoading = false;
-                },
-            });
-    }
-
-    private groupByTaxId(restaurants: Restaurant[]): CompanyGroup[] {
-        const grouped = new Map<string, Restaurant[]>();
-
-        restaurants.forEach((restaurant) => {
-            const taxId = restaurant.tax_id || 'Sin asignar';
-            if (!grouped.has(taxId)) {
-                grouped.set(taxId, []);
-            }
-            grouped.get(taxId)!.push(restaurant);
-        });
-
-        return Array.from(grouped.entries())
-            .map(([taxId, restaurants]) => {
-                const firstRestaurant = restaurants[0];
-                let companyLegalName = 'Compañía';
-
-                if (firstRestaurant && firstRestaurant.legal_name) {
-                    if (restaurants.length === 1) {
-                        companyLegalName = firstRestaurant.legal_name;
-                    } else {
-                        const legalNames = restaurants.map(r => r.legal_name);
-                        const commonStart = legalNames[0].split(' ')[0];
-                        companyLegalName = commonStart;
-                    }
-                }
-
-                return {
-                    tax_id: taxId,
-                    legalName: companyLegalName,
-                    restaurants: restaurants.sort((a, b) => a.name.localeCompare(b.name)),
-                };
-            })
-            .sort((a, b) => a.tax_id.localeCompare(b.tax_id));
+        this.dashboardFacade.loadRestaurants();
     }
 }

@@ -2,14 +2,15 @@
   <div class="gestion-card">
     <div class="gestion-card-title">Zonas y capacidad</div>
     <div class="gestion-row-list">
-      <div
-        *ngFor="let zone of zones; let i = index"
-        class="gestion-row-item"
-        [class.active]="isZoneSelected(i)"
-        (click)="onSelectZone(i)"
-      >
-        <strong>{{ zone.name }}</strong><br />Mesas registradas: {{ zone.tables.length }}
-      </div>
+      @for (zone of zones(); track zone; let i = $index) {
+        <div
+          class="gestion-row-item"
+          [class.active]="isZoneSelected(i)"
+          (click)="onSelectZone(i)"
+          >
+          <strong>{{ zone.name }}</strong><br />Mesas registradas: {{ zone.tables.length }}
+        </div>
+      }
     </div>
   </div>
   <div class="gestion-card">
@@ -21,30 +22,32 @@
       </div>
       <div>
         <label class="form-label" for="mg-zone-name">Nombre de zona</label>
-        <input id="mg-zone-name" class="form-input" [(ngModel)]="zoneFormData.name" name="mg-zone-name" placeholder="Ej. Terraza" required />
+        <input id="mg-zone-name" class="form-input" [ngModel]="zoneFormData().name" (ngModelChange)="updateZoneForm('name', $event)" name="mg-zone-name" placeholder="Ej. Terraza" required />
       </div>
       <div class="gestion-form-actions">
-        <button class="btn-login btn-login-inline" type="submit">Guardar cambios zona</button>
+        <button class="btn-login btn-login-inline" type="submit" [disabled]="isSavingZone()">
+          {{ isSavingZone() ? 'Guardando...' : 'Guardar cambios zona' }}
+        </button>
       </div>
     </form>
 
     <div class="section-divider"></div>
 
-    <div class="gestion-card-title mg-small-gap">Mesas de {{ selectedZone ? selectedZone.name : 'la zona' }}</div>
+    <div class="gestion-card-title mg-small-gap">Mesas de {{ selectedZone()?.name ?? 'la zona' }}</div>
     <div class="gestion-row-list mg-table-list">
-      <ng-container *ngIf="selectedZone && selectedZone.tables.length; else noTablesTpl">
-        <div
-          *ngFor="let table of selectedZone.tables; let i = index"
-          class="gestion-row-item"
-          [class.active]="isTableSelected(i)"
-          (click)="onSelectTable(i)"
-        >
-          <strong>{{ table.name }}</strong>
-        </div>
-      </ng-container>
-      <ng-template #noTablesTpl>
+      @if (selectedZone()?.tables?.length) {
+        @for (table of selectedZone()!.tables; track table; let i = $index) {
+          <div
+            class="gestion-row-item"
+            [class.active]="isTableSelected(i)"
+            (click)="onSelectTable(i)"
+            >
+            <strong>{{ table.name }}</strong>
+          </div>
+        }
+      } @else {
         <div class="gestion-row-item">No hay mesas registradas.</div>
-      </ng-template>
+      }
     </div>
 
     <form class="gestion-form" (ngSubmit)="onSubmitTable()">
@@ -54,10 +57,12 @@
       </div>
       <div>
         <label class="form-label" for="mg-table-name">Nombre de mesa</label>
-        <input id="mg-table-name" class="form-input" [(ngModel)]="tableFormData.name" name="mg-table-name" placeholder="Ej. T12" required />
+        <input id="mg-table-name" class="form-input" [ngModel]="tableFormData().name" (ngModelChange)="updateTableForm('name', $event)" name="mg-table-name" placeholder="Ej. T12" required />
       </div>
       <div class="gestion-form-actions">
-        <button class="btn-login btn-login-inline" type="submit">Guardar mesa</button>
+        <button class="btn-login btn-login-inline" type="submit" [disabled]="isSavingTable()">
+          {{ isSavingTable() ? 'Guardando...' : 'Guardar mesa' }}
+        </button>
       </div>
     </form>
   </div>

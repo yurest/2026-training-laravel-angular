@@ -1,205 +1,225 @@
-<div class="modal-overlay" *ngIf="isOpen" (click)="onClose()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-title">Cobrar {{ tableLabel }} — {{ formatCents(total) }} €</div>
-      <button class="close-btn" (click)="onClose()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="payment-grid">
-        <!-- Left Column -->
-        <div class="left-column">
-          <app-card class="summary-card">
-            <div class="section-label">Resumen</div>
-            <div *ngFor="let line of lines" class="summary-row">
-              <span class="summary-name">{{ line.name }}</span>
-              <span class="summary-price">{{ formatCents(line.price) }} €</span>
-            </div>
-            <div class="summary-total">
-              <span>Total pendiente</span>
-              <span class="total-amount">{{ formatCents(total) }} €</span>
-            </div>
-            <div *ngIf="effectiveAmount < total" class="summary-partial">
-              <span>A cobrar ahora</span>
-              <span class="partial-amount">{{ formatCents(effectiveAmount) }} €</span>
-            </div>
-            <div *ngIf="effectiveAmount < total" class="summary-remaining">
-              <span>Quedará pendiente</span>
-              <span class="remaining-amount">{{ formatCents(total - effectiveAmount) }} €</span>
-            </div>
-          </app-card>
-
-          <div class="payment-methods">
-            <div class="section-label">Método de pago</div>
-            <div class="methods-grid">
-              <button
-                *ngFor="let m of methods"
-                class="method-btn"
-                [class.active]="method === m.value"
-                (click)="method = m.value"
-              >
-                <svg class="method-icon" [attr.data-icon]="m.icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <ng-container [ngSwitch]="m.icon">
-                    <ng-template [ngSwitchCase]="'cash'">
-                      <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                      <circle cx="12" cy="12" r="2"></circle>
-                      <path d="M6 12h.01M18 12h.01"></path>
-                    </ng-template>
-                    <ng-template [ngSwitchCase]="'card'">
-                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                      <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </ng-template>
-                    <ng-template [ngSwitchCase]="'phone'">
-                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                      <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                    </ng-template>
-                    <ng-template [ngSwitchCase]="'mixed'">
-                      <rect x="3" y="3" width="7" height="7"></rect>
-                      <rect x="14" y="3" width="7" height="7"></rect>
-                      <rect x="14" y="14" width="7" height="7"></rect>
-                      <rect x="3" y="14" width="7" height="7"></rect>
-                    </ng-template>
-                    <ng-template [ngSwitchCase]="'gift'">
-                      <polyline points="20 12 20 22 4 22 4 12"></polyline>
-                      <rect x="2" y="7" width="20" height="5"></rect>
-                      <line x1="12" y1="22" x2="12" y2="7"></line>
-                      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
-                      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
-                    </ng-template>
-                  </ng-container>
-                </svg>
-                <div class="method-label">{{ m.label }}</div>
-              </button>
-            </div>
-          </div>
-
-          <div class="fiscal-toggle">
-            <span class="fiscal-label">Factura completa (NIF)</span>
-            <app-toggle [(value)]="showFiscal"></app-toggle>
-          </div>
-
-          <div *ngIf="showFiscal" class="fiscal-fields">
-            <input placeholder="NIF / CIF" class="fiscal-input" />
-            <input placeholder="Razón social" class="fiscal-input" />
-            <input placeholder="Dirección fiscal" class="fiscal-input" />
-          </div>
-        </div>
-
-        <!-- Right Column - Method specific content -->
-        <div class="right-column">
-          <!-- Cash method -->
-          <ng-container *ngIf="method === 'cash'">
-            <div class="section-label">Importe entregado / a cobrar</div>
-            <app-amount-display [cents]="inputAmount" label="Entregado" [large]="true"></app-amount-display>
-            <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
-
-            <app-card *ngIf="inputAmount > 0" [class.success]="change >= 0" [class.error]="change < 0">
-              <div class="change-row">
-                <span [class.success-text]="change >= 0" [class.error-text]="change < 0">
-                  {{ change >= 0 ? '✓ Cambio' : '⚠ Falta' }}
-                </span>
-                <span class="change-amount" [class.success-text]="change >= 0" [class.error-text]="change < 0">
-                  {{ formatCents(abs(change)) }} €
-                </span>
+@if (isOpen) {
+  <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Cobrar {{ tableLabel }} — {{ formatCents(total) }} €</div>
+        <button class="close-btn" (click)="onClose()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="payment-grid">
+          <!-- Left Column -->
+          <div class="left-column">
+            <app-card class="summary-card">
+              <div class="section-label">Resumen</div>
+              @for (line of lines; track line) {
+                <div class="summary-row">
+                  <span class="summary-name">{{ line.name }}</span>
+                  <span class="summary-price">{{ formatCents(line.price) }} €</span>
+                </div>
+              }
+              <div class="summary-total">
+                <span>Total pendiente</span>
+                <span class="total-amount">{{ formatCents(total) }} €</span>
               </div>
+              @if (effectiveAmount < total) {
+                <div class="summary-partial">
+                  <span>A cobrar ahora</span>
+                  <span class="partial-amount">{{ formatCents(effectiveAmount) }} €</span>
+                </div>
+              }
+              @if (effectiveAmount < total) {
+                <div class="summary-remaining">
+                  <span>Quedará pendiente</span>
+                  <span class="remaining-amount">{{ formatCents(total - effectiveAmount) }} €</span>
+                </div>
+              }
             </app-card>
-
-            <div class="quick-amounts">
-              <div class="section-label">Importes rápidos</div>
-              <div class="quick-buttons">
-                <button
-                  *ngFor="let amount of [4000, 5000, 6000, 10000, 20000, 50000]"
-                  class="quick-btn"
-                  [class.active]="inputAmount === amount"
-                  (click)="setQuickAmount(amount)"
-                >
-                  {{ formatCents(amount) }} €
-                </button>
+            <div class="payment-methods">
+              <div class="section-label">Método de pago</div>
+              <div class="methods-grid">
+                @for (m of methods; track m) {
+                  <button
+                    class="method-btn"
+                    [class.active]="method === m.value"
+                    (click)="method = m.value"
+                    >
+                    <svg class="method-icon" [attr.data-icon]="m.icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <ng-container>
+                        @switch (m.icon) {
+                          @case ('cash') {
+                            <ng-template>
+                              <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                              <circle cx="12" cy="12" r="2"></circle>
+                              <path d="M6 12h.01M18 12h.01"></path>
+                            </ng-template>
+                          }
+                          @case ('card') {
+                            <ng-template>
+                              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                              <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </ng-template>
+                          }
+                          @case ('phone') {
+                            <ng-template>
+                              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            </ng-template>
+                          }
+                          @case ('mixed') {
+                            <ng-template>
+                              <rect x="3" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="14" width="7" height="7"></rect>
+                              <rect x="3" y="14" width="7" height="7"></rect>
+                            </ng-template>
+                          }
+                          @case ('gift') {
+                            <ng-template>
+                              <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                              <rect x="2" y="7" width="20" height="5"></rect>
+                              <line x1="12" y1="22" x2="12" y2="7"></line>
+                              <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                              <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                            </ng-template>
+                          }
+                        }
+                      </ng-container>
+                    </svg>
+                    <div class="method-label">{{ m.label }}</div>
+                  </button>
+                }
               </div>
             </div>
-          </ng-container>
-
-          <!-- Card method -->
-          <ng-container *ngIf="method === 'card'">
-            <div class="section-label">Importe a cobrar (máx {{ formatCents(total) }} €)</div>
-            <app-amount-display [cents]="inputAmount" label="Cobrar" [large]="true"></app-amount-display>
-            <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
-
-            <div class="card-payment">
-              <div class="card-icon">💳</div>
-              <div class="card-text">Pase la tarjeta por el datáfono</div>
-              <app-card class="card-amount-card">
-                <div class="card-amount-row">
-                  <span class="card-amount-label">Importe a cobrar</span>
-                  <span class="card-amount-value">{{ formatCents(effectiveAmount) }} €</span>
-                </div>
-                <div class="tip-toggle-row">
-                  <span class="tip-label">Añadir propina</span>
-                  <app-toggle [(value)]="showTip" color="#1a9e5a"></app-toggle>
-                </div>
-                <div *ngIf="showTip" class="tip-buttons">
-                  <button
-                    *ngFor="let t of [0, 100, 200, 500]"
-                    class="tip-btn"
-                    [class.active]="tip === t"
-                    (click)="tip = t"
-                  >
-                    {{ t === 0 ? 'Sin prop.' : formatCents(t) + ' €' }}
-                  </button>
-                </div>
-                <div *ngIf="showTip && tip > 0" class="card-total-row">
-                  <span>Total tarjeta</span>
-                  <span class="card-total-value">{{ formatCents(effectiveAmount + tip) }} €</span>
-                </div>
-              </app-card>
+            <div class="fiscal-toggle">
+              <span class="fiscal-label">Factura completa (NIF)</span>
+              <app-toggle [(value)]="showFiscal"></app-toggle>
             </div>
-          </ng-container>
-
-          <!-- Bizum method -->
-          <ng-container *ngIf="method === 'bizum'">
-            <div class="section-label">Importe a cobrar (máx {{ formatCents(total) }} €)</div>
-            <app-amount-display [cents]="inputAmount" label="Cobrar" [large]="true"></app-amount-display>
-            <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
-
-            <div class="bizum-payment">
-              <div class="bizum-icon">📱</div>
-              <div class="bizum-text">Bizum al número del restaurante</div>
-              <div class="bizum-number">+34 612 345 678</div>
-              <app-card class="bizum-amount-card">
-                <div class="bizum-amount-row">
-                  <span class="bizum-amount-label">Importe exacto</span>
-                  <span class="bizum-amount-value">{{ formatCents(effectiveAmount) }} €</span>
+            @if (showFiscal) {
+              <div class="fiscal-fields">
+                <input placeholder="NIF / CIF" class="fiscal-input" />
+                <input placeholder="Razón social" class="fiscal-input" />
+                <input placeholder="Dirección fiscal" class="fiscal-input" />
+              </div>
+            }
+          </div>
+          <!-- Right Column - Method specific content -->
+          <div class="right-column">
+            <!-- Cash method -->
+            @if (method === 'cash') {
+              <div class="section-label">Importe entregado / a cobrar</div>
+              <app-amount-display [cents]="inputAmount" label="Entregado" [large]="true"></app-amount-display>
+              <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
+              @if (inputAmount > 0) {
+                <app-card [class.success]="change >= 0" [class.error]="change < 0">
+                  <div class="change-row">
+                    <span [class.success-text]="change >= 0" [class.error-text]="change < 0">
+                      {{ change >= 0 ? '✓ Cambio' : '⚠ Falta' }}
+                    </span>
+                    <span class="change-amount" [class.success-text]="change >= 0" [class.error-text]="change < 0">
+                      {{ formatCents(abs(change)) }} €
+                    </span>
+                  </div>
+                </app-card>
+              }
+              <div class="quick-amounts">
+                <div class="section-label">Importes rápidos</div>
+                <div class="quick-buttons">
+                  @for (amount of [4000, 5000, 6000, 10000, 20000, 50000]; track amount) {
+                    <button
+                      class="quick-btn"
+                      [class.active]="inputAmount === amount"
+                      (click)="setQuickAmount(amount)"
+                      >
+                      {{ formatCents(amount) }} €
+                    </button>
+                  }
                 </div>
-              </app-card>
+              </div>
+            }
+            <!-- Card method -->
+            @if (method === 'card') {
+              <div class="section-label">Importe a cobrar (máx {{ formatCents(total) }} €)</div>
+              <app-amount-display [cents]="inputAmount" label="Cobrar" [large]="true"></app-amount-display>
+              <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
+              <div class="card-payment">
+                <div class="card-icon">💳</div>
+                <div class="card-text">Pase la tarjeta por el datáfono</div>
+                <app-card class="card-amount-card">
+                  <div class="card-amount-row">
+                    <span class="card-amount-label">Importe a cobrar</span>
+                    <span class="card-amount-value">{{ formatCents(effectiveAmount) }} €</span>
+                  </div>
+                  <div class="tip-toggle-row">
+                    <span class="tip-label">Añadir propina</span>
+                    <app-toggle [(value)]="showTip" color="#1a9e5a"></app-toggle>
+                  </div>
+                  @if (showTip) {
+                    <div class="tip-buttons">
+                      @for (t of [0, 100, 200, 500]; track t) {
+                        <button
+                          class="tip-btn"
+                          [class.active]="tip === t"
+                          (click)="tip = t"
+                          >
+                          {{ t === 0 ? 'Sin prop.' : formatCents(t) + ' €' }}
+                        </button>
+                      }
+                    </div>
+                  }
+                  @if (showTip && tip > 0) {
+                    <div class="card-total-row">
+                      <span>Total tarjeta</span>
+                      <span class="card-total-value">{{ formatCents(effectiveAmount + tip) }} €</span>
+                    </div>
+                  }
+                </app-card>
+              </div>
+            }
+            <!-- Bizum method -->
+            @if (method === 'bizum') {
+              <div class="section-label">Importe a cobrar (máx {{ formatCents(total) }} €)</div>
+              <app-amount-display [cents]="inputAmount" label="Cobrar" [large]="true"></app-amount-display>
+              <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
+              <div class="bizum-payment">
+                <div class="bizum-icon">📱</div>
+                <div class="bizum-text">Bizum al número del restaurante</div>
+                <div class="bizum-number">+34 612 345 678</div>
+                <app-card class="bizum-amount-card">
+                  <div class="bizum-amount-row">
+                    <span class="bizum-amount-label">Importe exacto</span>
+                    <span class="bizum-amount-value">{{ formatCents(effectiveAmount) }} €</span>
+                  </div>
+                </app-card>
+              </div>
+            }
+            <!-- Invitation method -->
+            @if (method === 'invitation') {
+              <div class="section-label">Importe a invitar (máx {{ formatCents(total) }} €)</div>
+              <app-amount-display [cents]="inputAmount" label="Invitar" [large]="true"></app-amount-display>
+              <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
+              <div class="invitation-payment">
+                <div class="invitation-icon">🎁</div>
+                <div class="invitation-title">Invitación de la casa</div>
+                <div class="invitation-text">Requiere supervisor. Se registra como invitación.</div>
+                <app-card class="invitation-value-card">
+                  <span class="invitation-label">Valor teórico:</span>
+                  <span class="invitation-value">{{ formatCents(effectiveAmount) }} €</span>
+                </app-card>
+              </div>
+            }
+            <div class="payment-actions">
+              @if (!isPartialPayment) {
+                <app-btn variant="outline" size="lg" [block]="true" (click)="onSplitBill()">
+                  Dividir cuenta
+                </app-btn>
+              }
+              <app-btn variant="success" size="lg" [block]="true" [disabled]="isProcessing" (click)="onConfirm()">
+                {{ isProcessing ? 'Procesando...' : (effectiveAmount < total ? 'Cobrar parcial — ' : 'Confirmar cobro — ') + formatCents(effectiveAmount + (showTip ? tip : 0)) + ' €' }}
+              </app-btn>
             </div>
-          </ng-container>
-
-          <!-- Invitation method -->
-          <ng-container *ngIf="method === 'invitation'">
-            <div class="section-label">Importe a invitar (máx {{ formatCents(total) }} €)</div>
-            <app-amount-display [cents]="inputAmount" label="Invitar" [large]="true"></app-amount-display>
-            <app-numpad [value]="inputAmount" (valueChange)="onCashGivenChange($event)"></app-numpad>
-
-            <div class="invitation-payment">
-              <div class="invitation-icon">🎁</div>
-              <div class="invitation-title">Invitación de la casa</div>
-              <div class="invitation-text">Requiere supervisor. Se registra como invitación.</div>
-              <app-card class="invitation-value-card">
-                <span class="invitation-label">Valor teórico:</span>
-                <span class="invitation-value">{{ formatCents(effectiveAmount) }} €</span>
-              </app-card>
-            </div>
-          </ng-container>
-
-          <div class="payment-actions">
-            <app-btn *ngIf="!isPartialPayment" variant="outline" size="lg" [block]="true" (click)="onSplitBill()">
-              Dividir cuenta
-            </app-btn>
-            <app-btn variant="success" size="lg" [block]="true" [disabled]="isProcessing" (click)="onConfirm()">
-              {{ isProcessing ? 'Procesando...' : (effectiveAmount < total ? 'Cobrar parcial — ' : 'Confirmar cobro — ') + formatCents(effectiveAmount + (showTip ? tip : 0)) + ' €' }}
-            </app-btn>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+}

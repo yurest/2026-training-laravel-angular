@@ -1,52 +1,54 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { Component, computed, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-export interface TaxRow {
-  uuid?: string;
-  name: string;
-  percentage: number;
-}
-
-export interface TaxFormData {
-  name: string;
-  percentage: number;
-}
+import { GestionTaxesFacade, TaxRow, TaxFormData } from '../../../pages/core/gestion/facades/gestion-taxes.facade';
 
 @Component({
   selector: 'app-taxes-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './taxes-management.component.html',
   styleUrls: ['./taxes-management.component.scss'],
 })
 export class TaxesManagementComponent {
-  @Input() taxes: TaxRow[] = [];
-  @Input() formData: TaxFormData = { name: '', percentage: 10 };
-  @Input() selectedIndex: number = 0;
-  @Input() isSaving: boolean = false;
-  @Output() selectItem = new EventEmitter<number>();
-  @Output() createNew = new EventEmitter<void>();
-  @Output() deleteSelected = new EventEmitter<void>();
-  @Output() saveChanges = new EventEmitter<void>();
+  public readonly facade = input.required<GestionTaxesFacade>();
+
+  public readonly taxes = computed(() => this.facade().taxes());
+  public readonly formData = computed(() => this.facade().formData());
+  public readonly selectedIndex = computed(() => this.facade().selectedIndex());
+  public readonly isSaving = computed(() => this.facade().isSaving());
 
   isSelected(index: number): boolean {
-    return this.selectedIndex === index;
+    return this.selectedIndex() === index;
   }
 
   onSelect(index: number): void {
-    this.selectItem.emit(index);
+    this.facade().select(index);
   }
 
   onCreate(): void {
-    this.createNew.emit();
+    this.facade().startCreate();
   }
 
-  onDelete(): void {
-    this.deleteSelected.emit();
+  async onDelete(): Promise<void> {
+    const result = await this.facade().deleteSelected();
+    if (result.ok) {
+      window.alert(result.message || 'Impuesto eliminado.');
+    } else {
+      window.alert(result.error || 'No se pudo eliminar el impuesto.');
+    }
   }
 
-  onSubmit(): void {
-    this.saveChanges.emit();
+  async onSubmit(): Promise<void> {
+    const result = await this.facade().save();
+    if (result.ok) {
+      window.alert(result.message || 'Impuesto guardado.');
+    } else {
+      window.alert(result.error || 'No se pudo guardar el impuesto.');
+    }
+  }
+
+  updateForm<K extends keyof TaxFormData>(key: K, value: TaxFormData[K]): void {
+    this.facade().updateForm(key, value);
   }
 }

@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, finalize, switchMap, take, takeUntil, map, tap } from 'rxjs/operators';
@@ -8,6 +7,8 @@ import { PinAuthService, AuthContext, AuthActionType } from '../../../../core/se
 import { PinAuthResult } from '../../../../components/pin-auth-modal/pin-auth-modal.component';
 import { TpvService, TpvCashSession, TpvCashSessionListItem, TpvOrder, TpvSale, TpvTableItem } from '../../services/tpv.service';
 import { ChargeSessionService, ChargeSession, RecordPaymentResponse } from '../../services/charge-session.service';
+import { CajaSessionFacade } from '../../facades/caja-session.facade';
+import { CajaPaymentFacade } from '../../facades/caja-payment.facade';
 import { OpenCashModalComponent } from '../../ui/open-cash-modal/open-cash-modal.component';
 import { PinAuthModalComponent } from '../../../../components/pin-auth-modal/pin-auth-modal.component';
 import { CashMovementModalComponent } from '../../ui/cash-movement-modal/cash-movement-modal.component';
@@ -94,7 +95,6 @@ interface MethodBreakdownRow {
   templateUrl: './caja.page.html',
   styleUrls: ['./caja.page.scss'],
   imports: [
-    CommonModule,
     OpenCashModalComponent,
     PinAuthModalComponent,
     CashMovementModalComponent,
@@ -110,34 +110,37 @@ interface MethodBreakdownRow {
     KpiCardComponent,
     PaymentSuccessComponent,
     SegmentComponent,
-    DinersStatusComponent,
+    DinersStatusComponent
   ],
   standalone: true,
+  providers: [CajaSessionFacade, CajaPaymentFacade],
 })
 export class CajaPage implements OnInit, OnDestroy {
-  public readonly state$ = new BehaviorSubject<CajaState>('pre-apertura');
-  public readonly activeSession$ = new BehaviorSubject<TpvCashSession | null>(null);
-  public readonly loading$ = new BehaviorSubject<boolean>(true);
-  public readonly pendingTables$ = new BehaviorSubject<PendingTableRow[]>([]);
-  public readonly movements$ = new BehaviorSubject<CashMovementItem[]>([]);
-  public readonly sessionSummary$ = new BehaviorSubject<CashSessionSummary | null>(null);
+  protected readonly sessionFacade = inject(CajaSessionFacade);
+  protected readonly paymentFacade = inject(CajaPaymentFacade);
+  protected readonly tpvService = inject(TpvService);
+  protected readonly authService = inject(AuthService);
+  protected readonly pinAuthService = inject(PinAuthService);
+  protected readonly chargeSessionService = inject(ChargeSessionService);
+  protected readonly route = inject(ActivatedRoute);
+  protected readonly router = inject(Router);
 
-  public get state(): CajaState { return this.state$.value; }
-  public get activeSession(): TpvCashSession | null { return this.activeSession$.value; }
-  public get loading(): boolean { return this.loading$.value; }
-  public get pendingTables(): PendingTableRow[] { return this.pendingTables$.value; }
-  public get movements(): CashMovementItem[] { return this.movements$.value; }
-  public get sessionSummary(): CashSessionSummary | null { return this.sessionSummary$.value; }
+  // Computed signals from facade
+  public readonly state = computed(() => this.sessionFacade.state());
+  public readonly activeSession = computed(() => this.sessionFacade.activeSession());
+  public readonly loading = computed(() => this.sessionFacade.loading());
+  public readonly lastClosed = computed(() => this.sessionFacade.lastClosed());
+  public readonly orphanSession = computed(() => this.sessionFacade.orphanSession());
+  public readonly sessionSummary = computed(() => this.sessionFacade.sessionSummary());
+  public readonly isClosingInProgress = computed(() => this.sessionFacade.isClosingInProgress());
 
-  private setState(value: CajaState): void { this.state$.next(value); }
-  private setActiveSession(value: TpvCashSession | null): void { this.activeSession$.next(value); }
-  private setLoading(value: boolean): void { this.loading$.next(value); }
-  private setPendingTables(value: PendingTableRow[]): void { this.pendingTables$.next(value); }
-  private setMovements(value: CashMovementItem[]): void { this.movements$.next(value); }
-  private setSessionSummary(value: CashSessionSummary | null): void { this.sessionSummary$.next(value); }
+  // Computed signals from payment facade
+  public readonly paymentState = computed(() => this.paymentFacade.paymentState());
+  public readonly isProcessingPayment = computed(() => this.paymentFacade.isProcessing());
+  public readonly currentChargeSession = computed(() => this.paymentFacade.chargeSession());
+  public readonly currentDinerNumber = computed(() => this.paymentFacade.dinerNumber());
+  public readonly loadedChargeSession = computed(() => this.paymentFacade.session());
 
-  public lastClosed: LastClosedData | null = null;
-  public orphanSession: OrphanSessionData | null = null;
   public showOpenModal = false;
   public showPinAuthModal = false;
   public showPinAuthModalForCobrarMesa = false;
@@ -158,16 +161,20 @@ export class CajaPage implements OnInit, OnDestroy {
   public paidDiners: number[] = [];
   public originalOrderTotal = 0;
   public currentPaymentAmount = 0;
-  public isClosingInProgress = false;
-  public isProcessingPayment = false;
-  public currentChargeSession: { id: string; amountPerDiner: number } | null = null;
-  public currentDinerNumber: number | null = null;
-  public loadedChargeSession: ChargeSession | null = null;
   public lastPaymentTicketText: string | null = null;
   public lastFinalTicketText: string | null = null;
   public lastPaymentSaleId: string | null = null;
   public lastFinalOrderId: string | null = null;
   public lastPaymentClosedOrder = false;
+
+  private readonly pendingTables$ = new BehaviorSubject<PendingTableRow[]>([]);
+  private readonly movements$ = new BehaviorSubject<CashMovementItem[]>([]);
+
+  public get pendingTables(): PendingTableRow[] { return this.pendingTables$.value; }
+  public get movements(): CashMovementItem[] { return this.movements$.value; }
+
+  private setPendingTables(value: PendingTableRow[]): void { this.pendingTables$.next(value); }
+  private setMovements(value: CashMovementItem[]): void { this.movements$.next(value); }
 
   private refreshInterval: any;
   private clockInterval: any;
@@ -176,14 +183,7 @@ export class CajaPage implements OnInit, OnDestroy {
   private readonly paymentFlowDestroy$ = new Subject<void>();
   public readonly deviceId: string;
 
-  constructor(
-    private readonly tpvService: TpvService,
-    private readonly authService: AuthService,
-    private readonly pinAuthService: PinAuthService,
-    private readonly chargeSessionService: ChargeSessionService,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-  ) {
+  constructor() {
     this.deviceId = this.authService.getDeviceId();
   }
 
@@ -206,20 +206,12 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.loadOrderDestroy$.next();
-    this.loadOrderDestroy$.complete();
-    this.paymentFlowDestroy$.next();
-    this.paymentFlowDestroy$.complete();
     this.stopRefreshInterval();
     if (this.clockInterval) clearInterval(this.clockInterval);
-    this.state$.complete();
-    this.activeSession$.complete();
-    this.loading$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
     this.pendingTables$.complete();
     this.movements$.complete();
-    this.sessionSummary$.complete();
   }
 
   private loadOrderForPayment(orderId: string): void {
@@ -312,31 +304,30 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   private loadActiveSession(): void {
-    this.tpvService.getActiveCashSession(this.deviceId).pipe(takeUntil(this.destroy$)).subscribe({
+    this.sessionFacade.loadActiveSession(this.deviceId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (session) => {
-        this.setActiveSession(session);
         if (session === null) {
-          this.setState('pre-apertura');
+          this.sessionFacade.setState('pre-apertura');
           this.loadLastClosedData();
           this.stopRefreshInterval();
         } else {
-          this.setLoading(false);
+          this.sessionFacade.setLoading(false);
           switch (session.status) {
             case 'open':
-              this.setState('activa');
+              this.sessionFacade.setState('activa');
               this.loadSessionSummary();
               this.loadActiveDashboardData();
               this.startRefreshInterval();
               break;
             case 'closing':
-              this.setState('arqueo');
+              this.sessionFacade.setState('arqueo');
               this.showWizard = true;
               this.loadSessionSummary();
               this.stopRefreshInterval();
               break;
             case 'closed':
             case 'abandoned':
-              this.setState('historico');
+              this.sessionFacade.setState('historico');
               this.loadClosedSessions();
               this.stopRefreshInterval();
               break;
@@ -344,8 +335,8 @@ export class CajaPage implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        this.setLoading(false);
-        this.setState('pre-apertura');
+        this.sessionFacade.setLoading(false);
+        this.sessionFacade.setState('pre-apertura');
         this.loadLastClosedData();
       },
     });
@@ -360,10 +351,10 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   private loadSessionSummary(): void {
-    if (!this.activeSession) return;
-    this.tpvService.getCashSessionSummary(this.activeSession.uuid).pipe(takeUntil(this.destroy$)).subscribe({
+    if (!this.activeSession()) return;
+    this.sessionFacade.loadSessionSummary(this.activeSession()!.uuid).pipe(takeUntil(this.destroy$)).subscribe({
       next: (summary) => {
-        this.setSessionSummary(summary as unknown as CashSessionSummary);
+        this.sessionFacade.setSessionSummary(summary);
         this.loadActiveDashboardData();
       },
       error: (error) => { console.error('Error loading session summary:', error); },
@@ -371,9 +362,9 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   private loadActiveDashboardData(): void {
-    if (!this.activeSession) return;
-    const sessionUuid = this.activeSession.uuid;
-    this.tpvService.listCashMovements(sessionUuid).pipe(takeUntil(this.destroy$)).subscribe({
+    if (!this.activeSession()) return;
+    const sessionUuid = this.activeSession()!.uuid;
+    this.sessionFacade.listCashMovements(sessionUuid).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => { this.setMovements(response.movements as CashMovementItem[]); },
       error: () => { this.setMovements([]); },
     });
@@ -429,7 +420,7 @@ export class CajaPage implements OnInit, OnDestroy {
 
   public onOpenCash(data: { userId: string; initialAmountCents: number; notes?: string }): void {
     this.openCashError = null;
-    this.tpvService.openCashSession({
+    this.sessionFacade.openSession({
       device_id: this.deviceId,
       opened_by_user_id: data.userId,
       initial_amount_cents: data.initialAmountCents,
@@ -437,8 +428,8 @@ export class CajaPage implements OnInit, OnDestroy {
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (session) => {
         this.showOpenModal = false;
-        this.setActiveSession(session);
-        this.setState('activa');
+        this.sessionFacade.setActiveSession(session);
+        this.sessionFacade.setState('activa');
         this.loadSessionSummary();
         this.startRefreshInterval();
       },
@@ -459,13 +450,13 @@ export class CajaPage implements OnInit, OnDestroy {
     amountCents: number;
     description?: string;
   }): void {
-    if (!this.activeSession) return;
-    this.tpvService.registerCashMovement({
-      cash_session_id: this.activeSession.uuid,
+    if (!this.activeSession()) return;
+    this.sessionFacade.registerMovement({
+      cash_session_id: this.activeSession()!.uuid,
       type: data.type,
       reason_code: data.reasonCode,
       amount_cents: data.amountCents,
-      user_id: this.activeSession.opened_by_user_id,
+      user_id: this.activeSession()!.opened_by_user_id,
       description: data.description,
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
@@ -477,12 +468,12 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   public onStartClosing(): void {
-    if (!this.activeSession) return;
-    this.tpvService.startClosingCashSession({ cash_session_id: this.activeSession.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
+    if (!this.activeSession()) return;
+    this.sessionFacade.startClosing({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
-        this.setState('arqueo');
+        this.sessionFacade.setState('arqueo');
         this.showWizard = true;
-        this.setActiveSession({ ...this.activeSession!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
+        this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
         this.loadSessionSummary();
         this.stopRefreshInterval();
       },
@@ -491,16 +482,16 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   public onCancelClosing(): void {
-    if (!this.activeSession) return;
-    if (this.activeSession.status !== 'closing') {
+    if (!this.activeSession()) return;
+    if (this.activeSession()!.status !== 'closing') {
       alert('Solo se puede cancelar el cierre cuando la sesión está en proceso de cierre.');
       return;
     }
-    this.tpvService.cancelClosingCashSession({ cash_session_id: this.activeSession.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
+    this.sessionFacade.cancelClosing({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
-        this.setState('activa');
+        this.sessionFacade.setState('activa');
         this.showWizard = false;
-        this.setActiveSession({ ...this.activeSession!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
+        this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
         this.startRefreshInterval();
       },
       error: (error) => { alert('Error al cancelar el cierre: ' + error.message); },
@@ -509,44 +500,44 @@ export class CajaPage implements OnInit, OnDestroy {
 
   public onWizardClose(): void {
     this.showWizard = false;
-    if (this.isClosingInProgress) {
+    if (this.isClosingInProgress()) {
       console.log('Closing is in progress, skipping cancel');
       return;
     }
-    if (this.state === 'arqueo' && this.activeSession?.status === 'closing') {
-      this.tpvService.cancelClosingCashSession({ cash_session_id: this.activeSession.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
+    if (this.state() === 'arqueo' && this.activeSession()?.status === 'closing') {
+      this.tpvService.cancelClosingCashSession({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
-          this.setState('activa');
-          this.setActiveSession({ ...this.activeSession!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
+          this.sessionFacade.setState('activa');
+          this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
           this.startRefreshInterval();
         },
         error: (error) => {
           console.error('Error al cancelar el cierre:', error);
-          this.setState('activa');
+          this.sessionFacade.setState('activa');
           this.startRefreshInterval();
         },
       });
-    } else if (this.state === 'arqueo') {
-      this.setState('activa');
+    } else if (this.state() === 'arqueo') {
+      this.sessionFacade.setState('activa');
       this.startRefreshInterval();
     }
   }
 
   public onCompleteClosing(data: { countedAmount: number; discrepancyReason?: string }): void {
-    if (!this.activeSession) return;
+    if (!this.activeSession()) return;
 
-    if (this.activeSession.status !== 'closing') {
+    if (this.activeSession()!.status !== 'closing') {
       console.warn('Session is not in closing status, reloading active session...');
       this.tpvService.getActiveCashSession(this.deviceId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (session) => {
           if (session && session.status === 'closing') {
-            this.setActiveSession(session);
+            this.sessionFacade.setActiveSession(session);
             this.proceedWithClose(data);
           } else {
             alert('Error: La sesión no está en estado de cierre. Por favor, intente iniciar el cierre nuevamente.');
             if (session) {
-              this.setActiveSession(session);
-              this.setState(session.status === 'open' ? 'activa' : 'arqueo');
+              this.sessionFacade.setActiveSession(session);
+              this.sessionFacade.setState(session.status === 'open' ? 'activa' : 'arqueo');
             }
           }
         },
@@ -561,67 +552,64 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   private proceedWithClose(data: { countedAmount: number; discrepancyReason?: string }): void {
-    if (!this.activeSession) return;
-    this.isClosingInProgress = true;
-    this.tpvService.closeCashSession({
-      cash_session_id: this.activeSession.uuid,
-      closed_by_user_id: this.activeSession.opened_by_user_id,
+    if (!this.activeSession()) return;
+    this.sessionFacade.closeSession({
+      cash_session_id: this.activeSession()!.uuid,
+      closed_by_user_id: this.activeSession()!.opened_by_user_id,
       final_amount_cents: data.countedAmount,
       discrepancy_reason: data.discrepancyReason,
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.isClosingInProgress = false;
         this.showWizard = false;
-        this.setActiveSession(null);
-        this.setState('historico');
+        this.sessionFacade.setActiveSession(null);
+        this.sessionFacade.setState('historico');
         this.loadClosedSessions();
       },
       error: (error) => {
-        this.isClosingInProgress = false;
         alert('Error al cerrar la caja: ' + error.message);
       },
     });
   }
 
   public get wizardExpectedAmount(): number {
-    return this.sessionSummary?.expected_amount ?? 0;
+    return this.sessionSummary()?.expected_amount ?? 0;
   }
 
   public get wizardZData(): ZReportData | null {
-    if (!this.sessionSummary) return null;
+    if (!this.sessionSummary()) return null;
     return {
-      tickets: this.sessionSummary.payments_count,
+      tickets: this.sessionSummary()!.payments_count,
       diners: 0,
-      gross: this.sessionSummary.total_sales,
+      gross: this.sessionSummary()!.total_sales,
       discounts: 0,
-      net: this.sessionSummary.total_sales,
-      cash: this.sessionSummary.total_cash_payments,
-      card: this.sessionSummary.total_card_payments,
-      bizum: this.sessionSummary.total_bizum_payments,
-      invitation: this.sessionSummary.total_other_payments,
+      net: this.sessionSummary()!.total_sales,
+      cash: this.sessionSummary()!.total_cash_payments,
+      card: this.sessionSummary()!.total_card_payments,
+      bizum: this.sessionSummary()!.total_bizum_payments,
+      invitation: this.sessionSummary()!.total_other_payments,
       invitations: 0,
       invValue: 0,
       cancellations: 0,
       tipsCard: 0,
-      initial: this.sessionSummary.initial_amount_cents,
-      movIn: this.sessionSummary.total_in_movements,
-      movOut: this.sessionSummary.total_out_movements,
+      initial: this.sessionSummary()!.initial_amount_cents,
+      movIn: this.sessionSummary()!.total_in_movements,
+      movOut: this.sessionSummary()!.total_out_movements,
     };
   }
 
   private loadLastClosedData(): void {
-    this.tpvService.getLastClosedCashSession().pipe(takeUntil(this.destroy$)).subscribe({
+    this.sessionFacade.loadLastClosedSession().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => {
-        this.lastClosed = data.last_closed;
-        this.orphanSession = data.orphan_session;
-        this.setLoading(false);
+        this.sessionFacade.setLastClosed(data?.last_closed || null);
+        this.sessionFacade.setOrphanSession(data?.orphan_session || null);
+        this.sessionFacade.setLoading(false);
       },
-      error: () => { this.setLoading(false); },
+      error: () => { this.sessionFacade.setLoading(false); },
     });
   }
 
   private loadClosedSessions(): void {
-    this.tpvService.listCashSessions().pipe(takeUntil(this.destroy$)).subscribe({
+    this.sessionFacade.loadClosedSessions().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.closedSessions = data.sessions; },
       error: (error) => { console.error('Error loading sessions:', error); },
     });
@@ -679,12 +667,12 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   public get paymentMethods(): MethodBreakdown {
-    if (!this.sessionSummary) return {};
+    if (!this.sessionSummary()) return {};
     return {
-      cash: this.sessionSummary.total_cash_payments || 0,
-      card: this.sessionSummary.total_card_payments || 0,
-      bizum: this.sessionSummary.total_bizum_payments || 0,
-      transfer: this.sessionSummary.total_other_payments || 0,
+      cash: this.sessionSummary()!.total_cash_payments || 0,
+      card: this.sessionSummary()!.total_card_payments || 0,
+      bizum: this.sessionSummary()!.total_bizum_payments || 0,
+      transfer: this.sessionSummary()!.total_other_payments || 0,
     };
   }
 
@@ -892,7 +880,7 @@ export class CajaPage implements OnInit, OnDestroy {
         take(1),
         catchError(() => of({ total_cents: 0 }))
       ),
-      chargeSession: this.chargeSessionService.getCurrentChargeSession(orderId).pipe(
+      chargeSession: this.paymentFacade.getCurrentChargeSession(orderId).pipe(
         take(1),
         catchError((error) => {
           if (error.status === 404) return of(null);
@@ -915,7 +903,7 @@ export class CajaPage implements OnInit, OnDestroy {
 
         this.originalOrderTotal = originalTotal;
 
-        this.loadedChargeSession = chargeSession;
+        this.paymentFacade.setLoadedChargeSession(chargeSession);
         console.log('onSplitBill - chargeSession loaded:', chargeSession);
 
         if (chargeSession) {
@@ -945,7 +933,7 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   public onConfirmPayment(data: { method: string; amount: number; tip?: number; isManualPartial?: boolean }): void {
-    if (this.isProcessingPayment) {
+    if (this.isProcessingPayment()) {
       console.log('Payment already in progress, ignoring double click');
       return;
     }
@@ -974,7 +962,7 @@ export class CajaPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.isProcessingPayment = true;
+    this.paymentFacade.setIsProcessingPayment(true);
 
     const payments = [
       {
@@ -1023,8 +1011,8 @@ export class CajaPage implements OnInit, OnDestroy {
     this.paymentFlowDestroy$.next();
 
     const orderId = this.selectedTable?.order_id;
-    const activeSessionId = this.loadedChargeSession?.status === 'active'
-      ? this.loadedChargeSession.id
+    const activeSessionId = this.loadedChargeSession()?.status === 'active'
+      ? this.loadedChargeSession()?.id
       : null;
 
     const paymentMethod = payments[0].method;
@@ -1034,10 +1022,10 @@ export class CajaPage implements OnInit, OnDestroy {
         : 'other';
 
     const sale$: Observable<RecordPaymentResponse | TpvSale> = activeSessionId
-      ? this.chargeSessionService.recordPayment(activeSessionId, {
+      ? this.paymentFacade.recordPayment(activeSessionId, {
           payment_method: mappedMethod,
           amount_cents: data.amount,
-          diner_number: this.currentDinerNumber ?? undefined,
+          diner_number: this.currentDinerNumber() || undefined,
           opened_by_user_id: this.currentUser?.id ?? '',
           closed_by_user_id: this.currentUser?.id ?? '',
           device_id: this.deviceId,
@@ -1065,24 +1053,24 @@ export class CajaPage implements OnInit, OnDestroy {
 
         if (activeSessionId) {
           const paymentResponse = result as RecordPaymentResponse;
-          return this.chargeSessionService.getCurrentChargeSession(orderId!).pipe(
+          return this.paymentFacade.getCurrentChargeSession(orderId!).pipe(
             takeUntil(this.paymentFlowDestroy$),
             map((freshSession) => {
               console.log('Charge session reloaded after payment:', freshSession);
-              this.loadedChargeSession = freshSession;
+              this.paymentFacade.setLoadedChargeSession(freshSession);
               this.paidDiners = freshSession.paid_diner_numbers;
               if (this.selectedTable) {
                 this.selectedTable.total = freshSession.remaining_cents;
                 this.updatePendingTableTotal(this.selectedTable.order_id, freshSession.remaining_cents);
               }
-              this.currentChargeSession = null;
-              this.currentDinerNumber = null;
+              this.paymentFacade.setCurrentChargeSession(null);
+              this.paymentFacade.setCurrentDinerNumber(null);
               return { type: 'charge_session' as const, isOrderComplete: paymentResponse.is_session_complete };
             }),
             catchError((error) => {
               console.warn('Could not reload charge session after payment:', error);
-              this.currentChargeSession = null;
-              this.currentDinerNumber = null;
+              this.paymentFacade.setCurrentChargeSession(null);
+              this.paymentFacade.setCurrentDinerNumber(null);
               return of({
                 type: 'charge_session' as const,
                 isOrderComplete: paymentResponse.is_session_complete,
@@ -1134,7 +1122,7 @@ export class CajaPage implements OnInit, OnDestroy {
       catchError((error) => {
         console.error('Error creating sale:', error);
         alert('Error al crear la venta: ' + (error.message || 'Error desconocido'));
-        this.isProcessingPayment = false;
+        this.paymentFacade.setIsProcessingPayment(false);
         return throwError(() => error);
       })
     ).subscribe({
@@ -1175,10 +1163,10 @@ export class CajaPage implements OnInit, OnDestroy {
         this.currentPaymentAmount = 0;
         this.fromMesas = false;
         this.isPartialPayment = false;
-        this.isProcessingPayment = false;
+        this.paymentFacade.setIsProcessingPayment(false);
       },
       error: () => {
-        this.isProcessingPayment = false;
+        this.paymentFacade.setIsProcessingPayment(false);
       },
     });
   }
@@ -1257,12 +1245,12 @@ export class CajaPage implements OnInit, OnDestroy {
     console.log('Before - paidDiners:', this.paidDiners);
 
     if (data.chargeSessionId) {
-      this.currentChargeSession = {
+      this.paymentFacade.setCurrentChargeSession({
         id: data.chargeSessionId,
         amountPerDiner: data.amount || 0
-      };
+      });
     }
-    this.currentDinerNumber = data.diner || null;
+    this.paymentFacade.setCurrentDinerNumber(data.diner || null);
 
     const selectedLines = data.selectedLines;
     const total = data.amount || selectedLines.reduce((sum, l) => sum + l.price, 0);
@@ -1299,7 +1287,7 @@ export class CajaPage implements OnInit, OnDestroy {
   }
 
   public onChargeSessionUpdated(session: any): void {
-    this.loadedChargeSession = session;
+    this.paymentFacade.setLoadedChargeSession(session);
     if (this.selectedTable && session) {
       this.selectedTable.diners = session.diners_count;
       this.paidDiners = session.paid_diner_numbers || [];
@@ -1323,9 +1311,9 @@ export class CajaPage implements OnInit, OnDestroy {
     this.fromMesas = false;
     this.isPartialPayment = false;
     this.pendingTableToCharge = null;
-    this.loadedChargeSession = null;
-    this.currentChargeSession = null;
-    this.currentDinerNumber = null;
+    this.paymentFacade.setLoadedChargeSession(null);
+    this.paymentFacade.setCurrentChargeSession(null);
+    this.paymentFacade.setCurrentDinerNumber(null);
     this.lastPaymentTicketText = null;
     this.lastFinalTicketText = null;
     this.lastPaymentSaleId = null;

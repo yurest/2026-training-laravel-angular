@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-payment-success',
   templateUrl: './payment-success.component.html',
   styleUrls: ['./payment-success.component.scss'],
-  imports: [CommonModule],
+  imports: [],
   standalone: true,
 })
 export class PaymentSuccessComponent {

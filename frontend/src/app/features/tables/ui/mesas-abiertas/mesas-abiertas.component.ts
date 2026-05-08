@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BtnComponent } from '../../../../shared/components/btn/btn.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
@@ -16,7 +16,7 @@ export interface PendingTable {
   selector: 'app-mesas-abiertas',
   templateUrl: './mesas-abiertas.component.html',
   styleUrls: ['./mesas-abiertas.component.scss'],
-  imports: [CommonModule, CardComponent, BtnComponent, BadgeComponent],
+  imports: [CardComponent, BtnComponent, BadgeComponent],
   standalone: true,
 })
 export class MesasAbiertasComponent {

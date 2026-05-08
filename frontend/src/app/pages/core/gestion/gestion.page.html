@@ -1,16 +1,18 @@
 <div class="gestion-page">
   <div class="screen-gestion">
     <div class="page-container">
-      <div class="gestion-api-warning" *ngIf="apiErrorMessage">
-        <span>{{ apiErrorMessage }}</span>
-        <button type="button" class="gestion-api-warning-close" (click)="clearApiError()">&times;</button>
-      </div>
+      @if (apiErrorMessage) {
+        <div class="gestion-api-warning">
+          <span>{{ apiErrorMessage }}</span>
+          <button type="button" class="gestion-api-warning-close" (click)="clearApiError()">&times;</button>
+        </div>
+      }
       <div class="gestion-layout">
         <app-restaurant-list
           [restaurants]="managementRestaurants"
           [selectedRestaurantId]="managementState.restaurantId"
           (selectRestaurant)="selectRestaurant($event)"
-        />
+          />
 
         <section class="gestion-workspace">
           <div class="gestion-workspace-top">
@@ -29,106 +31,65 @@
               [entities]="managementEntities"
               [activeEntity]="managementState.entity"
               (selectEntity)="selectEntity($event)"
-            />
+              />
           </div>
 
-          <div class="gestion-workspace-body" *ngIf="selectedRestaurant; else noRestaurantTpl">
-            <div [ngSwitch]="managementState.entity">
-              <app-restaurant-detail
-                *ngSwitchCase="'restaurant'"
-                [restaurant]="selectedRestaurant"
-                [formData]="restaurantForm"
-                [isSaving]="isSavingRestaurant"
-                (saveChanges)="saveRestaurantChanges()"
-              />
-
-              <app-users-management
-                *ngSwitchCase="'users'"
-                [users]="selectedData.users"
-                [formData]="userForm"
-                [selectedIndex]="managementState.selectedIndex.users"
-                [isSaving]="isSavingUser"
-                [roleOptions]="roleOptions"
-                (selectItem)="selectManagementItem('users', $event)"
-                (createNew)="startCreateManagementItem('users')"
-                (deleteSelected)="deleteSelectedManagementItem('users')"
-                (saveChanges)="saveManagementEntity('users')"
-              />
-
-              <app-families-management
-                *ngSwitchCase="'families'"
-                [families]="selectedData.families"
-                [formData]="familyForm"
-                [selectedIndex]="managementState.selectedIndex.families"
-                [isSaving]="isSavingFamily"
-                (selectItem)="selectManagementItem('families', $event)"
-                (createNew)="startCreateManagementItem('families')"
-                (deleteSelected)="deleteSelectedManagementItem('families')"
-                (saveChanges)="saveManagementEntity('families')"
-              />
-
-              <app-products-management
-                *ngSwitchCase="'products'"
-                [products]="selectedData.products"
-                [families]="selectedData.families"
-                [taxes]="selectedData.taxes"
-                [formData]="productForm"
-                [selectedIndex]="managementState.selectedIndex.products"
-                [isSaving]="isSavingProduct"
-                (selectItem)="selectManagementItem('products', $event)"
-                (createNew)="startCreateManagementItem('products')"
-                (deleteSelected)="deleteSelectedManagementItem('products')"
-                (saveChanges)="saveManagementEntity('products')"
-              />
-
-              <app-zones-management
-                *ngSwitchCase="'zones'"
-                [zones]="selectedData.zones"
-                [selectedZone]="selectedZone"
-                [selectedZoneIndex]="managementState.selectedIndex.zones"
-                [selectedTableIndex]="managementState.selectedIndex.tables"
-                [zoneFormData]="zoneForm"
-                [tableFormData]="tableForm"
-                (selectZone)="selectManagementItem('zones', $event)"
-                (createZone)="startCreateManagementItem('zones')"
-                (deleteZone)="deleteSelectedManagementItem('zones')"
-                (saveZone)="saveManagementEntity('zones')"
-                (selectTable)="selectManagementTable($event)"
-                (createTable)="startCreateManagementTable()"
-                (deleteTable)="deleteSelectedManagementTable()"
-                (saveTable)="saveManagementTable()"
-              />
-
-              <app-taxes-management
-                *ngSwitchCase="'taxes'"
-                [taxes]="selectedData.taxes"
-                [formData]="taxForm"
-                [selectedIndex]="managementState.selectedIndex.taxes"
-                [isSaving]="isSavingTax"
-                (selectItem)="selectManagementItem('taxes', $event)"
-                (createNew)="startCreateManagementItem('taxes')"
-                (deleteSelected)="deleteSelectedManagementItem('taxes')"
-                (saveChanges)="saveManagementEntity('taxes')"
-              />
-
-              <app-zreports-management
-                *ngSwitchCase="'zreports'"
-                [reports]="selectedData.zreports"
-                [loading]="isLoadingZReports"
-                [restaurantName]="selectedRestaurant?.name || ''"
-                [deviceName]="'TPV'"
-                (refresh)="loadZReports()"
-              />
-
-              <div *ngSwitchDefault class="gestion-empty">Selecciona una entidad para comenzar.</div>
+          @if (selectedRestaurant) {
+            <div class="gestion-workspace-body">
+              <div>
+                @switch (managementState.entity) {
+                  @case ('restaurant') {
+                    <app-restaurant-detail
+                      [restaurant]="selectedRestaurant"
+                      [formData]="restaurantForm"
+                      [isSaving]="isSavingRestaurant"
+                      (saveChanges)="saveRestaurantChanges()"
+                      />
+                  }
+                  @case ('users') {
+                    <app-users-management
+                      [facade]="usersFacade"
+                      [restaurantUuid]="selectedRestaurant?.uuid ?? ''"
+                      [roleOptions]="roleOptions"
+                      />
+                  }
+                  @case ('families') {
+                    <app-families-management [facade]="familiesFacade" />
+                  }
+                  @case ('products') {
+                    <app-products-management
+                      [facade]="productsFacade"
+                      [families]="selectedData.families"
+                      [taxes]="selectedData.taxes"
+                      />
+                  }
+                  @case ('zones') {
+                    <app-zones-management [facade]="zonesFacade" />
+                  }
+                  @case ('taxes') {
+                    <app-taxes-management [facade]="taxesFacade" />
+                  }
+                  @case ('zreports') {
+                    <app-zreports-management
+                      [reports]="zreportsFacade.reports()"
+                      [loading]="zreportsFacade.isLoading()"
+                      [restaurantName]="selectedRestaurant?.name || ''"
+                      [deviceName]="'TPV'"
+                      (refresh)="loadZReports()"
+                      />
+                  }
+                  @default {
+                    <div class="gestion-empty">Selecciona una entidad para comenzar.</div>
+                  }
+                }
+              </div>
             </div>
-          </div>
-
-          <ng-template #noRestaurantTpl>
+          } @else {
             <div class="gestion-workspace-body">
               <div class="gestion-empty">No hay restaurante seleccionado.</div>
             </div>
-          </ng-template>
+          }
+
         </section>
       </div>
     </div>

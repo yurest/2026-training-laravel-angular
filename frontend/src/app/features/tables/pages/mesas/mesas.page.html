@@ -2,12 +2,13 @@
 
   <!-- Zone tabs -->
   <div class="zone-tabs">
-    <button
-      *ngFor="let zone of zones"
-      class="zone-tab"
-      [class.active]="zone.id === activeZoneId"
-      (click)="setZone(zone.id)"
-    >{{ zone.name }}</button>
+    @for (zone of facade.zones(); track zone) {
+      <button
+        class="zone-tab"
+        [class.active]="zone.id === facade.activeZoneId()"
+        (click)="setZone(zone.id)"
+      >{{ zone.name }}</button>
+    }
   </div>
 
   <!-- Main layout -->
@@ -16,125 +17,154 @@
     <!-- Tables grid -->
     <div class="tables-area">
       <div class="tables-grid-wrap">
-        <div *ngIf="loading" class="loading-state">Cargando mesas...</div>
+        @if (facade.loading()) {
+          <div class="loading-state">Cargando mesas...</div>
+        }
 
-        <div *ngIf="!loading" class="tables-grid">
-          <button
-            *ngFor="let table of tablesForActiveZone"
-            class="mesa"
-            [class.occupied]="table.occupied && table.status === 'open'"
-            [class.cobrar]="table.status === 'to-charge'"
-            [class.selected]="selectedTable?.id === table.id"
-            (click)="selectTable(table)"
-          >
-            <span class="mesa-zone-label">{{ getZoneName(table.zone_id) }}</span>
-            <span class="mesa-name">{{ table.name }}</span>
-            <span *ngIf="table.status === 'to-charge'" class="mesa-cobrar-tag">COBRAR</span>
-            <span *ngIf="table.occupied && selectedTable?.id === table.id && (table.remaining_total ?? 0) > 0" class="mesa-amount">
-              {{ formatCents(table.remaining_total ?? 0) }}
-            </span>
-          </button>
-        </div>
+        @if (!facade.loading()) {
+          <div class="tables-grid">
+            @for (table of facade.tables() | filterBy:'zone_id':facade.activeZoneId(); track table) {
+              <button
+                class="mesa"
+                [class.occupied]="table.occupied && table.status === 'open'"
+                [class.cobrar]="table.status === 'to-charge'"
+                [class.selected]="facade.selectedTable()?.id === table.id"
+                (click)="selectTable(table)"
+                >
+                <span class="mesa-zone-label">{{ getZoneName(table.zone_id) }}</span>
+                <span class="mesa-name">{{ table.name }}</span>
+                @if (table.status === 'to-charge') {
+                  <span class="mesa-cobrar-tag">COBRAR</span>
+                }
+                @if (table.occupied && facade.selectedTable()?.id === table.id && (table.remaining_total ?? 0) > 0) {
+                  <span class="mesa-amount">
+                    {{ formatCents(table.remaining_total ?? 0) }}
+                  </span>
+                }
+              </button>
+            }
+          </div>
+        }
 
-        <div *ngIf="!loading && tablesForActiveZone.length === 0" class="empty-zone">
-          No hay mesas en esta zona
-        </div>
+        @if (!facade.loading() && (facade.tables() | filterBy:'zone_id':facade.activeZoneId()).length === 0) {
+          <div class="empty-zone">
+            No hay mesas en esta zona
+          </div>
+        }
       </div>
     </div>
 
     <!-- Side panel -->
     <div class="order-panel">
 
-      <div *ngIf="!selectedTable" class="no-order-selected">
-        <div class="no-order-icon">🍽️</div>
-        <div class="no-order-title">Sin mesa seleccionada</div>
-        <div class="no-order-sub">Toca una mesa para ver su estado</div>
-      </div>
+      @if (!facade.selectedTable()) {
+        <div class="no-order-selected">
+          <div class="no-order-icon">🍽️</div>
+          <div class="no-order-title">Sin mesa seleccionada</div>
+          <div class="no-order-sub">Toca una mesa para ver su estado</div>
+        </div>
+      }
 
-      <ng-container *ngIf="selectedTable">
+      @if (facade.selectedTable(); as selectedTable) {
         <div class="order-panel-header">
           <!-- Botón menú 3 puntos (solo mesas ocupadas) -->
-          <button
-            *ngIf="selectedTable.occupied"
-            class="panel-menu-btn"
-            (click)="openTableMenu($event, selectedTable)"
-            title="Opciones de mesa"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="5" r="2"/>
-              <circle cx="12" cy="12" r="2"/>
-              <circle cx="12" cy="19" r="2"/>
-            </svg>
-          </button>
-
+          @if (selectedTable.occupied) {
+            <button
+              class="panel-menu-btn"
+              (click)="openTableMenu($event, selectedTable)"
+              title="Opciones de mesa"
+              >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2"/>
+                <circle cx="12" cy="12" r="2"/>
+                <circle cx="12" cy="19" r="2"/>
+              </svg>
+            </button>
+          }
           <div class="order-table-info">
             <div>
               <div class="order-table-name">{{ selectedTable.name }} · {{ getZoneName(selectedTable.zone_id) }}</div>
               <div class="order-table-sub">
-                <ng-container *ngIf="selectedTable.occupied">
-                  {{ formatTime(selectedTable.opened_at) }}<ng-container *ngIf="selectedTable.diners"> · {{ selectedTable.diners }} comensales</ng-container>
-                </ng-container>
-                <ng-container *ngIf="!selectedTable.occupied">Mesa libre</ng-container>
-              </div>
-            </div>
-            <div class="order-total-big">
-              {{ selectedTable.occupied && (selectedTable.remaining_total ?? 0) > 0 ? formatCents(selectedTable.remaining_total ?? 0) : '0,00€' }}
+                @if (selectedTable.occupied) {
+                  {{ formatTime(selectedTable.opened_at) }}@if (selectedTable.diners) {
+                  · {{ selectedTable.diners }} comensales
+                }
+              }
+              @if (!selectedTable.occupied) {
+                Mesa libre
+              }
             </div>
           </div>
+          <div class="order-total-big">
+            {{ selectedTable.occupied && (selectedTable.remaining_total ?? 0) > 0 ? formatCents(selectedTable.remaining_total ?? 0) : '0,00€' }}
+          </div>
         </div>
-
-        <div class="order-lines">
-          <div *ngIf="!selectedTable.occupied" class="order-empty-msg">Mesa vacía</div>
-          <div *ngIf="selectedTable.occupied && loadingLines" class="order-empty-msg">Cargando líneas...</div>
-          <ng-container *ngIf="selectedTable.occupied && !loadingLines">
-            <div *ngIf="orderLines.length === 0" class="order-empty-msg">Sin líneas</div>
-            <div *ngFor="let line of orderLines" class="order-line">
+      </div>
+      <div class="order-lines">
+        @if (!selectedTable.occupied) {
+          <div class="order-empty-msg">Mesa vacía</div>
+        }
+        @if (selectedTable.occupied && facade.loadingLines()) {
+          <div class="order-empty-msg">Cargando líneas...</div>
+        }
+        @if (selectedTable.occupied && !facade.loadingLines()) {
+          @if (facade.orderLines().length === 0) {
+            <div class="order-empty-msg">Sin líneas</div>
+          }
+          @for (line of facade.orderLines(); track line) {
+            <div class="order-line">
               <div class="order-line-qty">{{ line.quantity }}</div>
               <div class="order-line-info">
                 <div class="order-line-name">{{ line.product_name ?? 'Producto' }}</div>
               </div>
               <div class="order-line-price">{{ formatCents(line.price * line.quantity) }}</div>
             </div>
-          </ng-container>
-        </div>
-
-        <div class="order-summary">
-          <div class="summary-row"><span>Subtotal</span><span>{{ formatCents(linesSubtotal) }}</span></div>
-          <div class="summary-row"><span>Impuestos</span><span>{{ formatCents(linesTax) }}</span></div>
-          <div class="summary-row total"><span>Total</span><span>{{ formatCents(linesTotal) }}</span></div>
-        </div>
-
-        <div class="order-actions">
-          <div *ngIf="cajaError" class="caja-error-banner">
+          }
+        }
+      </div>
+      <div class="order-summary">
+        <div class="summary-row"><span>Subtotal</span><span>{{ formatCents(facade.linesSubtotal()) }}</span></div>
+        <div class="summary-row"><span>Impuestos</span><span>{{ formatCents(facade.linesTax()) }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>{{ formatCents(facade.linesTotal()) }}</span></div>
+      </div>
+      <div class="order-actions">
+        @if (cajaError) {
+          <div class="caja-error-banner">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             {{ cajaError }}
           </div>
+        }
+        @if (selectedTable.status === 'to-charge') {
           <button
-            *ngIf="selectedTable.status === 'to-charge'"
             class="btn-cobrar"
             (click)="goToCobrar()"
-          >
+            >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
             </svg>
             Cobrar
           </button>
+        }
+        @if (selectedTable.status !== 'to-charge') {
           <button
-            *ngIf="selectedTable.status !== 'to-charge'"
             class="btn-comanda"
             (click)="selectedTable.status === 'open' ? goToComanda() : (!selectedTable.occupied ? openModal() : null)"
-          >
-            <svg *ngIf="!selectedTable.occupied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+            >
+            @if (!selectedTable.occupied) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            }
             {{ !selectedTable.occupied ? 'Abrir mesa' : 'Nueva comanda' }}
           </button>
-          <div *ngIf="selectedTable.occupied" class="btn-row">
+        }
+        @if (selectedTable.occupied) {
+          <div class="btn-row">
             <button
               class="btn-outline"
               [disabled]="selectedTable.status !== 'open'"
               (click)="openCloseAccountModal()"
-            >
+              >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               Cerrar cuenta
             </button>
@@ -143,11 +173,12 @@
               Ver pedido
             </button>
           </div>
-        </div>
-      </ng-container>
+        }
+      </div>
+    }
 
-    </div>
   </div>
+</div>
 
 </div>
 
@@ -158,9 +189,11 @@
     <button class="modal-close-btn" (click)="closeModal()">✕</button>
 
     <div class="modal-title">Abrir mesa</div>
-    <div class="modal-sub" *ngIf="selectedTable">
-      {{ selectedTable.name }} · {{ getZoneName(selectedTable.zone_id) }}
-    </div>
+    @if (facade.selectedTable(); as selectedTable) {
+      <div class="modal-sub">
+        {{ selectedTable.name }} · {{ getZoneName(selectedTable.zone_id) }}
+      </div>
+    }
 
     <!-- Comensales -->
     <div class="modal-section-label">Comensales</div>
@@ -182,24 +215,27 @@
     </div>
 
     <div class="diners-quick">
-      <button
-        *ngFor="let n of [1, 2, 3, 4, 5, 6, 7, 8]"
-        class="quick-chip"
-        [class.active]="diners === n"
-        (click)="diners = n"
-        [disabled]="openingOrder"
-      >{{ n }}</button>
+      @for (n of [1, 2, 3, 4, 5, 6, 7, 8]; track n) {
+        <button
+          class="quick-chip"
+          [class.active]="diners === n"
+          (click)="diners = n"
+          [disabled]="openingOrder"
+        >{{ n }}</button>
+      }
     </div>
 
     <button
       class="diners-confirm"
       (click)="confirmOpen()"
       [disabled]="openingOrder"
-    >
+      >
       {{ openingOrder ? 'Abriendo...' : 'Abrir mesa' }}
     </button>
 
-    <div *ngIf="openingError" class="modal-error">{{ openingError }}</div>
+    @if (openingError) {
+      <div class="modal-error">{{ openingError }}</div>
+    }
 
   </div>
 </div>
@@ -211,9 +247,11 @@
     <button class="modal-close-btn" (click)="closeCloseAccountModal()">✕</button>
 
     <div class="modal-title">Cerrar cuenta</div>
-    <div class="modal-sub" *ngIf="selectedTable">
-      {{ selectedTable.name }} · Total <strong>{{ formatCents(linesTotal) }}</strong>
-    </div>
+    @if (facade.selectedTable(); as selectedTable) {
+      <div class="modal-sub">
+        {{ selectedTable.name }} · Total <strong>{{ formatCents(facade.linesTotal()) }}</strong>
+      </div>
+    }
 
     <div class="close-account-info">
       Se marcará la cuenta como pendiente de cobro.
@@ -224,11 +262,13 @@
       style="width:100%; margin-top: 24px"
       [disabled]="closingAccount"
       (click)="confirmCloseAccount()"
-    >
+      >
       {{ closingAccount ? 'Procesando...' : 'Confirmar cierre' }}
     </button>
 
-    <div *ngIf="closeAccountError" class="modal-error">{{ closeAccountError }}</div>
+    @if (closeAccountError) {
+      <div class="modal-error">{{ closeAccountError }}</div>
+    }
 
   </div>
 </div>
@@ -261,56 +301,55 @@
 ></app-pin-auth-modal>
 
 <!-- ── Menú de opciones de mesa ──────────────────── -->
-<div
-  class="table-menu-dropdown"
-  *ngIf="tableMenuOpen && tableMenuTable"
-  [style.left.px]="tableMenuPosition.x"
-  [style.top.px]="tableMenuPosition.y"
-  (click)="$event.stopPropagation()"
->
-  <div class="table-menu-header">
-    <span class="table-menu-title">{{ tableMenuTable.name }}</span>
-    <button class="table-menu-close" (click)="closeTableMenu()">✕</button>
+@if (tableMenuOpen && tableMenuTable) {
+  <div
+    class="table-menu-dropdown"
+    [style.left.px]="tableMenuPosition.x"
+    [style.top.px]="tableMenuPosition.y"
+    (click)="$event.stopPropagation()"
+    >
+    <div class="table-menu-header">
+      <span class="table-menu-title">{{ tableMenuTable.name }}</span>
+      <button class="table-menu-close" (click)="closeTableMenu()">✕</button>
+    </div>
+    <div class="table-menu-items">
+      <button class="table-menu-item" (click)="onEditDiners()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Editar comensales</span>
+      </button>
+      <button class="table-menu-item" (click)="onJoinTable()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+        <span>Juntar mesa</span>
+      </button>
+      <button class="table-menu-item" (click)="onTransferAccount()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          <path d="M12 11h4"/>
+          <path d="M12 16h4"/>
+          <path d="M8 11h.01"/>
+          <path d="M8 16h.01"/>
+        </svg>
+        <span>Traspasar cuenta</span>
+      </button>
+    </div>
   </div>
-
-  <div class="table-menu-items">
-    <button class="table-menu-item" (click)="onEditDiners()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <span>Editar comensales</span>
-    </button>
-
-    <button class="table-menu-item" (click)="onJoinTable()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-      </svg>
-      <span>Juntar mesa</span>
-    </button>
-
-    <button class="table-menu-item" (click)="onTransferAccount()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-        <path d="M12 11h4"/>
-        <path d="M12 16h4"/>
-        <path d="M8 11h.01"/>
-        <path d="M8 16h.01"/>
-      </svg>
-      <span>Traspasar cuenta</span>
-    </button>
-  </div>
-</div>
+}
 
 <!-- Overlay para cerrar menú al hacer click fuera -->
-<div
-  class="table-menu-overlay"
-  *ngIf="tableMenuOpen"
-  (click)="closeTableMenu()"
-></div>
+@if (tableMenuOpen) {
+  <div
+    class="table-menu-overlay"
+    (click)="closeTableMenu()"
+  ></div>
+}
 
 <!-- ── Modal editar comensales ─────────────────── -->
 <div class="modal-overlay" [class.open]="editDinersModalOpen" (click)="closeEditDinersModal()">
@@ -319,23 +358,29 @@
     <button class="modal-close-btn" (click)="closeEditDinersModal()">✕</button>
 
     <div class="modal-title">Editar comensales</div>
-    <div class="modal-sub" *ngIf="tableMenuTable">
-      {{ tableMenuTable.name }}
-    </div>
+    @if (tableMenuTable) {
+      <div class="modal-sub">
+        {{ tableMenuTable.name }}
+      </div>
+    }
 
     <!-- Comensales -->
     <div class="modal-section-label">Número de comensales</div>
 
     <!-- Indicador de carga -->
-    <div *ngIf="editDinersCheckingChargeSession" class="diners-loading">
-      <span class="spinner"></span>
-      Verificando pagos...
-    </div>
+    @if (editDinersCheckingChargeSession) {
+      <div class="diners-loading">
+        <span class="spinner"></span>
+        Verificando pagos...
+      </div>
+    }
 
     <!-- Advertencia de validación -->
-    <div *ngIf="dinersValidationMessage" class="diners-warning">
-      {{ dinersValidationMessage }}
-    </div>
+    @if (dinersValidationMessage) {
+      <div class="diners-warning">
+        {{ dinersValidationMessage }}
+      </div>
+    }
 
     <div class="diners-stepper">
       <button
@@ -354,25 +399,28 @@
     </div>
 
     <div class="diners-quick">
-      <button
-        *ngFor="let n of [1, 2, 3, 4, 5, 6, 7, 8]"
-        class="quick-chip"
-        [class.active]="editDinersValue === n"
-        [class.disabled]="n < currentPaidDinersCount || !!editDinersError"
-        (click)="editDinersValue = n"
-        [disabled]="editDinersLoading || editDinersCheckingChargeSession || n < currentPaidDinersCount || !!editDinersError"
-      >{{ n }}</button>
+      @for (n of [1, 2, 3, 4, 5, 6, 7, 8]; track n) {
+        <button
+          class="quick-chip"
+          [class.active]="editDinersValue === n"
+          [class.disabled]="n < currentPaidDinersCount || !!editDinersError"
+          (click)="editDinersValue = n"
+          [disabled]="editDinersLoading || editDinersCheckingChargeSession || n < currentPaidDinersCount || !!editDinersError"
+        >{{ n }}</button>
+      }
     </div>
 
     <button
       class="diners-confirm"
       (click)="confirmEditDiners()"
       [disabled]="editDinersLoading || editDinersCheckingChargeSession || !canReduceDiners || !!editDinersError"
-    >
+      >
       {{ editDinersLoading ? 'Guardando...' : (editDinersError ? 'No se puede modificar' : 'Guardar') }}
     </button>
 
-    <div *ngIf="editDinersError" class="modal-error">{{ editDinersError }}</div>
+    @if (editDinersError) {
+      <div class="modal-error">{{ editDinersError }}</div>
+    }
 
   </div>
 </div>

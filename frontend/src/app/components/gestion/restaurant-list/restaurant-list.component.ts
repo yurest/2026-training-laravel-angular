@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export interface ManagementRestaurant {
@@ -17,7 +17,7 @@ export interface ManagementRestaurant {
 @Component({
   selector: 'app-restaurant-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './restaurant-list.component.html',
   styleUrls: ['./restaurant-list.component.scss'],
 })

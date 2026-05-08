@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
@@ -11,7 +11,7 @@ import { TpvService } from '../../../features/cash/services/tpv.service';
   selector: 'app-layout-page',
   templateUrl: './app-layout.page.html',
   styleUrls: ['./app-layout.page.scss'],
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
 })
 export class AppLayoutPage implements OnInit, OnDestroy {
   public currentDateTime: Date = new Date();

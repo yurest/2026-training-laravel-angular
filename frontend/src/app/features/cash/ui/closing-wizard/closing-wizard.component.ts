@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NumpadComponent } from '../../../../shared/components/numpad/numpad.component';
@@ -37,15 +37,14 @@ export interface ClosingStep {
   templateUrl: './closing-wizard.component.html',
   styleUrls: ['./closing-wizard.component.scss'],
   imports: [
-    CommonModule,
     FormsModule,
     NumpadComponent,
     AmountDisplayComponent,
     BtnComponent,
     CardComponent,
     KpiCardComponent,
-    BadgeComponent,
-  ],
+    BadgeComponent
+],
   standalone: true,
 })
 export class ClosingWizardComponent {

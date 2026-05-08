@@ -1,24 +1,30 @@
 <div class="caja-container">
   <!-- Status badge and actions -->
   <div class="status-bar">
-    <div class="status-badge" [class.open]="state === 'activa'">
-      <span>{{ state === 'activa' ? '● ABIERTA' : '○ CERRADA' }}</span>
+    <div class="status-badge" [class.open]="state() === 'activa'">
+      <span>{{ state() === 'activa' ? '● ABIERTA' : '○ CERRADA' }}</span>
     </div>
     <div class="status-actions">
-      <app-btn *ngIf="state === 'activa'" size="sm" variant="outline" color="#ff4d4d" (click)="onStartClosing()">Cerrar caja</app-btn>
+      @if (state() === 'activa') {
+        <app-btn size="sm" variant="outline" color="#ff4d4d" (click)="onStartClosing()">Cerrar caja</app-btn>
+      }
     </div>
   </div>
 
   <!-- Loading state -->
-  <div *ngIf="loading" class="loading-state">
-    <p>Cargando...</p>
-  </div>
+  @if (loading()) {
+    <div class="loading-state">
+      <p>Cargando...</p>
+    </div>
+  }
 
   <!-- Error al abrir caja -->
-  <div *ngIf="openCashError" class="open-cash-error-banner">
-    <span>{{ openCashError }}</span>
-    <button (click)="openCashError = null">✕</button>
-  </div>
+  @if (openCashError) {
+    <div class="open-cash-error-banner">
+      <span>{{ openCashError }}</span>
+      <button (click)="openCashError = null">✕</button>
+    </div>
+  }
 
   <!-- Modal de autenticación PIN -->
   <app-pin-auth-modal
@@ -69,32 +75,33 @@
   ></app-cobrar-modal>
 
   <!-- Modal de dividir cuenta con DinersStatus a la derecha -->
-  <div class="split-modal-with-sidebar" *ngIf="showSplitModal">
-    <app-split-bill-modal
-      [isOpen]="true"
-      [total]="selectedTable?.total || 0"
-      [tableLabel]="selectedTable?.table_name || ''"
-      [chargeSession]="loadedChargeSession"
-      [remainingCents]="selectedTable?.total || 0"
-      [lines]="selectedTableLines"
-      [diners]="selectedTable?.diners || 2"
-      [paidDiners]="paidDiners"
-      [orderId]="selectedTable?.order_id || null"
-      [userId]="currentUser?.id || null"
-      (closeModal)="showSplitModal = false"
-      (confirmSplit)="onConfirmSplit($event)"
-      (sessionUpdated)="onChargeSessionUpdated($event)"
-    ></app-split-bill-modal>
-
-    <app-diners-status
-      class="split-modal-sidebar"
-      [diners]="selectedTable?.diners || 0"
-      [total]="originalOrderTotal"
-      [remainingTotal]="loadedChargeSession?.remaining_cents ?? originalOrderTotal"
-      [paidDiners]="paidDiners"
-      [amountPerDiner]="loadedChargeSession?.suggested_per_diner_cents ?? null"
-    ></app-diners-status>
-  </div>
+  @if (showSplitModal) {
+    <div class="split-modal-with-sidebar">
+      <app-split-bill-modal
+        [isOpen]="true"
+        [total]="selectedTable?.total || 0"
+        [tableLabel]="selectedTable?.table_name || ''"
+        [chargeSession]="loadedChargeSession"
+        [remainingCents]="selectedTable?.total || 0"
+        [lines]="selectedTableLines"
+        [diners]="selectedTable?.diners || 2"
+        [paidDiners]="paidDiners"
+        [orderId]="selectedTable?.order_id || null"
+        [userId]="currentUser?.id || null"
+        (closeModal)="showSplitModal = false"
+        (confirmSplit)="onConfirmSplit($event)"
+        (sessionUpdated)="onChargeSessionUpdated($event)"
+      ></app-split-bill-modal>
+      <app-diners-status
+        class="split-modal-sidebar"
+        [diners]="selectedTable?.diners || 0"
+        [total]="originalOrderTotal"
+        [remainingTotal]="loadedChargeSession?.remaining_cents ?? originalOrderTotal"
+        [paidDiners]="paidDiners"
+        [amountPerDiner]="loadedChargeSession?.suggested_per_diner_cents ?? null"
+      ></app-diners-status>
+    </div>
+  }
 
   <!-- Animación de confirmación de pago -->
   <app-payment-success
@@ -119,160 +126,169 @@
   ></app-closing-wizard>
 
   <!-- Estado: Pre-apertura -->
-  <div *ngIf="!loading && state === 'pre-apertura'" class="pre-apertura">
-    <div class="pre-apertura-content">
-      <!-- Banner sesión huérfana -->
-      <div *ngIf="orphanSession" class="orphan-session-card">
-        <app-card [padding]="16" [clickable]="false" [style.background]="'var(--accent-soft)'" [style.border]="'1.5px solid var(--accent)'">
-          <div class="orphan-title">⚠ Turno sin cerrar detectado</div>
-          <div class="orphan-text">
-            Turno del {{ formatDate(orphanSession.opened_at) }} no fue cerrado correctamente en {{ orphanSession.device_id }}.
+  @if (!loading() && state() === 'pre-apertura') {
+    <div class="pre-apertura">
+      <div class="pre-apertura-content">
+        <!-- Banner sesión huérfana -->
+        @if (orphanSession()) {
+          <div class="orphan-session-card">
+            <app-card [padding]="16" [clickable]="false" [style.background]="'var(--accent-soft)'" [style.border]="'1.5px solid var(--accent)'">
+              <div class="orphan-title">⚠ Turno sin cerrar detectado</div>
+              <div class="orphan-text">
+                Turno del {{ formatDate(orphanSession()!.opened_at) }} no fue cerrado correctamente en {{ orphanSession()!.device_id }}.
+              </div>
+              <app-btn size="sm" variant="danger">Forzar cierre del turno anterior</app-btn>
+            </app-card>
           </div>
-          <app-btn size="sm" variant="danger">Forzar cierre del turno anterior</app-btn>
-        </app-card>
-      </div>
-
-      <!-- Card último cierre -->
-      <app-card [padding]="20" class="last-closure-card">
-        <div class="closure-label">
-          Último cierre · Z #{{ lastClosed?.z_report_number ?? '-' }}
-        </div>
-        <div class="closure-header">
-          <div class="closure-info">
-            <div class="closure-operator">{{ lastClosed?.operator_name || 'Operario' }}</div>
-            <div class="closure-date">
-              {{ formatShortDate(lastClosed?.opened_at) }} · {{ formatTime(lastClosed?.opened_at) }} → {{ formatTime(lastClosed?.closed_at) }}
+        }
+        <!-- Card último cierre -->
+        <app-card [padding]="20" class="last-closure-card">
+          <div class="closure-label">
+            Último cierre · Z #{{ lastClosed()?.z_report_number ?? '-' }}
+          </div>
+          <div class="closure-header">
+            <div class="closure-info">
+              <div class="closure-operator">{{ lastClosed()?.operator_name || 'Operario' }}</div>
+              <div class="closure-date">
+                {{ formatShortDate(lastClosed()?.opened_at) }} · {{ formatTime(lastClosed()?.opened_at) }} → {{ formatTime(lastClosed()?.closed_at) }}
+              </div>
+            </div>
+            <div class="closure-amount">
+              <div class="amount">{{ formatCents(lastClosed()?.final_amount_cents) }} €</div>
+              @if (lastClosed()?.discrepancy_cents) {
+                <app-badge
+                  [text]="'Descuadre ' + formatCentsSigned(lastClosed()?.discrepancy_cents) + ' €'"
+                  color="#ff4d4d"
+                ></app-badge>
+              }
             </div>
           </div>
-          <div class="closure-amount">
-            <div class="amount">{{ formatCents(lastClosed?.final_amount_cents) }} €</div>
-            <app-badge
-              *ngIf="lastClosed?.discrepancy_cents"
-              [text]="'Descuadre ' + formatCentsSigned(lastClosed?.discrepancy_cents) + ' €'"
-              color="#ff4d4d"
-            ></app-badge>
+          <div class="closure-stats">
+            <div class="stat-item">
+              <div class="stat-value">{{ lastClosed()?.tickets ?? 0 }}</div>
+              <div class="stat-label">Tickets</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ lastClosed()?.diners ?? 0 }}</div>
+              <div class="stat-label">Comensales</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">€ {{ formatAverageTicket(lastClosed()) }}</div>
+              <div class="stat-label">Ticket medio</div>
+            </div>
           </div>
+        </app-card>
+        <div class="open-cash-section">
+          <div class="open-cash-text">
+            {{ orphanSession() ? 'Resuelve el turno huérfano antes de abrir' : 'La caja está cerrada · TPV Sala' }}
+          </div>
+          <app-btn
+            size="lg"
+            variant="success"
+            [block]="true"
+            [disabled]="!!orphanSession()"
+            (click)="onOpenModal()"
+          >Abrir caja</app-btn>
         </div>
-        <div class="closure-stats">
-          <div class="stat-item">
-            <div class="stat-value">{{ lastClosed?.tickets ?? 0 }}</div>
-            <div class="stat-label">Tickets</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ lastClosed?.diners ?? 0 }}</div>
-            <div class="stat-label">Comensales</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">€ {{ formatAverageTicket(lastClosed) }}</div>
-            <div class="stat-label">Ticket medio</div>
-          </div>
-        </div>
-      </app-card>
-
-      <div class="open-cash-section">
-        <div class="open-cash-text">
-          {{ orphanSession ? 'Resuelve el turno huérfano antes de abrir' : 'La caja está cerrada · TPV Sala' }}
-        </div>
-        <app-btn
-          size="lg"
-          variant="success"
-          [block]="true"
-          [disabled]="!!orphanSession"
-          (click)="onOpenModal()"
-        >Abrir caja</app-btn>
       </div>
     </div>
-  </div>
+  }
 
   <!-- Estado: Activa -->
-  <div *ngIf="!loading && state === 'activa'" class="activa">
-    <div class="dashboard-grid">
-      <!-- Card hero verde con efectivo teórico -->
-      <div class="hero-card">
-        <div class="hero-label">Efectivo en caja · teórico</div>
-        <div class="hero-value">
-          {{ formatCents(sessionSummary?.expected_amount) }}<span class="hero-currency"> €</span>
+  @if (!loading() && state() === 'activa') {
+    <div class="activa">
+      <div class="dashboard-grid">
+        <!-- Card hero verde con efectivo teórico -->
+        <div class="hero-card">
+          <div class="hero-label">Efectivo en caja · teórico</div>
+          <div class="hero-value">
+            {{ formatCents(sessionSummary()?.expected_amount) }}<span class="hero-currency"> €</span>
+          </div>
+          <div class="hero-sub">
+            Fondo: {{ formatCents(sessionSummary()?.initial_amount_cents) }} ·
+            +{{ formatCents(sessionSummary()?.total_in_movements) }} entradas ·
+            −{{ formatCents(sessionSummary()?.total_out_movements) }} salidas
+          </div>
+          <div class="hero-actions">
+            <app-btn size="sm" variant="outline" color="rgba(255,255,255,0.9)" (click)="onOpenMovementModal()">+ Entrada</app-btn>
+            <app-btn size="sm" variant="outline" color="rgba(255,255,255,0.9)" (click)="onOpenMovementModal()">− Salida</app-btn>
+          </div>
         </div>
-        <div class="hero-sub">
-          Fondo: {{ formatCents(sessionSummary?.initial_amount_cents) }} ·
-          +{{ formatCents(sessionSummary?.total_in_movements) }} entradas ·
-          −{{ formatCents(sessionSummary?.total_out_movements) }} salidas
-        </div>
-        <div class="hero-actions">
-          <app-btn size="sm" variant="outline" color="rgba(255,255,255,0.9)" (click)="onOpenMovementModal()">+ Entrada</app-btn>
-          <app-btn size="sm" variant="outline" color="rgba(255,255,255,0.9)" (click)="onOpenMovementModal()">− Salida</app-btn>
+        <!-- KPIs -->
+        <div class="kpi-column">
+          <app-kpi-card
+            label="Ventas netas"
+            [value]="formatCents(sessionSummary()?.total_sales) + ' €'"
+            color="#1a9e5a"
+          ></app-kpi-card>
+          <app-kpi-card
+            label="Tickets"
+            [value]="(sessionSummary()?.payments_count ?? '-').toString()"
+            [mono]="false"
+          ></app-kpi-card>
+          <app-kpi-card
+            label="Efectivo"
+            [value]="formatCents(sessionSummary()?.total_cash_payments) + ' €'"
+            color="#1a9e5a"
+          ></app-kpi-card>
         </div>
       </div>
-
-      <!-- KPIs -->
-      <div class="kpi-column">
-        <app-kpi-card
-          label="Ventas netas"
-          [value]="formatCents(sessionSummary?.total_sales) + ' €'"
-          color="#1a9e5a"
-        ></app-kpi-card>
-        <app-kpi-card
-          label="Tickets"
-          [value]="(sessionSummary?.payments_count ?? '-').toString()"
-          [mono]="false"
-        ></app-kpi-card>
-        <app-kpi-card
-          label="Efectivo"
-          [value]="formatCents(sessionSummary?.total_cash_payments) + ' €'"
-          color="#1a9e5a"
-        ></app-kpi-card>
+      <!-- Mesas con cuenta pendiente -->
+      <app-mesas-abiertas
+        [mesas]="pendingTables"
+        (cobrar)="onCobrarMesa($event)"
+      ></app-mesas-abiertas>
+      <!-- Grid: Desglose por método y Movimientos -->
+      <div class="dashboard-bottom-grid">
+        <app-method-bar [methods]="paymentMethods"></app-method-bar>
+        <app-movimientos-list
+          [movements]="movementsList"
+        ></app-movimientos-list>
       </div>
     </div>
-
-    <!-- Mesas con cuenta pendiente -->
-    <app-mesas-abiertas
-      [mesas]="pendingTables"
-      (cobrar)="onCobrarMesa($event)"
-    ></app-mesas-abiertas>
-
-    <!-- Grid: Desglose por método y Movimientos -->
-    <div class="dashboard-bottom-grid">
-      <app-method-bar [methods]="paymentMethods"></app-method-bar>
-      <app-movimientos-list
-        [movements]="movementsList"
-      ></app-movimientos-list>
-    </div>
-  </div>
+  }
 
   <!-- Estado: Histórico -->
-  <div *ngIf="!loading && state === 'historico'" class="historico">
-    <div class="historico-header">
-      <div class="historico-title">Histórico de sesiones</div>
-      <app-btn size="sm" variant="success" (click)="onOpenModal()">Abrir nueva caja</app-btn>
-    </div>
-
-    <div class="historico-list">
-      <div *ngIf="closedSessions.length === 0" class="historico-empty">
-        No hay sesiones registradas
+  @if (!loading() && state() === 'historico') {
+    <div class="historico">
+      <div class="historico-header">
+        <div class="historico-title">Histórico de sesiones</div>
+        <app-btn size="sm" variant="success" (click)="onOpenModal()">Abrir nueva caja</app-btn>
       </div>
-      <div *ngFor="let s of closedSessions" class="session-row">
-        <div class="session-row-left">
-          <div class="session-z">
-            Z #{{ s.z_report_number ?? '-' }}
+      <div class="historico-list">
+        @if (closedSessions.length === 0) {
+          <div class="historico-empty">
+            No hay sesiones registradas
           </div>
-          <div class="session-meta">
-            {{ formatDate(s.closed_at) }} · {{ s.device_id }}
+        }
+        @for (s of closedSessions; track s) {
+          <div class="session-row">
+            <div class="session-row-left">
+              <div class="session-z">
+                Z #{{ s.z_report_number ?? '-' }}
+              </div>
+              <div class="session-meta">
+                {{ formatDate(s.closed_at) }} · {{ s.device_id }}
+              </div>
+            </div>
+            <div class="session-row-right">
+              <div class="session-amount">{{ formatCents(s.final_amount_cents) }} €</div>
+              @if (s.discrepancy_cents) {
+                <app-badge
+                  [text]="'Descuadre ' + formatCents(s.discrepancy_cents) + ' €'"
+                  color="#ff4d4d"
+                ></app-badge>
+              }
+              @if (!s.discrepancy_cents) {
+                <app-badge
+                  text="Cuadrado"
+                  color="#1a9e5a"
+                ></app-badge>
+              }
+            </div>
           </div>
-        </div>
-        <div class="session-row-right">
-          <div class="session-amount">{{ formatCents(s.final_amount_cents) }} €</div>
-          <app-badge
-            *ngIf="s.discrepancy_cents"
-            [text]="'Descuadre ' + formatCents(s.discrepancy_cents) + ' €'"
-            color="#ff4d4d"
-          ></app-badge>
-          <app-badge
-            *ngIf="!s.discrepancy_cents"
-            text="Cuadrado"
-            color="#1a9e5a"
-          ></app-badge>
-        </div>
+        }
       </div>
     </div>
-  </div>
+  }
 </div>

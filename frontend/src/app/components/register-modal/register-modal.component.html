@@ -8,9 +8,11 @@
       <div class="modal-field">
         <label class="form-label" for="register-name">Nombre del restaurante</label>
         <input id="register-name" type="text" class="form-input" formControlName="restaurantName" placeholder="Restaurante Voraz" />
-        <p class="field-error" *ngIf="registerForm.controls.restaurantName.touched && registerForm.controls.restaurantName.invalid">
-          El nombre es obligatorio.
-        </p>
+        @if (registerForm.controls.restaurantName.touched && registerForm.controls.restaurantName.invalid) {
+          <p class="field-error">
+            El nombre es obligatorio.
+          </p>
+        }
       </div>
 
       <div class="modal-field">
@@ -21,9 +23,11 @@
       <div class="modal-field">
         <label class="form-label" for="register-email">Email</label>
         <input id="register-email" type="email" class="form-input" formControlName="email" placeholder="info@restaurante.com" />
-        <p class="field-error" *ngIf="registerForm.controls.email.touched && registerForm.controls.email.invalid">
-          Introduce un email valido.
-        </p>
+        @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
+          <p class="field-error">
+            Introduce un email valido.
+          </p>
+        }
       </div>
 
       <div class="modal-field">
@@ -34,22 +38,32 @@
       <div class="modal-field">
         <label class="form-label" for="register-pin">PIN admin (4 digitos, opcional)</label>
         <input id="register-pin" type="text" maxlength="4" class="form-input" formControlName="pin" placeholder="1234" />
-        <p class="field-error" *ngIf="registerForm.controls.pin.touched && registerForm.controls.pin.invalid">
-          El PIN debe tener exactamente 4 digitos.
-        </p>
+        @if (registerForm.controls.pin.touched && registerForm.controls.pin.invalid) {
+          <p class="field-error">
+            El PIN debe tener exactamente 4 digitos.
+          </p>
+        }
       </div>
 
       <div class="modal-field">
         <label class="form-label" for="register-password">Contrasena</label>
         <input id="register-password" type="password" class="form-input" formControlName="password" placeholder="••••••••" />
-        <p class="field-error" *ngIf="registerForm.controls.password.touched && registerForm.controls.password.invalid">
-          Minimo 8 caracteres.
-        </p>
+        @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
+          <p class="field-error">
+            Minimo 8 caracteres.
+          </p>
+        }
       </div>
 
-      <p class="server-error" *ngIf="errorMessage">{{ errorMessage }}</p>
-      <p class="success-message" *ngIf="successMessage">{{ successMessage }}</p>
-      <p class="success-message" *ngIf="generatedPinMessage">{{ generatedPinMessage }}</p>
+      @if (errorMessage) {
+        <p class="server-error">{{ errorMessage }}</p>
+      }
+      @if (successMessage) {
+        <p class="success-message">{{ successMessage }}</p>
+      }
+      @if (generatedPinMessage) {
+        <p class="success-message">{{ generatedPinMessage }}</p>
+      }
 
       <button class="btn-login" style="margin-top:8px" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Creando...' : 'Crear cuenta' }}

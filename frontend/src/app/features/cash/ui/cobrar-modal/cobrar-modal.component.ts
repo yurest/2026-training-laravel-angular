@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BtnComponent } from '../../../../shared/components/btn/btn.component';
@@ -21,7 +21,7 @@ export interface OrderLine {
   selector: 'app-cobrar-modal',
   templateUrl: './cobrar-modal.component.html',
   styleUrls: ['./cobrar-modal.component.scss'],
-  imports: [CommonModule, FormsModule, CardComponent, BtnComponent, ToggleComponent, NumpadComponent, AmountDisplayComponent, DinersStatusComponent],
+  imports: [FormsModule, CardComponent, BtnComponent, ToggleComponent, NumpadComponent, AmountDisplayComponent, DinersStatusComponent],
   standalone: true,
 })
 export class CobrarModalComponent implements OnChanges {

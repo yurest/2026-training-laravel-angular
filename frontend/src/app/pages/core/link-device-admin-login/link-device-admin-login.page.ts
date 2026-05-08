@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,7 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-link-device-admin-login',
   templateUrl: './link-device-admin-login.page.html',
   styleUrls: ['./link-device-admin-login.page.scss'],
-  imports: [CommonModule, ReactiveFormsModule, IonContent],
+  imports: [ReactiveFormsModule, IonContent],
 })
 export class LinkDeviceAdminLoginPage {
   public readonly loginForm = this.formBuilder.nonNullable.group({

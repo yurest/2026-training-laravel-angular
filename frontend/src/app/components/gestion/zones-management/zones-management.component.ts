@@ -1,84 +1,92 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { Component, computed, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-export interface TableRow {
-  name: string;
-}
-
-export interface ZoneRow {
-  name: string;
-  tables: TableRow[];
-}
-
-export interface ZoneFormData {
-  name: string;
-}
-
-export interface TableFormData {
-  name: string;
-}
+import { GestionZonesFacade, TableRow, ZoneRow, ZoneFormData, TableFormData } from '../../../pages/core/gestion/facades/gestion-zones.facade';
 
 @Component({
   selector: 'app-zones-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './zones-management.component.html',
   styleUrls: ['./zones-management.component.scss'],
 })
 export class ZonesManagementComponent {
-  @Input() zones: ZoneRow[] = [];
-  @Input() selectedZone: ZoneRow | null = null;
-  @Input() selectedZoneIndex: number = 0;
-  @Input() selectedTableIndex: number = 0;
-  @Input() zoneFormData: ZoneFormData = { name: '' };
-  @Input() tableFormData: TableFormData = { name: '' };
-  @Output() selectZone = new EventEmitter<number>();
-  @Output() createZone = new EventEmitter<void>();
-  @Output() deleteZone = new EventEmitter<void>();
-  @Output() saveZone = new EventEmitter<void>();
-  @Output() selectTable = new EventEmitter<number>();
-  @Output() createTable = new EventEmitter<void>();
-  @Output() deleteTable = new EventEmitter<void>();
-  @Output() saveTable = new EventEmitter<void>();
+  public readonly facade = input.required<GestionZonesFacade>();
+
+  public readonly zones = computed(() => this.facade().zones());
+  public readonly selectedZone = computed(() => this.facade().selectedZone());
+  public readonly selectedZoneIndex = computed(() => this.facade().selectedZoneIndex());
+  public readonly selectedTableIndex = computed(() => this.facade().selectedTableIndex());
+  public readonly zoneFormData = computed(() => this.facade().zoneFormData());
+  public readonly tableFormData = computed(() => this.facade().tableFormData());
+  public readonly isSavingZone = computed(() => this.facade().isSavingZone());
+  public readonly isSavingTable = computed(() => this.facade().isSavingTable());
 
   isZoneSelected(index: number): boolean {
-    return this.selectedZoneIndex === index;
+    return this.selectedZoneIndex() === index;
   }
 
   isTableSelected(index: number): boolean {
-    return this.selectedTableIndex === index;
+    return this.selectedTableIndex() === index;
   }
 
   onSelectZone(index: number): void {
-    this.selectZone.emit(index);
+    this.facade().selectZone(index);
   }
 
   onCreateZone(): void {
-    this.createZone.emit();
+    this.facade().startCreateZone();
   }
 
-  onDeleteZone(): void {
-    this.deleteZone.emit();
+  async onDeleteZone(): Promise<void> {
+    const result = await this.facade().deleteSelectedZone();
+    if (result.ok) {
+      window.alert(result.message || 'Zona eliminada.');
+    } else {
+      window.alert(result.error || 'No se pudo eliminar la zona.');
+    }
   }
 
-  onSubmitZone(): void {
-    this.saveZone.emit();
+  async onSubmitZone(): Promise<void> {
+    const result = await this.facade().saveZone();
+    if (result.ok) {
+      window.alert(result.message || 'Zona guardada.');
+    } else {
+      window.alert(result.error || 'No se pudo guardar la zona.');
+    }
   }
 
   onSelectTable(index: number): void {
-    this.selectTable.emit(index);
+    this.facade().selectTable(index);
   }
 
   onCreateTable(): void {
-    this.createTable.emit();
+    this.facade().startCreateTable();
   }
 
-  onDeleteTable(): void {
-    this.deleteTable.emit();
+  async onDeleteTable(): Promise<void> {
+    const result = await this.facade().deleteSelectedTable();
+    if (result.ok) {
+      window.alert(result.message || 'Mesa eliminada.');
+    } else {
+      window.alert(result.error || 'No se pudo eliminar la mesa.');
+    }
   }
 
-  onSubmitTable(): void {
-    this.saveTable.emit();
+  async onSubmitTable(): Promise<void> {
+    const result = await this.facade().saveTable();
+    if (result.ok) {
+      window.alert(result.message || 'Mesa guardada.');
+    } else {
+      window.alert(result.error || 'No se pudo guardar la mesa.');
+    }
+  }
+
+  updateZoneForm<K extends keyof ZoneFormData>(key: K, value: ZoneFormData[K]): void {
+    this.facade().updateZoneForm(key, value);
+  }
+
+  updateTableForm<K extends keyof TableFormData>(key: K, value: TableFormData[K]): void {
+    this.facade().updateTableForm(key, value);
   }
 }

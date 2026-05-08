@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export type ManagementEntityKey = 'restaurant' | 'users' | 'families' | 'products' | 'zones' | 'taxes' | 'zreports';
@@ -11,7 +11,7 @@ export interface ManagementEntity {
 @Component({
   selector: 'app-entity-tabs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './entity-tabs.component.html',
   styleUrls: ['./entity-tabs.component.scss'],
 })

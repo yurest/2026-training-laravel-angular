@@ -1,8 +1,6 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
+import { BaseApiService } from '../core/services/api/base-api.service';
 
 export interface FamilyItem {
   id: string;
@@ -23,57 +21,30 @@ interface UpdateFamilyPayload {
 @Injectable({
   providedIn: 'root',
 })
-export class FamilyService {
-  private readonly baseUrl: string = environment.apiUrl;
-
-  constructor(private readonly http: HttpClient) {}
+export class FamilyService extends BaseApiService {
+  protected override readonly defaultErrorMessage = 'No se pudo completar la peticion de familias.';
 
   public listFamilies(): Observable<FamilyItem[]> {
-    return this.http
-      .get<FamilyItem[]>(`${this.baseUrl}/admin/families`, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.get<FamilyItem[]>('/admin/families');
   }
 
   public createFamily(payload: CreateFamilyPayload): Observable<FamilyItem> {
-    return this.http
-      .post<FamilyItem>(`${this.baseUrl}/admin/families`, payload, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.post<FamilyItem>('/admin/families', payload);
   }
 
   public updateFamily(id: string, payload: UpdateFamilyPayload): Observable<FamilyItem> {
-    return this.http
-      .put<FamilyItem>(`${this.baseUrl}/admin/families/${id}`, payload, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.put<FamilyItem>(`/admin/families/${id}`, payload);
   }
 
   public activateFamily(id: string): Observable<FamilyItem> {
-    return this.http
-      .patch<FamilyItem>(`${this.baseUrl}/admin/families/${id}/activate`, {}, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.patch<FamilyItem>(`/admin/families/${id}/activate`);
   }
 
   public deactivateFamily(id: string): Observable<FamilyItem> {
-    return this.http
-      .patch<FamilyItem>(`${this.baseUrl}/admin/families/${id}/deactivate`, {}, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
+    return this.patch<FamilyItem>(`/admin/families/${id}/deactivate`);
   }
 
-  public deleteFamily(id: string): Observable<unknown> {
-    return this.http
-      .delete(`${this.baseUrl}/admin/families/${id}`, { withCredentials: true })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => new Error(this.extractErrorMessage(error)))));
-  }
-
-  private extractErrorMessage(error: HttpErrorResponse): string {
-    const payload: unknown = error.error;
-
-    if (payload && typeof payload === 'object') {
-      const data = payload as { message?: unknown };
-      if (typeof data.message === 'string' && data.message.trim() !== '') {
-        return data.message;
-      }
-    }
-
-    return 'No se pudo completar la peticion de familias.';
+  public deleteFamily(id: string): Observable<void> {
+    return this.delete<void>(`/admin/families/${id}`);
   }
 }

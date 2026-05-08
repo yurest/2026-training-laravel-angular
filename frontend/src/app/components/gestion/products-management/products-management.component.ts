@@ -1,25 +1,7 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { Component, computed, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-export interface ProductRow {
-  uuid?: string;
-  family_id: string;
-  tax_id: string;
-  name: string;
-  price: number;
-  stock: number;
-  active: boolean;
-}
-
-export interface ProductFormData {
-  name: string;
-  family_id: string;
-  tax_id: string;
-  price: string;
-  stock: number;
-  active: boolean;
-}
+import { GestionProductsFacade, ProductRow, ProductFormData } from '../../../pages/core/gestion/facades/gestion-products.facade';
 
 export interface TaxOption {
   uuid?: string;
@@ -35,60 +17,73 @@ export interface FamilyOption {
 @Component({
   selector: 'app-products-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './products-management.component.html',
   styleUrls: ['./products-management.component.scss'],
 })
 export class ProductsManagementComponent {
-  @Input() products: ProductRow[] = [];
-  @Input() families: FamilyOption[] = [];
-  @Input() taxes: TaxOption[] = [];
-  @Input() formData: ProductFormData = {
-    name: '',
-    family_id: '',
-    tax_id: '',
-    price: '',
-    stock: 0,
-    active: true,
-  };
-  @Input() selectedIndex: number = 0;
-  @Input() isSaving: boolean = false;
-  @Output() selectItem = new EventEmitter<number>();
-  @Output() createNew = new EventEmitter<void>();
-  @Output() deleteSelected = new EventEmitter<void>();
-  @Output() saveChanges = new EventEmitter<void>();
+  public readonly facade = input.required<GestionProductsFacade>();
+  public readonly families = input.required<FamilyOption[]>();
+  public readonly taxes = input.required<TaxOption[]>();
+
+  public readonly products = computed(() => this.facade().products());
+  public readonly formData = computed(() => this.facade().formData());
+  public readonly selectedIndex = computed(() => this.facade().selectedIndex());
+  public readonly isSaving = computed(() => this.facade().isSaving());
 
   isSelected(index: number): boolean {
-    return this.selectedIndex === index;
+    return this.selectedIndex() === index;
   }
 
   onSelect(index: number): void {
-    this.selectItem.emit(index);
+    this.facade().select(index);
   }
 
   onCreate(): void {
-    this.createNew.emit();
+    this.facade().startCreate();
   }
 
-  onDelete(): void {
-    this.deleteSelected.emit();
+  async onDelete(): Promise<void> {
+    const result = await this.facade().deleteSelected();
+    if (result.ok) {
+      window.alert(result.message || 'Producto eliminado.');
+    } else {
+      window.alert(result.error || 'No se pudo eliminar el producto.');
+    }
   }
 
-  onSubmit(): void {
-    this.saveChanges.emit();
+  async onSubmit(): Promise<void> {
+    const result = await this.facade().save();
+    if (result.ok) {
+      window.alert(result.message || 'Producto guardado.');
+    } else {
+      window.alert(result.error || 'No se pudo guardar el producto.');
+    }
+  }
+
+  updateForm<K extends keyof ProductFormData>(key: K, value: ProductFormData[K]): void {
+    this.facade().updateForm(key, value);
   }
 
   toEuroFromCents(cents: number): string {
     return `${((cents || 0) / 100).toFixed(2).replace('.', ',')}€`;
   }
 
+  euroToCents(value: string | number): number {
+    const strValue = typeof value === 'number' ? value.toString() : value;
+    const normalized = strValue.replace(',', '.');
+    const amount = Number.parseFloat(normalized);
+    return Number.isFinite(amount) ? Math.round(amount * 100) : 0;
+  }
+
   getFamilyName(familyId: string): string {
-    const family = this.families.find(f => f.uuid === familyId);
+    const family = this.families().find((f) => f.uuid === familyId);
     return family?.name ?? 'Sin familia';
   }
 
   getTaxPercentage(taxId: string): number {
-    const tax = this.taxes.find(t => t.uuid === taxId);
+    const tax = this.taxes().find((t) => t.uuid === taxId);
     return tax?.percentage ?? 0;
   }
 }
+

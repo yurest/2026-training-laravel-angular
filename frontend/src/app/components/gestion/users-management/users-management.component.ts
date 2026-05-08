@@ -1,25 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { GestionUsersFacade, UserRow, UserFormData } from '../../../pages/core/gestion/facades/gestion-users.facade';
 
 export type UserRole = 'operator' | 'supervisor' | 'admin';
-
-export interface UserRow {
-  uuid?: string;
-  name: string;
-  role: UserRole;
-  email: string;
-  pin?: string;
-  password?: string;
-}
-
-export interface UserFormData {
-  name: string;
-  email: string;
-  role: UserRole;
-  pin: string;
-  password: string;
-}
 
 export interface RoleOption {
   value: UserRole;
@@ -34,44 +18,51 @@ export interface RoleOption {
   styleUrls: ['./users-management.component.scss'],
 })
 export class UsersManagementComponent {
-  @Input() users: UserRow[] = [];
-  @Input() formData: UserFormData = {
-    name: '',
-    email: '',
-    role: 'operator',
-    pin: '',
-    password: '',
-  };
-  @Input() selectedIndex: number = 0;
-  @Input() isSaving: boolean = false;
-  @Input() roleOptions: RoleOption[] = [];
-  @Output() selectItem = new EventEmitter<number>();
-  @Output() createNew = new EventEmitter<void>();
-  @Output() deleteSelected = new EventEmitter<void>();
-  @Output() saveChanges = new EventEmitter<void>();
+  public readonly facade = input.required<GestionUsersFacade>();
+  public readonly restaurantUuid = input.required<string>();
+  public readonly roleOptions = input.required<RoleOption[]>();
+
+  public readonly users = computed(() => this.facade().users());
+  public readonly formData = computed(() => this.facade().formData());
+  public readonly selectedIndex = computed(() => this.facade().selectedIndex());
+  public readonly isSaving = computed(() => this.facade().isSaving());
 
   isSelected(index: number): boolean {
-    return this.selectedIndex === index;
+    return this.selectedIndex() === index;
   }
 
   onSelect(index: number): void {
-    this.selectItem.emit(index);
+    this.facade().select(index);
   }
 
   onCreate(): void {
-    this.createNew.emit();
+    this.facade().startCreate();
   }
 
-  onDelete(): void {
-    this.deleteSelected.emit();
+  async onDelete(): Promise<void> {
+    const result = await this.facade().deleteSelected(this.restaurantUuid());
+    if (result.ok) {
+      window.alert(result.message || 'Usuario eliminado.');
+    } else {
+      window.alert(result.error || 'No se pudo eliminar el usuario.');
+    }
   }
 
-  onSubmit(): void {
-    this.saveChanges.emit();
+  async onSubmit(): Promise<void> {
+    const result = await this.facade().save(this.restaurantUuid());
+    if (result.ok) {
+      window.alert(result.message || 'Usuario guardado.');
+    } else {
+      window.alert(result.error || 'No se pudo guardar el usuario.');
+    }
   }
 
-  getRoleBadgeClass(role: UserRole): string {
-    const map: Record<UserRole, string> = {
+  updateForm<K extends keyof UserFormData>(key: K, value: UserFormData[K]): void {
+    this.facade().updateForm(key, value);
+  }
+
+  getRoleBadgeClass(role: string): string {
+    const map: Record<string, string> = {
       operator: 'role-badge-operator',
       supervisor: 'role-badge-supervisor',
       admin: 'role-badge-admin',
@@ -79,8 +70,8 @@ export class UsersManagementComponent {
     return map[role] ?? '';
   }
 
-  getRoleLabel(role: UserRole): string {
-    const map: Record<UserRole, string> = {
+  getRoleLabel(role: string): string {
+    const map: Record<string, string> = {
       operator: 'Operario',
       supervisor: 'Supervisor',
       admin: 'Admin',
@@ -89,7 +80,7 @@ export class UsersManagementComponent {
   }
 
   canDelete(): boolean {
-    const user = this.users[this.selectedIndex];
+    const user = this.users()[this.selectedIndex()];
     if (!user) {
       return true;
     }

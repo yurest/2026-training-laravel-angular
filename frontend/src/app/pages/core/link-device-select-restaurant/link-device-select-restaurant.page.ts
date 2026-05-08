@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
@@ -19,7 +19,7 @@ interface Restaurant {
   selector: 'app-link-device-select-restaurant',
   templateUrl: './link-device-select-restaurant.page.html',
   styleUrls: ['./link-device-select-restaurant.page.scss'],
-  imports: [CommonModule, IonContent],
+  imports: [IonContent],
 })
 export class LinkDeviceSelectRestaurantPage {
   public restaurants: Restaurant[] = [];

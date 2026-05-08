@@ -1,11 +1,11 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-badge',
   templateUrl: './badge.component.html',
   styleUrls: ['./badge.component.scss'],
-  imports: [CommonModule],
+  imports: [],
   standalone: true,
 })
 export class BadgeComponent {

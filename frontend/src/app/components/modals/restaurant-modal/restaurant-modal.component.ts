@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonText } from '@ionic/angular/standalone';
 import { AuthService } from '../../../core/services/auth.service';
@@ -22,10 +22,9 @@ export interface RestaurantModalData {
     styleUrls: ['./restaurant-modal.component.scss'],
     standalone: true,
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        IonText,
-    ],
+    ReactiveFormsModule,
+    IonText
+],
 })
 export class RestaurantModalComponent implements OnChanges {
     @Input() isOpen = false;

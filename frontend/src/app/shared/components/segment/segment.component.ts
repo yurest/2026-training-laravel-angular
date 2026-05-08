@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export interface SegmentOption {
@@ -10,7 +10,7 @@ export interface SegmentOption {
   selector: 'app-segment',
   templateUrl: './segment.component.html',
   styleUrls: ['./segment.component.scss'],
-  imports: [CommonModule],
+  imports: [],
   standalone: true,
 })
 export class SegmentComponent {
