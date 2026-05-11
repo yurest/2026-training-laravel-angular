@@ -12,11 +12,12 @@ import {
   IonSelectOption,
   IonCheckbox,
 } from '@ionic/angular/standalone';
-import { AlertController } from '@ionic/angular';
 import { Product, ProductService } from '../../../../services/api/product.service';
 import { Family, FamilyService } from '../../../../services/api/family.service';
 import { Tax, TaxService } from '../../../../services/api/tax.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { AlertService } from '../../../../services/ui/alert.service';
+import { extractBackendErrors } from '../../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-products-settings',
@@ -70,13 +71,13 @@ export class ProductsSettingsComponent implements OnInit {
     active: true,
   };
 
-  constructor(
-    private productService: ProductService,
-    private familyService: FamilyService,
-    private taxService: TaxService,
-    private authService: AuthService,
-    private alertController: AlertController,
-  ) {}
+ constructor(
+  private productService: ProductService,
+  private familyService: FamilyService,
+  private taxService: TaxService,
+  private authService: AuthService,
+  private alertService: AlertService,
+) {}
 
   ngOnInit(): void {
     this.loadFamilies();
@@ -189,10 +190,10 @@ export class ProductsSettingsComponent implements OnInit {
       next: () => {
         this.resetCreateProductForm();
         this.loadProducts();
-        this.showSuccess('Producto creado correctamente');
+        this.alertService.showSuccess('Producto creado correctamente');
       },
       error: (error) => {
-        this.productErrorMessages = this.extractBackendErrors(error);
+        this.productErrorMessages = extractBackendErrors(error);
       },
     });
   }
@@ -252,36 +253,20 @@ export class ProductsSettingsComponent implements OnInit {
       next: () => {
         this.cancelEditProduct();
         this.loadProducts();
-        this.showSuccess('Producto actualizado correctamente');
+        this.alertService.showSuccess('Producto actualizado correctamente');
       },
       error: (error) => {
-        this.productErrorMessages = this.extractBackendErrors(error);
+        this.productErrorMessages = extractBackendErrors(error);
       },
     });
   }
 
   async deleteProduct(product: Product): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar producto',
-      message: `¿Seguro que quieres eliminar "${product.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteProduct(product);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.alertService.confirmDelete(
+      'Eliminar producto',
+      `¿Seguro que quieres eliminar "${product.name}"?`,
+      () => this.confirmDeleteProduct(product),
+    );
   }
 
   confirmDeleteProduct(product: Product): void {
@@ -437,39 +422,5 @@ export class ProductsSettingsComponent implements OnInit {
     }
 
     return errors;
-  }
-
-  private extractBackendErrors(error: any): string[] {
-    const errors: string[] = [];
-
-    if (error?.error?.errors) {
-      Object.values(error.error.errors).forEach((messages) => {
-        if (Array.isArray(messages)) {
-          messages.forEach((message) => errors.push(String(message)));
-        }
-      });
-    }
-
-    if (errors.length > 0) {
-      return errors;
-    }
-
-    if (error?.error?.message) {
-      return [String(error.error.message)];
-    }
-
-    return ['Ha ocurrido un error inesperado.'];
-  }
-
-  async showSuccess(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'OK',
-      message,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: ['Aceptar'],
-    });
-
-    await alert.present();
   }
 }
