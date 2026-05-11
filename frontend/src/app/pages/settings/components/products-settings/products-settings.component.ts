@@ -12,12 +12,15 @@ import {
   IonSelectOption,
   IonCheckbox,
 } from '@ionic/angular/standalone';
-import { Product, ProductService } from '../../../../services/api/product.service';
+import {
+  Product,
+  ProductService,
+} from '../../../../services/api/product.service';
 import { Family, FamilyService } from '../../../../services/api/family.service';
 import { Tax, TaxService } from '../../../../services/api/tax.service';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { AlertService } from '../../../../services/ui/alert.service';
-import { extractBackendErrors } from '../../../../shared/utils/api-error.util';
+import { extractBackendErrors } from '../../../../shared/api-error.util';
 
 @Component({
   selector: 'app-products-settings',
@@ -71,13 +74,13 @@ export class ProductsSettingsComponent implements OnInit {
     active: true,
   };
 
- constructor(
-  private productService: ProductService,
-  private familyService: FamilyService,
-  private taxService: TaxService,
-  private authService: AuthService,
-  private alertService: AlertService,
-) {}
+  constructor(
+    private productService: ProductService,
+    private familyService: FamilyService,
+    private taxService: TaxService,
+    private authService: AuthService,
+    private alertService: AlertService,
+  ) {}
 
   ngOnInit(): void {
     this.loadFamilies();
