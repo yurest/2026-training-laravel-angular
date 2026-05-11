@@ -1,0 +1,216 @@
+<div class="settings-layout">
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3 *ngIf="mode === 'create'">Crear usuario</h3>
+      <h3 *ngIf="mode === 'edit'">Editar usuario</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input
+          *ngIf="mode === 'create'"
+          type="text"
+          [(ngModel)]="createForm.name"
+          placeholder="Nombre"
+        ></ion-input>
+        <ion-input
+          *ngIf="mode === 'edit'"
+          type="text"
+          [(ngModel)]="editForm.name"
+          placeholder="Nombre"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input
+          *ngIf="mode === 'create'"
+          type="email"
+          [(ngModel)]="createForm.email"
+          placeholder="email@ejemplo.com"
+        ></ion-input>
+        <ion-input
+          *ngIf="mode === 'edit'"
+          type="email"
+          [(ngModel)]="editForm.email"
+          placeholder="email@ejemplo.com"
+        ></ion-input>
+      </ion-item>
+
+      <ng-container *ngIf="mode === 'create'">
+        <ion-item>
+          <ion-label position="stacked">Contraseña</ion-label>
+          <ion-input
+            type="password"
+            [(ngModel)]="createForm.password"
+            placeholder="Contraseña"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Confirmar contraseña</ion-label>
+          <ion-input
+            type="password"
+            [(ngModel)]="createForm.password_confirmation"
+            placeholder="Repite la contraseña"
+          ></ion-input>
+        </ion-item>
+      </ng-container>
+
+      <ng-container *ngIf="mode === 'edit'">
+        <ion-item>
+          <ion-label position="stacked">Nueva contraseña</ion-label>
+          <ion-input
+            type="password"
+            [(ngModel)]="editForm.password"
+            placeholder="Déjala vacía si no quieres cambiarla"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Confirmar nueva contraseña</ion-label>
+          <ion-input
+            type="password"
+            [(ngModel)]="editForm.password_confirmation"
+            placeholder="Repite la nueva contraseña"
+          ></ion-input>
+        </ion-item>
+      </ng-container>
+
+      <ion-item>
+        <ion-label position="stacked">Rol</ion-label>
+
+        <ion-select
+          *ngIf="mode === 'create'"
+          interface="popover"
+          [(ngModel)]="createForm.role"
+        >
+          <ion-select-option value="operator">Operator</ion-select-option>
+          <ion-select-option value="admin">Admin</ion-select-option>
+        </ion-select>
+
+        <ion-select
+          *ngIf="mode === 'edit'"
+          interface="popover"
+          [(ngModel)]="editForm.role"
+        >
+          <ion-select-option value="operator">Operator</ion-select-option>
+          <ion-select-option value="admin">Admin</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">PIN</ion-label>
+        <ion-input
+          *ngIf="mode === 'create'"
+          type="text"
+          [(ngModel)]="createForm.pin"
+          placeholder="PIN"
+        ></ion-input>
+        <ion-input
+          *ngIf="mode === 'edit'"
+          type="text"
+          [(ngModel)]="editForm.pin"
+          placeholder="PIN"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Imagen</ion-label>
+        <ion-input
+          *ngIf="mode === 'create'"
+          type="text"
+          [(ngModel)]="createForm.image_src"
+          placeholder="URL imagen"
+        ></ion-input>
+        <ion-input
+          *ngIf="mode === 'edit'"
+          type="text"
+          [(ngModel)]="editForm.image_src"
+          placeholder="URL imagen"
+        ></ion-input>
+      </ion-item>
+
+      <div class="error-box" *ngIf="errorMessages.length > 0">
+        <p class="error-title">Revisa estos campos:</p>
+        <ul>
+          <li *ngFor="let error of errorMessages">{{ error }}</li>
+        </ul>
+      </div>
+
+      <div class="form-actions" *ngIf="mode === 'create'">
+        <ion-button expand="block" (click)="createUser()">
+          Crear usuario
+        </ion-button>
+      </div>
+
+      <div class="form-actions edit-actions" *ngIf="mode === 'edit'">
+        <ion-button color="medium" (click)="cancelEdit()">
+          Cancelar
+        </ion-button>
+        <ion-button (click)="saveEdit()">Guardar cambios</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3>Usuarios</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Buscar</ion-label>
+        <ion-input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Buscar por nombre o email"
+        ></ion-input>
+      </ion-item>
+
+      <ion-button
+        fill="outline"
+        size="small"
+        *ngIf="searchTerm"
+        (click)="clearSearch()"
+      >
+        Limpiar
+      </ion-button>
+
+      <p *ngIf="loading">Cargando usuarios...</p>
+
+      <div
+        *ngIf="!loading && filteredUsers.length === 0"
+        class="empty-state"
+      >
+        No hay usuarios para mostrar.
+      </div>
+
+      <div class="users-list" *ngIf="!loading && filteredUsers.length > 0">
+        <div *ngFor="let user of filteredUsers" class="user-row">
+          <div class="user-info">
+            <strong>{{ user.name }}</strong>
+            <span>{{ user.email }}</span>
+            <span>Rol: {{ user.role }}</span>
+          </div>
+
+          <div class="row-actions">
+            <ion-button
+              color="warning"
+              size="small"
+              (click)="startEdit(user)"
+            >
+              Editar
+            </ion-button>
+
+            <ion-button
+              color="danger"
+              size="small"
+              (click)="deleteUser(user)"
+            >
+              Borrar
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>
