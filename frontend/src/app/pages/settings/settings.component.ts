@@ -16,11 +16,12 @@ import {
 import { AlertController } from '@ionic/angular';
 import { UserService, User } from '../../services/api/user.service';
 import { AuthService } from '../../services/auth/auth.service';
-import { ZoneService, Zone } from '../../services/api/zone.service';
 import { TableService, TableItem } from '../../services/api/table.service';
 import { ProductsSettingsComponent } from './components/products-settings/products-settings.component';
 import { FamiliesSettingsComponent } from './components/families-settings/families-settings.component';
 import { TaxesSettingsComponent } from './components/taxes-settings/taxes-settings.component';
+import { ZonesSettingsComponent } from './components/zones-settings/zones-settings.component';
+import { ZoneService, Zone } from '../../services/api/zone.service';
 
 type SettingsSection =
   | 'users'
@@ -51,6 +52,7 @@ type SettingsSection =
     ProductsSettingsComponent,
     FamiliesSettingsComponent,
     TaxesSettingsComponent,
+    ZonesSettingsComponent,
   ],
 })
 export class SettingsComponent implements OnInit {
@@ -85,21 +87,6 @@ export class SettingsComponent implements OnInit {
     password_confirmation: '',
   };
 
-  zones: Zone[] = [];
-  filteredZones: Zone[] = [];
-  zoneErrorMessages: string[] = [];
-  zoneSearchTerm = '';
-  zoneMode: 'create' | 'edit' = 'create';
-  editingZone: Zone | null = null;
-
-  createZoneForm = {
-    name: '',
-  };
-
-  editZoneForm = {
-    name: '',
-  };
-
   tables: TableItem[] = [];
   filteredTables: TableItem[] = [];
   tableErrorMessages: string[] = [];
@@ -116,13 +103,15 @@ export class SettingsComponent implements OnInit {
     name: '',
     zone_id: '',
   };
+ zones: Zone[] = [];
+
 
   constructor(
     private userService: UserService,
-    private zoneService: ZoneService,
     private tableService: TableService,
     private authService: AuthService,
     private alertController: AlertController,
+      private zoneService: ZoneService,
   ) {}
 
   ngOnInit(): void {
@@ -133,15 +122,11 @@ export class SettingsComponent implements OnInit {
     this.selectedSection = section;
     this.errorMessages = [];
     this.tableErrorMessages = [];
-    this.zoneErrorMessages = [];
 
     if (section === 'users') {
       this.loadUsers();
     }
 
-    if (section === 'zones') {
-      this.loadZones();
-    }
 
     if (section === 'tables') {
       this.loadZones();
@@ -469,215 +454,6 @@ export class SettingsComponent implements OnInit {
     };
   }
 
-  // =====================
-  // ZONES METHODS
-  // =====================
-
-  loadZones(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.zoneService.getZones().subscribe({
-      next: (response: any) => {
-        const zones = Array.isArray(response)
-          ? response
-          : Array.isArray(response.data)
-            ? response.data
-            : (response.zone ?? response.zones ?? []);
-
-        this.zones = restaurantId
-          ? zones.filter(
-              (zone: Zone) =>
-                String(zone.restaurant_id) === String(restaurantId),
-            )
-          : zones;
-        console.table(this.zones);
-
-        this.applyZoneFilter();
-      },
-
-      error: () => {
-        this.zoneErrorMessages = ['No se pudieron cargar las zonas.'];
-      },
-    });
-  }
-
-  createZone(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.zoneErrorMessages = [];
-
-    const errors = this.validateCreateZoneForm(restaurantId);
-
-    if (errors.length > 0) {
-      this.zoneErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.createZoneForm.name.trim(),
-      restaurant_id: restaurantId,
-    };
-
-    this.zoneService.createZone(payload).subscribe({
-      next: () => {
-        this.resetCreateZoneForm();
-        this.loadZones();
-        this.showSuccess('Zona creada correctamente');
-      },
-      error: (error) => {
-        this.zoneErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  startEditZone(zone: Zone): void {
-    this.zoneMode = 'edit';
-    this.editingZone = zone;
-    this.zoneErrorMessages = [];
-
-    this.editZoneForm = {
-      name: zone.name ?? '',
-    };
-  }
-
-  cancelEditZone(): void {
-    this.zoneMode = 'create';
-    this.editingZone = null;
-    this.zoneErrorMessages = [];
-    this.resetEditZoneForm();
-  }
-
-  saveEditZone(): void {
-    if (!this.editingZone) {
-      return;
-    }
-
-    this.zoneErrorMessages = [];
-
-    const errors = this.validateEditZoneForm();
-
-    if (errors.length > 0) {
-      this.zoneErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.editZoneForm.name.trim(),
-    };
-
-    const idToUpdate = String(this.editingZone.uuid ?? this.editingZone.id);
-
-    this.zoneService.updateZone(idToUpdate, payload).subscribe({
-      next: () => {
-        this.cancelEditZone();
-        this.loadZones();
-        this.showSuccess('Zona actualizada correctamente');
-      },
-      error: (error) => {
-        this.zoneErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  private validateCreateZoneForm(
-    restaurantId: string | number | undefined,
-  ): string[] {
-    const errors: string[] = [];
-
-    if (!restaurantId) {
-      errors.push('No se ha encontrado el restaurant_id.');
-    }
-
-    if (!this.createZoneForm.name.trim()) {
-      errors.push('El nombre de la zona es obligatorio.');
-    }
-
-    return errors;
-  }
-
-  private validateEditZoneForm(): string[] {
-    const errors: string[] = [];
-
-    if (!this.editZoneForm.name.trim()) {
-      errors.push('El nombre de la zona es obligatorio.');
-    }
-
-    return errors;
-  }
-
-  onZoneSearchChange(): void {
-    this.applyZoneFilter();
-  }
-
-  applyZoneFilter(): void {
-    const term = this.zoneSearchTerm.trim().toLowerCase();
-
-    if (!term) {
-      this.filteredZones = [...this.zones];
-      return;
-    }
-
-    this.filteredZones = this.zones.filter((zone) => {
-      const name = zone.name?.toLowerCase() ?? '';
-      return name.includes(term);
-    });
-  }
-
-  clearZoneSearch(): void {
-    this.zoneSearchTerm = '';
-    this.applyZoneFilter();
-  }
-
-  async deleteZone(zone: Zone): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar zona',
-      message: `¿Seguro que quieres eliminar "${zone.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteZone(zone);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
-  }
-
-  confirmDeleteZone(zone: Zone): void {
-    const idToDelete = String(zone.uuid ?? zone.id);
-
-    this.zoneService.deleteZone(idToDelete).subscribe({
-      next: () => {
-        this.loadZones();
-      },
-      error: () => {
-        this.zoneErrorMessages = ['No se pudo eliminar la zona.'];
-      },
-    });
-  }
-
-  resetCreateZoneForm(): void {
-    this.createZoneForm = {
-      name: '',
-    };
-    this.zoneErrorMessages = [];
-  }
-
-  resetEditZoneForm(): void {
-    this.editZoneForm = {
-      name: '',
-    };
-  }
-
   loadTables(): void {
     const restaurantId = this.authService.getUser()?.restaurant_id;
 
@@ -707,6 +483,32 @@ export class SettingsComponent implements OnInit {
   // =====================
   // TABLE METHODS
   // =====================
+loadZones(): void {
+  const restaurantId = this.authService.getUser()?.restaurant_id;
+
+  this.zoneService.getZones().subscribe({
+    next: (response: any) => {
+      const zones = Array.isArray(response)
+        ? response
+        : Array.isArray(response.data)
+          ? response.data
+          : (response.zone ?? response.zones ?? []);
+
+      this.zones = restaurantId
+        ? zones.filter(
+            (zone: Zone) =>
+              String(zone.restaurant_id) === String(restaurantId),
+          )
+        : zones;
+    },
+    error: () => {
+      this.tableErrorMessages = ['No se pudieron cargar las zonas.'];
+    },
+  });
+}
+
+
+
   createTable(): void {
     const restaurantId = this.authService.getUser()?.restaurant_id;
 

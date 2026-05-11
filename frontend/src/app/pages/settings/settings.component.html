@@ -274,111 +274,11 @@
     *ngIf="selectedSection === 'taxes'"
   ></app-taxes-settings>
 
-  <!-- ZONES -->
-  <ng-container *ngIf="selectedSection === 'zones'">
-    <div class="settings-layout">
-      <!-- FORM -->
-      <ion-card class="panel-card">
-        <ion-card-content>
-          <h3 *ngIf="zoneMode === 'create'">Crear zona</h3>
-          <h3 *ngIf="zoneMode === 'edit'">Editar zona</h3>
+ <!-- ZONES -->
+<app-zones-settings 
+  *ngIf="selectedSection === 'zones'"
+></app-zones-settings>
 
-          <ion-item>
-            <ion-label position="stacked">Nombre</ion-label>
-            <ion-input
-              *ngIf="zoneMode === 'create'"
-              type="text"
-              [(ngModel)]="createZoneForm.name"
-              placeholder="Nombre de la zona"
-            ></ion-input>
-
-            <ion-input
-              *ngIf="zoneMode === 'edit'"
-              type="text"
-              [(ngModel)]="editZoneForm.name"
-              placeholder="Nombre de la zona"
-            ></ion-input>
-          </ion-item>
-
-          <div class="error-box" *ngIf="zoneErrorMessages.length > 0">
-            <p class="error-title">Revisa estos campos:</p>
-            <ul>
-              <li *ngFor="let error of zoneErrorMessages">{{ error }}</li>
-            </ul>
-          </div>
-
-          <div class="form-actions" *ngIf="zoneMode === 'create'">
-            <ion-button expand="block" (click)="createZone()">
-              Crear zona
-            </ion-button>
-          </div>
-
-          <div class="form-actions edit-actions" *ngIf="zoneMode === 'edit'">
-            <ion-button color="medium" (click)="cancelEditZone()">
-              Cancelar
-            </ion-button>
-            <ion-button (click)="saveEditZone()"> Guardar cambios </ion-button>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- LIST -->
-      <ion-card class="panel-card">
-        <ion-card-content>
-          <h3>Zonas</h3>
-
-          <ion-item>
-            <ion-label position="stacked">Buscar</ion-label>
-            <ion-input
-              type="text"
-              [(ngModel)]="zoneSearchTerm"
-              (ngModelChange)="onZoneSearchChange()"
-              placeholder="Buscar por nombre"
-            ></ion-input>
-          </ion-item>
-
-          <ion-button
-            fill="outline"
-            size="small"
-            *ngIf="zoneSearchTerm"
-            (click)="clearZoneSearch()"
-          >
-            Limpiar
-          </ion-button>
-
-          <div *ngIf="filteredZones.length === 0" class="empty-state">
-            No hay zonas para mostrar.
-          </div>
-
-          <div class="users-list" *ngIf="filteredZones.length > 0">
-            <div *ngFor="let zone of filteredZones" class="user-row">
-              <div class="user-info">
-                <strong>{{ zone.name }}</strong>
-              </div>
-
-              <div class="row-actions">
-                <ion-button
-                  color="warning"
-                  size="small"
-                  (click)="startEditZone(zone)"
-                >
-                  Editar
-                </ion-button>
-
-                <ion-button
-                  color="danger"
-                  size="small"
-                  (click)="deleteZone(zone)"
-                >
-                  Borrar
-                </ion-button>
-              </div>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
-  </ng-container>
 
   <!-- TABLES -->
   <ng-container *ngIf="selectedSection === 'tables'">
