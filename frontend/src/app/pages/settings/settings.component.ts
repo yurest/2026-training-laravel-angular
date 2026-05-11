@@ -15,12 +15,12 @@ import {
 } from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { UserService, User } from '../../services/api/user.service';
-import { FamilyService, Family } from '../../services/api/family.service';
-import { TaxService, Tax } from '../../services/api/tax.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { ZoneService, Zone } from '../../services/api/zone.service';
 import { TableService, TableItem } from '../../services/api/table.service';
 import { ProductsSettingsComponent } from './components/products-settings/products-settings.component';
+import { FamiliesSettingsComponent } from './components/families-settings/families-settings.component';
+import { TaxesSettingsComponent } from './components/taxes-settings/taxes-settings.component';
 
 type SettingsSection =
   | 'users'
@@ -49,6 +49,8 @@ type SettingsSection =
     IonSelectOption,
     IonCheckbox,
     ProductsSettingsComponent,
+    FamiliesSettingsComponent,
+    TaxesSettingsComponent,
   ],
 })
 export class SettingsComponent implements OnInit {
@@ -81,40 +83,6 @@ export class SettingsComponent implements OnInit {
     image_src: '',
     password: '',
     password_confirmation: '',
-  };
-
-  families: Family[] = [];
-  filteredFamilies: Family[] = [];
-  familyErrorMessages: string[] = [];
-  familySearchTerm = '';
-  familyMode: 'create' | 'edit' = 'create';
-  editingFamily: Family | null = null;
-
-  createFamilyForm = {
-    name: '',
-    active: true,
-  };
-
-  editFamilyForm = {
-    name: '',
-    active: true,
-  };
-
-  taxes: Tax[] = [];
-  filteredTaxes: Tax[] = [];
-  taxErrorMessages: string[] = [];
-  taxSearchTerm = '';
-  taxMode: 'create' | 'edit' = 'create';
-  editingTax: Tax | null = null;
-
-  createTaxForm = {
-    name: '',
-    percentage: 21,
-  };
-
-  editTaxForm = {
-    name: '',
-    percentage: 21,
   };
 
   zones: Zone[] = [];
@@ -151,8 +119,6 @@ export class SettingsComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private familyService: FamilyService,
-    private taxService: TaxService,
     private zoneService: ZoneService,
     private tableService: TableService,
     private authService: AuthService,
@@ -166,21 +132,11 @@ export class SettingsComponent implements OnInit {
   selectSection(section: SettingsSection): void {
     this.selectedSection = section;
     this.errorMessages = [];
-    this.familyErrorMessages = [];
-    this.taxErrorMessages = [];
     this.tableErrorMessages = [];
     this.zoneErrorMessages = [];
 
     if (section === 'users') {
       this.loadUsers();
-    }
-
-    if (section === 'families') {
-      this.loadFamilies();
-    }
-
-    if (section === 'taxes') {
-      this.loadTaxes();
     }
 
     if (section === 'zones') {
@@ -510,449 +466,6 @@ export class SettingsComponent implements OnInit {
       image_src: '',
       password: '',
       password_confirmation: '',
-    };
-  }
-
-  // =====================
-  // FAMILY METHODS
-  // =====================
-  loadFamilies(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.familyService.getFamilies().subscribe({
-      next: (response: any) => {
-        const families = Array.isArray(response)
-          ? response
-          : Array.isArray(response.data)
-            ? response.data
-            : (response.family ?? response.families ?? []);
-
-        this.families = restaurantId
-          ? families.filter(
-              (family: Family) =>
-                String(family.restaurant_id) === String(restaurantId),
-            )
-          : families;
-
-        this.applyFamilyFilter();
-      },
-      error: () => {
-        this.familyErrorMessages = ['No se pudieron cargar las familias.'];
-      },
-    });
-  }
-
-  createFamily(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.familyErrorMessages = [];
-
-    const errors = this.validateCreateFamilyForm(restaurantId);
-
-    if (errors.length > 0) {
-      this.familyErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.createFamilyForm.name.trim(),
-      active: this.createFamilyForm.active,
-      restaurant_id: restaurantId,
-    };
-
-    this.familyService.createFamily(payload).subscribe({
-      next: () => {
-        this.resetCreateFamilyForm();
-        this.loadFamilies();
-        this.showSuccess('Familia creada correctamente');
-      },
-      error: (error) => {
-        this.familyErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  startEditFamily(family: Family): void {
-    this.familyMode = 'edit';
-    this.editingFamily = family;
-    this.familyErrorMessages = [];
-
-    this.editFamilyForm = {
-      name: family.name ?? '',
-      active: !!family.active,
-    };
-  }
-
-  cancelEditFamily(): void {
-    this.familyMode = 'create';
-    this.editingFamily = null;
-    this.familyErrorMessages = [];
-    this.resetEditFamilyForm();
-  }
-
-  saveEditFamily(): void {
-    if (!this.editingFamily) {
-      return;
-    }
-
-    this.familyErrorMessages = [];
-
-    const errors = this.validateEditFamilyForm();
-
-    if (errors.length > 0) {
-      this.familyErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.editFamilyForm.name.trim(),
-      active: this.editFamilyForm.active,
-    };
-
-    const idToUpdate = String(this.editingFamily.uuid ?? this.editingFamily.id);
-
-    this.familyService.updateFamily(idToUpdate, payload).subscribe({
-      next: () => {
-        this.cancelEditFamily();
-        this.loadFamilies();
-        this.showSuccess('Familia actualizada correctamente');
-      },
-      error: (error) => {
-        this.familyErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  private validateCreateFamilyForm(
-    restaurantId: string | number | undefined,
-  ): string[] {
-    const errors: string[] = [];
-
-    if (!restaurantId) {
-      errors.push('No se ha encontrado el restaurant_id.');
-    }
-
-    if (!this.createFamilyForm.name.trim()) {
-      errors.push('El nombre de la familia es obligatorio.');
-    }
-
-    return errors;
-  }
-
-  private validateEditFamilyForm(): string[] {
-    const errors: string[] = [];
-
-    if (!this.editFamilyForm.name.trim()) {
-      errors.push('El nombre de la familia es obligatorio.');
-    }
-
-    return errors;
-  }
-
-  onFamilySearchChange(): void {
-    this.applyFamilyFilter();
-  }
-
-  applyFamilyFilter(): void {
-    const term = this.familySearchTerm.trim().toLowerCase();
-
-    if (!term) {
-      this.filteredFamilies = [...this.families];
-      return;
-    }
-
-    this.filteredFamilies = this.families.filter((family) => {
-      const name = family.name?.toLowerCase() ?? '';
-      return name.includes(term);
-    });
-  }
-
-  clearFamilySearch(): void {
-    this.familySearchTerm = '';
-    this.applyFamilyFilter();
-  }
-
-  async deleteFamily(family: Family): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar familia',
-      message: `¿Seguro que quieres eliminar "${family.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteFamily(family);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
-  }
-
-  confirmDeleteFamily(family: Family): void {
-    const idToDelete = String(family.uuid ?? family.id);
-
-    this.familyService.deleteFamily(idToDelete).subscribe({
-      next: () => {
-        this.loadFamilies();
-      },
-      error: () => {
-        this.familyErrorMessages = ['No se pudo eliminar la familia.'];
-      },
-    });
-  }
-
-  resetCreateFamilyForm(): void {
-    this.createFamilyForm = {
-      name: '',
-      active: true,
-    };
-    this.familyErrorMessages = [];
-  }
-
-  resetEditFamilyForm(): void {
-    this.editFamilyForm = {
-      name: '',
-      active: true,
-    };
-  }
-  // =====================
-  // TAX METHODS
-  // =====================
-  loadTaxes(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.taxService.getTaxes().subscribe({
-      next: (response: any) => {
-        const taxes = Array.isArray(response)
-          ? response
-          : Array.isArray(response.data)
-            ? response.data
-            : (response.tax ?? response.taxes ?? []);
-
-        this.taxes = restaurantId
-          ? taxes.filter(
-              (tax: Tax) => String(tax.restaurant_id) === String(restaurantId),
-            )
-          : taxes;
-
-        this.applyTaxFilter();
-      },
-      error: () => {
-        this.taxErrorMessages = ['No se pudieron cargar los impuestos.'];
-      },
-    });
-  }
-
-  createTax(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.taxErrorMessages = [];
-
-    const errors = this.validateCreateTaxForm(restaurantId);
-
-    if (errors.length > 0) {
-      this.taxErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.createTaxForm.name.trim(),
-      percentage: Number(this.createTaxForm.percentage),
-      restaurant_id: restaurantId,
-    };
-
-    this.taxService.createTax(payload).subscribe({
-      next: () => {
-        this.resetCreateTaxForm();
-        this.loadTaxes();
-        this.showSuccess('Impuesto creado correctamente');
-      },
-      error: (error) => {
-        this.taxErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  startEditTax(tax: Tax): void {
-    this.taxMode = 'edit';
-    this.editingTax = tax;
-    this.taxErrorMessages = [];
-
-    this.editTaxForm = {
-      name: tax.name ?? '',
-      percentage: Number(tax.percentage ?? 0),
-    };
-  }
-
-  cancelEditTax(): void {
-    this.taxMode = 'create';
-    this.editingTax = null;
-    this.taxErrorMessages = [];
-    this.resetEditTaxForm();
-  }
-
-  saveEditTax(): void {
-    if (!this.editingTax) {
-      return;
-    }
-
-    this.taxErrorMessages = [];
-
-    const errors = this.validateEditTaxForm();
-
-    if (errors.length > 0) {
-      this.taxErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.editTaxForm.name.trim(),
-      percentage: Number(this.editTaxForm.percentage),
-    };
-
-    const idToUpdate = String(this.editingTax.uuid ?? this.editingTax.id);
-
-    this.taxService.updateTax(idToUpdate, payload).subscribe({
-      next: () => {
-        this.cancelEditTax();
-        this.loadTaxes();
-        this.showSuccess('Impuesto actualizado correctamente');
-      },
-      error: (error) => {
-        this.taxErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  private validateCreateTaxForm(
-    restaurantId: string | number | undefined,
-  ): string[] {
-    const errors: string[] = [];
-
-    if (!restaurantId) {
-      errors.push('No se ha encontrado el restaurant_id.');
-    }
-
-    if (!this.createTaxForm.name.trim()) {
-      errors.push('El nombre del impuesto es obligatorio.');
-    }
-
-    if (
-      this.createTaxForm.percentage === null ||
-      this.createTaxForm.percentage === undefined
-    ) {
-      errors.push('El porcentaje es obligatorio.');
-    }
-
-    if (
-      isNaN(Number(this.createTaxForm.percentage)) ||
-      Number(this.createTaxForm.percentage) < 0 ||
-      Number(this.createTaxForm.percentage) > 100
-    ) {
-      errors.push('El porcentaje debe estar entre 0 y 100.');
-    }
-
-    return errors;
-  }
-
-  private validateEditTaxForm(): string[] {
-    const errors: string[] = [];
-
-    if (!this.editTaxForm.name.trim()) {
-      errors.push('El nombre del impuesto es obligatorio.');
-    }
-
-    if (
-      isNaN(Number(this.editTaxForm.percentage)) ||
-      Number(this.editTaxForm.percentage) < 0 ||
-      Number(this.editTaxForm.percentage) > 100
-    ) {
-      errors.push('El porcentaje debe estar entre 0 y 100.');
-    }
-
-    return errors;
-  }
-
-  onTaxSearchChange(): void {
-    this.applyTaxFilter();
-  }
-
-  applyTaxFilter(): void {
-    const term = this.taxSearchTerm.trim().toLowerCase();
-
-    if (!term) {
-      this.filteredTaxes = [...this.taxes];
-      return;
-    }
-
-    this.filteredTaxes = this.taxes.filter((tax) => {
-      const name = tax.name?.toLowerCase() ?? '';
-      return name.includes(term);
-    });
-  }
-
-  clearTaxSearch(): void {
-    this.taxSearchTerm = '';
-    this.applyTaxFilter();
-  }
-
-  async deleteTax(tax: Tax): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar impuesto',
-      message: `¿Seguro que quieres eliminar "${tax.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteTax(tax);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
-  }
-
-  confirmDeleteTax(tax: Tax): void {
-    const idToDelete = String(tax.uuid ?? tax.id);
-
-    this.taxService.deleteTax(idToDelete).subscribe({
-      next: () => {
-        this.loadTaxes();
-      },
-      error: () => {
-        this.taxErrorMessages = ['No se pudo eliminar el impuesto.'];
-      },
-    });
-  }
-
-  resetCreateTaxForm(): void {
-    this.createTaxForm = {
-      name: '',
-      percentage: 21,
-    };
-    this.taxErrorMessages = [];
-  }
-
-  resetEditTaxForm(): void {
-    this.editTaxForm = {
-      name: '',
-      percentage: 21,
     };
   }
 
