@@ -10,9 +10,10 @@ import {
   IonInput,
   IonCheckbox,
 } from '@ionic/angular/standalone';
-import { AlertController } from '@ionic/angular';
 import { Family, FamilyService } from '../../../../services/api/family.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { AlertService } from '../../../../services/ui/alert.service';
+import { extractBackendErrors } from '../../../../shared/api-error.util';
 
 @Component({
   selector: 'app-families-settings',
@@ -53,7 +54,7 @@ export class FamiliesSettingsComponent implements OnInit {
   constructor(
     private familyService: FamilyService,
     private authService: AuthService,
-    private alertController: AlertController,
+    private alertService: AlertService,
   ) {}
 
   ngOnInit(): void {
@@ -108,10 +109,10 @@ export class FamiliesSettingsComponent implements OnInit {
       next: () => {
         this.resetCreateFamilyForm();
         this.loadFamilies();
-        this.showSuccess('Familia creada correctamente');
+        this.alertService.showSuccess('Familia creada correctamente');
       },
       error: (error) => {
-        this.familyErrorMessages = this.extractBackendErrors(error);
+        this.familyErrorMessages = extractBackendErrors(error);
       },
     });
   }
@@ -159,36 +160,20 @@ export class FamiliesSettingsComponent implements OnInit {
       next: () => {
         this.cancelEditFamily();
         this.loadFamilies();
-        this.showSuccess('Familia actualizada correctamente');
+        this.alertService.showSuccess('Familia actualizada correctamente');
       },
       error: (error) => {
-        this.familyErrorMessages = this.extractBackendErrors(error);
+        this.familyErrorMessages = extractBackendErrors(error);
       },
     });
   }
 
   async deleteFamily(family: Family): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar familia',
-      message: `¿Seguro que quieres eliminar "${family.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteFamily(family);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.alertService.confirmDelete(
+      'Eliminar familia',
+      `¿Seguro que quieres eliminar "${family.name}"?`,
+      () => this.confirmDeleteFamily(family),
+    );
   }
 
   confirmDeleteFamily(family: Family): void {
@@ -266,39 +251,5 @@ export class FamiliesSettingsComponent implements OnInit {
     }
 
     return errors;
-  }
-
-  private extractBackendErrors(error: any): string[] {
-    const errors: string[] = [];
-
-    if (error?.error?.errors) {
-      Object.values(error.error.errors).forEach((messages) => {
-        if (Array.isArray(messages)) {
-          messages.forEach((message) => errors.push(String(message)));
-        }
-      });
-    }
-
-    if (errors.length > 0) {
-      return errors;
-    }
-
-    if (error?.error?.message) {
-      return [String(error.error.message)];
-    }
-
-    return ['Ha ocurrido un error inesperado.'];
-  }
-
-  async showSuccess(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'OK',
-      message,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: ['Aceptar'],
-    });
-
-    await alert.present();
   }
 }

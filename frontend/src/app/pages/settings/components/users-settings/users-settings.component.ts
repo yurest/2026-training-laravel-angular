@@ -11,9 +11,10 @@ import {
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
-import { AlertController } from '@ionic/angular';
 import { User, UserService } from '../../../../services/api/user.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { AlertService } from '../../../../services/ui/alert.service';
+import { extractBackendErrors } from '../../../../shared/api-error.util';
 
 @Component({
   selector: 'app-users-settings',
@@ -66,7 +67,7 @@ export class UsersSettingsComponent implements OnInit {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-    private alertController: AlertController,
+    private alertService: AlertService,
   ) {}
 
   ngOnInit(): void {
@@ -131,10 +132,10 @@ export class UsersSettingsComponent implements OnInit {
       next: () => {
         this.resetCreateForm();
         this.loadUsers();
-        this.showSuccess('Usuario creado correctamente');
+        this.alertService.showSuccess('Usuario creado correctamente');
       },
       error: (error) => {
-        this.errorMessages = this.extractBackendErrors(error);
+        this.errorMessages = extractBackendErrors(error);
       },
     });
   }
@@ -195,36 +196,20 @@ export class UsersSettingsComponent implements OnInit {
       next: () => {
         this.cancelEdit();
         this.loadUsers();
-        this.showSuccess('Usuario actualizado correctamente');
+        this.alertService.showSuccess('Usuario actualizado correctamente');
       },
       error: (error) => {
-        this.errorMessages = this.extractBackendErrors(error);
+        this.errorMessages = extractBackendErrors(error);
       },
     });
   }
 
   async deleteUser(user: User): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar usuario',
-      message: `¿Seguro que quieres eliminar a "${user.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteUser(user);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.alertService.confirmDelete(
+      'Eliminar usuario',
+      `¿Seguro que quieres eliminar a "${user.name}"?`,
+      () => this.confirmDeleteUser(user),
+    );
   }
 
   confirmDeleteUser(user: User): void {
@@ -392,39 +377,5 @@ export class UsersSettingsComponent implements OnInit {
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  }
-
-  private extractBackendErrors(error: any): string[] {
-    const errors: string[] = [];
-
-    if (error?.error?.errors) {
-      Object.values(error.error.errors).forEach((messages) => {
-        if (Array.isArray(messages)) {
-          messages.forEach((message) => errors.push(String(message)));
-        }
-      });
-    }
-
-    if (errors.length > 0) {
-      return errors;
-    }
-
-    if (error?.error?.message) {
-      return [String(error.error.message)];
-    }
-
-    return ['Ha ocurrido un error inesperado.'];
-  }
-
-  async showSuccess(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'OK',
-      message,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: ['Aceptar'],
-    });
-
-    await alert.present();
   }
 }

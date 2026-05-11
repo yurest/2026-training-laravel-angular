@@ -9,9 +9,10 @@ import {
   IonLabel,
   IonInput,
 } from '@ionic/angular/standalone';
-import { AlertController } from '@ionic/angular';
 import { Zone, ZoneService } from '../../../../services/api/zone.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { AlertService } from '../../../../services/ui/alert.service';
+import { extractBackendErrors } from '../../../../shared/api-error.util';
 
 @Component({
   selector: 'app-zones-settings',
@@ -49,7 +50,7 @@ export class ZonesSettingsComponent implements OnInit {
   constructor(
     private zoneService: ZoneService,
     private authService: AuthService,
-    private alertController: AlertController,
+    private alertService: AlertService,
   ) {}
 
   ngOnInit(): void {
@@ -103,10 +104,10 @@ export class ZonesSettingsComponent implements OnInit {
       next: () => {
         this.resetCreateZoneForm();
         this.loadZones();
-        this.showSuccess('Zona creada correctamente');
+        this.alertService.showSuccess('Zona creada correctamente');
       },
       error: (error) => {
-        this.zoneErrorMessages = this.extractBackendErrors(error);
+        this.zoneErrorMessages = extractBackendErrors(error);
       },
     });
   }
@@ -152,36 +153,20 @@ export class ZonesSettingsComponent implements OnInit {
       next: () => {
         this.cancelEditZone();
         this.loadZones();
-        this.showSuccess('Zona actualizada correctamente');
+        this.alertService.showSuccess('Zona actualizada correctamente');
       },
       error: (error) => {
-        this.zoneErrorMessages = this.extractBackendErrors(error);
+        this.zoneErrorMessages = extractBackendErrors(error);
       },
     });
   }
 
   async deleteZone(zone: Zone): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar zona',
-      message: `¿Seguro que quieres eliminar "${zone.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteZone(zone);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.alertService.confirmDelete(
+      'Eliminar zona',
+      `¿Seguro que quieres eliminar "${zone.name}"?`,
+      () => this.confirmDeleteZone(zone),
+    );
   }
 
   confirmDeleteZone(zone: Zone): void {
@@ -257,39 +242,5 @@ export class ZonesSettingsComponent implements OnInit {
     }
 
     return errors;
-  }
-
-  private extractBackendErrors(error: any): string[] {
-    const errors: string[] = [];
-
-    if (error?.error?.errors) {
-      Object.values(error.error.errors).forEach((messages) => {
-        if (Array.isArray(messages)) {
-          messages.forEach((message) => errors.push(String(message)));
-        }
-      });
-    }
-
-    if (errors.length > 0) {
-      return errors;
-    }
-
-    if (error?.error?.message) {
-      return [String(error.error.message)];
-    }
-
-    return ['Ha ocurrido un error inesperado.'];
-  }
-
-  async showSuccess(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'OK',
-      message,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: ['Aceptar'],
-    });
-
-    await alert.present();
   }
 }

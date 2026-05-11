@@ -9,9 +9,10 @@ import {
   IonLabel,
   IonInput,
 } from '@ionic/angular/standalone';
-import { AlertController } from '@ionic/angular';
 import { Tax, TaxService } from '../../../../services/api/tax.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { AlertService } from '../../../../services/ui/alert.service';
+import { extractBackendErrors } from '../../../../shared/api-error.util';
 
 @Component({
   selector: 'app-taxes-settings',
@@ -51,7 +52,7 @@ export class TaxesSettingsComponent implements OnInit {
   constructor(
     private taxService: TaxService,
     private authService: AuthService,
-    private alertController: AlertController,
+    private alertService: AlertService,
   ) {}
 
   ngOnInit(): void {
@@ -105,10 +106,10 @@ export class TaxesSettingsComponent implements OnInit {
       next: () => {
         this.resetCreateTaxForm();
         this.loadTaxes();
-        this.showSuccess('Impuesto creado correctamente');
+        this.alertService.showSuccess('Impuesto creado correctamente');
       },
       error: (error) => {
-        this.taxErrorMessages = this.extractBackendErrors(error);
+        this.taxErrorMessages = extractBackendErrors(error);
       },
     });
   }
@@ -156,36 +157,20 @@ export class TaxesSettingsComponent implements OnInit {
       next: () => {
         this.cancelEditTax();
         this.loadTaxes();
-        this.showSuccess('Impuesto actualizado correctamente');
+        this.alertService.showSuccess('Impuesto actualizado correctamente');
       },
       error: (error) => {
-        this.taxErrorMessages = this.extractBackendErrors(error);
+        this.taxErrorMessages = extractBackendErrors(error);
       },
     });
   }
 
   async deleteTax(tax: Tax): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar impuesto',
-      message: `¿Seguro que quieres eliminar "${tax.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteTax(tax);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.alertService.confirmDelete(
+      'Eliminar impuesto',
+      `¿Seguro que quieres eliminar "${tax.name}"?`,
+      () => this.confirmDeleteTax(tax),
+    );
   }
 
   confirmDeleteTax(tax: Tax): void {
@@ -286,39 +271,5 @@ export class TaxesSettingsComponent implements OnInit {
     }
 
     return errors;
-  }
-
-  private extractBackendErrors(error: any): string[] {
-    const errors: string[] = [];
-
-    if (error?.error?.errors) {
-      Object.values(error.error.errors).forEach((messages) => {
-        if (Array.isArray(messages)) {
-          messages.forEach((message) => errors.push(String(message)));
-        }
-      });
-    }
-
-    if (errors.length > 0) {
-      return errors;
-    }
-
-    if (error?.error?.message) {
-      return [String(error.error.message)];
-    }
-
-    return ['Ha ocurrido un error inesperado.'];
-  }
-
-  async showSuccess(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'OK',
-      message,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: ['Aceptar'],
-    });
-
-    await alert.present();
   }
 }
