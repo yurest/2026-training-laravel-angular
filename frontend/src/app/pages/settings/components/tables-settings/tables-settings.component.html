@@ -1,0 +1,127 @@
+<div class="settings-layout">
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3 *ngIf="tableMode === 'create'">Crear mesa</h3>
+      <h3 *ngIf="tableMode === 'edit'">Editar mesa</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input
+          *ngIf="tableMode === 'create'"
+          type="text"
+          [(ngModel)]="createTableForm.name"
+          placeholder="Mesa 1"
+        ></ion-input>
+
+        <ion-input
+          *ngIf="tableMode === 'edit'"
+          type="text"
+          [(ngModel)]="editTableForm.name"
+          placeholder="Mesa 1"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Zona</ion-label>
+
+        <ion-select
+          *ngIf="tableMode === 'create'"
+          interface="popover"
+          [(ngModel)]="createTableForm.zone_id"
+          placeholder="Selecciona una zona"
+        >
+          <ion-select-option *ngFor="let zone of zones" [value]="zone.id">
+            {{ zone.name }}
+          </ion-select-option>
+        </ion-select>
+
+        <ion-select
+          *ngIf="tableMode === 'edit'"
+          interface="popover"
+          [(ngModel)]="editTableForm.zone_id"
+          placeholder="Selecciona una zona"
+        >
+          <ion-select-option *ngFor="let zone of zones" [value]="zone.id">
+            {{ zone.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <div class="error-box" *ngIf="tableErrorMessages.length > 0">
+        <p class="error-title">Revisa estos campos:</p>
+        <ul>
+          <li *ngFor="let error of tableErrorMessages">{{ error }}</li>
+        </ul>
+      </div>
+
+      <div class="form-actions" *ngIf="tableMode === 'create'">
+        <ion-button expand="block" (click)="createTable()">
+          Crear mesa
+        </ion-button>
+      </div>
+
+      <div class="form-actions edit-actions" *ngIf="tableMode === 'edit'">
+        <ion-button color="medium" (click)="cancelEditTable()">
+          Cancelar
+        </ion-button>
+        <ion-button (click)="saveEditTable()">Guardar cambios</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3>Mesas</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Buscar</ion-label>
+        <ion-input
+          type="text"
+          [(ngModel)]="tableSearchTerm"
+          (ngModelChange)="onTableSearchChange()"
+          placeholder="Buscar por nombre"
+        ></ion-input>
+      </ion-item>
+
+      <ion-button
+        fill="outline"
+        size="small"
+        *ngIf="tableSearchTerm"
+        (click)="clearTableSearch()"
+      >
+        Limpiar
+      </ion-button>
+
+      <div *ngIf="filteredTables.length === 0" class="empty-state">
+        No hay mesas para mostrar.
+      </div>
+
+      <div class="users-list" *ngIf="filteredTables.length > 0">
+        <div *ngFor="let table of filteredTables" class="user-row">
+          <div class="user-info">
+            <strong>{{ table.name }}</strong>
+            <span>Zona: {{ getZoneName(table.zone_id) }}</span>
+          </div>
+
+          <div class="row-actions">
+            <ion-button
+              color="warning"
+              size="small"
+              (click)="startEditTable(table)"
+            >
+              Editar
+            </ion-button>
+
+            <ion-button
+              color="danger"
+              size="small"
+              (click)="deleteTable(table)"
+            >
+              Borrar
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>

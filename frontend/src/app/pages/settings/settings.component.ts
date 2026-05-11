@@ -16,12 +16,12 @@ import {
 import { AlertController } from '@ionic/angular';
 import { UserService, User } from '../../services/api/user.service';
 import { AuthService } from '../../services/auth/auth.service';
-import { TableService, TableItem } from '../../services/api/table.service';
 import { ProductsSettingsComponent } from './components/products-settings/products-settings.component';
 import { FamiliesSettingsComponent } from './components/families-settings/families-settings.component';
 import { TaxesSettingsComponent } from './components/taxes-settings/taxes-settings.component';
 import { ZonesSettingsComponent } from './components/zones-settings/zones-settings.component';
-import { ZoneService, Zone } from '../../services/api/zone.service';
+import { TablesSettingsComponent } from './components/tables-settings/tables-settings.component';
+
 
 type SettingsSection =
   | 'users'
@@ -53,6 +53,7 @@ type SettingsSection =
     FamiliesSettingsComponent,
     TaxesSettingsComponent,
     ZonesSettingsComponent,
+    TablesSettingsComponent,
   ],
 })
 export class SettingsComponent implements OnInit {
@@ -87,31 +88,11 @@ export class SettingsComponent implements OnInit {
     password_confirmation: '',
   };
 
-  tables: TableItem[] = [];
-  filteredTables: TableItem[] = [];
-  tableErrorMessages: string[] = [];
-  tableSearchTerm = '';
-  tableMode: 'create' | 'edit' = 'create';
-  editingTable: TableItem | null = null;
-
-  createTableForm = {
-    name: '',
-    zone_id: '',
-  };
-
-  editTableForm = {
-    name: '',
-    zone_id: '',
-  };
- zones: Zone[] = [];
-
 
   constructor(
     private userService: UserService,
-    private tableService: TableService,
     private authService: AuthService,
     private alertController: AlertController,
-      private zoneService: ZoneService,
   ) {}
 
   ngOnInit(): void {
@@ -121,16 +102,9 @@ export class SettingsComponent implements OnInit {
   selectSection(section: SettingsSection): void {
     this.selectedSection = section;
     this.errorMessages = [];
-    this.tableErrorMessages = [];
 
     if (section === 'users') {
       this.loadUsers();
-    }
-
-
-    if (section === 'tables') {
-      this.loadZones();
-      this.loadTables();
     }
   }
 
@@ -452,263 +426,6 @@ export class SettingsComponent implements OnInit {
       password: '',
       password_confirmation: '',
     };
-  }
-
-  loadTables(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.tableService.getTables().subscribe({
-      next: (response: any) => {
-        const tables = Array.isArray(response)
-          ? response
-          : Array.isArray(response.data)
-            ? response.data
-            : (response.table ?? response.tables ?? []);
-
-        this.tables = restaurantId
-          ? tables.filter(
-              (table: TableItem) =>
-                String(table.restaurant_id) === String(restaurantId),
-            )
-          : tables;
-
-        this.applyTableFilter();
-      },
-      error: () => {
-        this.tableErrorMessages = ['No se pudieron cargar las mesas.'];
-      },
-    });
-  }
-
-  // =====================
-  // TABLE METHODS
-  // =====================
-loadZones(): void {
-  const restaurantId = this.authService.getUser()?.restaurant_id;
-
-  this.zoneService.getZones().subscribe({
-    next: (response: any) => {
-      const zones = Array.isArray(response)
-        ? response
-        : Array.isArray(response.data)
-          ? response.data
-          : (response.zone ?? response.zones ?? []);
-
-      this.zones = restaurantId
-        ? zones.filter(
-            (zone: Zone) =>
-              String(zone.restaurant_id) === String(restaurantId),
-          )
-        : zones;
-    },
-    error: () => {
-      this.tableErrorMessages = ['No se pudieron cargar las zonas.'];
-    },
-  });
-}
-
-
-
-  createTable(): void {
-    const restaurantId = this.authService.getUser()?.restaurant_id;
-
-    this.tableErrorMessages = [];
-
-    const errors = this.validateCreateTableForm(restaurantId);
-
-    if (errors.length > 0) {
-      this.tableErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.createTableForm.name.trim(),
-      zone_id: this.createTableForm.zone_id,
-      restaurant_id: restaurantId,
-    };
-    console.log('PAYLOAD CREATE TABLE:', payload);
-
-    this.tableService.createTable(payload).subscribe({
-      next: () => {
-        this.resetCreateTableForm();
-        this.loadTables();
-        this.showSuccess('Mesa creada correctamente');
-      },
-      error: (error) => {
-        console.log('ERROR CREATE TABLE:', error);
-        this.tableErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  startEditTable(table: TableItem): void {
-    this.tableMode = 'edit';
-    this.editingTable = table;
-    this.tableErrorMessages = [];
-
-    this.editTableForm = {
-      name: table.name ?? '',
-      zone_id: String(table.zone_id ?? ''),
-    };
-  }
-
-  cancelEditTable(): void {
-    this.tableMode = 'create';
-    this.editingTable = null;
-    this.tableErrorMessages = [];
-    this.resetEditTableForm();
-  }
-
-  saveEditTable(): void {
-    if (!this.editingTable) {
-      return;
-    }
-
-    this.tableErrorMessages = [];
-
-    const errors = this.validateEditTableForm();
-
-    if (errors.length > 0) {
-      this.tableErrorMessages = errors;
-      return;
-    }
-
-    const payload = {
-      name: this.editTableForm.name.trim(),
-      zone_id: this.editTableForm.zone_id,
-    };
-
-    const idToUpdate = String(this.editingTable.uuid ?? this.editingTable.id);
-
-    this.tableService.updateTable(idToUpdate, payload).subscribe({
-      next: () => {
-        this.cancelEditTable();
-        this.loadTables();
-        this.showSuccess('Mesa actualizada correctamente');
-      },
-      error: (error) => {
-        this.tableErrorMessages = this.extractBackendErrors(error);
-      },
-    });
-  }
-
-  private validateCreateTableForm(
-    restaurantId: string | number | undefined,
-  ): string[] {
-    const errors: string[] = [];
-
-    if (!restaurantId) {
-      errors.push('No se ha encontrado el restaurant_id.');
-    }
-
-    if (!this.createTableForm.name.trim()) {
-      errors.push('El nombre de la mesa es obligatorio.');
-    }
-
-    if (!this.createTableForm.zone_id) {
-      errors.push('Debes seleccionar una zona.');
-    }
-
-    return errors;
-  }
-
-  private validateEditTableForm(): string[] {
-    const errors: string[] = [];
-
-    if (!this.editTableForm.name.trim()) {
-      errors.push('El nombre de la mesa es obligatorio.');
-    }
-
-    if (!this.editTableForm.zone_id) {
-      errors.push('Debes seleccionar una zona.');
-    }
-
-    return errors;
-  }
-
-  onTableSearchChange(): void {
-    this.applyTableFilter();
-  }
-
-  applyTableFilter(): void {
-    const term = this.tableSearchTerm.trim().toLowerCase();
-
-    if (!term) {
-      this.filteredTables = [...this.tables];
-      return;
-    }
-
-    this.filteredTables = this.tables.filter((table) => {
-      const name = table.name?.toLowerCase() ?? '';
-      return name.includes(term);
-    });
-  }
-
-  clearTableSearch(): void {
-    this.tableSearchTerm = '';
-    this.applyTableFilter();
-  }
-
-  async deleteTable(table: TableItem): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Eliminar mesa',
-      message: `¿Seguro que quieres eliminar "${table.name}"?`,
-      cssClass: 'custom-dark-alert',
-      mode: 'md',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeleteTable(table);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
-  }
-
-  confirmDeleteTable(table: TableItem): void {
-    const idToDelete = String(table.uuid ?? table.id);
-
-    this.tableService.deleteTable(idToDelete).subscribe({
-      next: () => {
-        this.loadTables();
-      },
-      error: () => {
-        this.tableErrorMessages = ['No se pudo eliminar la mesa.'];
-      },
-    });
-  }
-
-  resetCreateTableForm(): void {
-    this.createTableForm = {
-      name: '',
-      zone_id: '',
-    };
-    this.tableErrorMessages = [];
-  }
-
-  resetEditTableForm(): void {
-    this.editTableForm = {
-      name: '',
-      zone_id: '',
-    };
-  }
-
-  getZoneName(zoneId: string | number): string {
-    const zone = this.zones.find(
-      (item) =>
-        String(item.id) === String(zoneId) ||
-        String(item.uuid) === String(zoneId),
-    );
-
-    return zone?.name ?? `Zona ${zoneId}`;
   }
 
   private isValidEmail(email: string): boolean {
