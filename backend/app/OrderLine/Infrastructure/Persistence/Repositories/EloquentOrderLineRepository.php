@@ -23,13 +23,17 @@ final class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             ->where('uuid', $orderLine->productId()->value())
             ->value('id');
 
+        $userId = DB::table('users')
+            ->where('uuid', $orderLine->userId()->value())
+            ->value('id');
+
         $this->model->newQuery()->updateOrCreate(
             ['uuid' => $orderLine->id()->value()],
             [
                 'restaurant_id' => $orderLine->restaurantId()->value(),
                 'order_id' => $orderId,
                 'product_id' => $productId,
-                'user_id' => $orderLine->userId()->value(),
+                'user_id' => $userId,
                 'quantity' => $orderLine->quantity()->value(),
                 'price' => $orderLine->price()->value(),
                 'tax_percentage' => $orderLine->taxPercentage()->value(),
@@ -97,12 +101,16 @@ final class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             ->where('id', $model->product_id)
             ->value('uuid');
 
+        $userUuid = DB::table('users')
+            ->where('id', $model->user_id)
+            ->value('uuid');
+
         return OrderLine::fromPersistence(
             $model->uuid,
             $model->restaurant_id,
             $orderUuid,
             $productUuid,
-            $model->user_id,
+            $userUuid,
             $model->quantity,
             $model->price,
             $model->tax_percentage,

@@ -17,14 +17,14 @@ final class CheckoutOrderPostController
     {
         $validated = $request->validate([
             'restaurant_id' => ['required', 'integer'],
-            'user_id' => ['required', 'integer'],
+            'user_id' => ['required', 'string'],
         ]);
 
         try {
             $response = ($this->checkoutOrder)(
                 (string) $validated['restaurant_id'],
                 $orderId,
-                (string) $validated['user_id'],
+                $validated['user_id'],
             );
 
             return new JsonResponse($response->toArray(), 201);

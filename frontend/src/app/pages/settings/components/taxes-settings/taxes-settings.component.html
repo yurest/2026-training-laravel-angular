@@ -1,0 +1,116 @@
+<div class="settings-layout">
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3 *ngIf="taxMode === 'create'">Crear impuesto</h3>
+      <h3 *ngIf="taxMode === 'edit'">Editar impuesto</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input
+          *ngIf="taxMode === 'create'"
+          type="text"
+          [(ngModel)]="createTaxForm.name"
+          placeholder="IVA General"
+        ></ion-input>
+        <ion-input
+          *ngIf="taxMode === 'edit'"
+          type="text"
+          [(ngModel)]="editTaxForm.name"
+          placeholder="IVA General"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Porcentaje</ion-label>
+        <ion-input
+          *ngIf="taxMode === 'create'"
+          type="number"
+          [(ngModel)]="createTaxForm.percentage"
+          placeholder="21"
+        ></ion-input>
+        <ion-input
+          *ngIf="taxMode === 'edit'"
+          type="number"
+          [(ngModel)]="editTaxForm.percentage"
+          placeholder="21"
+        ></ion-input>
+      </ion-item>
+
+      <div class="error-box" *ngIf="taxErrorMessages.length > 0">
+        <p class="error-title">Revisa estos campos:</p>
+        <ul>
+          <li *ngFor="let error of taxErrorMessages">{{ error }}</li>
+        </ul>
+      </div>
+
+      <div class="form-actions" *ngIf="taxMode === 'create'">
+        <ion-button expand="block" (click)="createTax()">
+          Crear impuesto
+        </ion-button>
+      </div>
+
+      <div class="form-actions edit-actions" *ngIf="taxMode === 'edit'">
+        <ion-button color="medium" (click)="cancelEditTax()">
+          Cancelar
+        </ion-button>
+        <ion-button (click)="saveEditTax()">Guardar cambios</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3>Impuestos</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Buscar</ion-label>
+        <ion-input
+          type="text"
+          [(ngModel)]="taxSearchTerm"
+          (ngModelChange)="onTaxSearchChange()"
+          placeholder="Buscar por nombre"
+        ></ion-input>
+      </ion-item>
+
+      <ion-button
+        fill="outline"
+        size="small"
+        *ngIf="taxSearchTerm"
+        (click)="clearTaxSearch()"
+      >
+        Limpiar
+      </ion-button>
+
+      <div *ngIf="filteredTaxes.length === 0" class="empty-state">
+        No hay impuestos para mostrar.
+      </div>
+
+      <div class="users-list" *ngIf="filteredTaxes.length > 0">
+        <div *ngFor="let tax of filteredTaxes" class="user-row">
+          <div class="user-info">
+            <strong>{{ tax.name }}</strong>
+            <span>Porcentaje: {{ tax.percentage }}%</span>
+          </div>
+
+          <div class="row-actions">
+            <ion-button
+              color="warning"
+              size="small"
+              (click)="startEditTax(tax)"
+            >
+              Editar
+            </ion-button>
+
+            <ion-button
+              color="danger"
+              size="small"
+              (click)="deleteTax(tax)"
+            >
+              Borrar
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>

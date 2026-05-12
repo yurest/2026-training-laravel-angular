@@ -9,6 +9,13 @@ import {
 } from '@ionic/angular/standalone';
 import { TableService, TableItem } from '../../services/api/table.service';
 import { ZoneService, Zone } from '../../services/api/zone.service';
+import { Order, OrderService } from '../../services/api/order.service';
+import { AuthService } from '../../services/auth/auth.service';
+
+interface TableWithOrder extends TableItem {
+  status: 'free' | 'occupied';
+  activeOrderId?: string;
+}
 
 @Component({
   selector: 'app-tables',
@@ -19,31 +26,34 @@ import { ZoneService, Zone } from '../../services/api/zone.service';
 })
 export class TablesComponent implements OnInit {
   zones: Zone[] = [];
-  tables: TableItem[] = [];
+  tables: TableWithOrder[] = [];
+  orders: Order[] = [];
 
   selectedZoneNumericId: number | null = null;
+  user: any = null;
 
   constructor(
     private router: Router,
     private zoneService: ZoneService,
     private tableService: TableService,
+    private orderService: OrderService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.user = this.authService.getUser();
+    this.loadData();
+  }
+
+  loadData(): void {
     this.loadZones();
-    this.loadTables();
+    this.loadTablesAndOrders();
   }
 
   loadZones(): void {
     this.zoneService.getZones().subscribe({
       next: (response: any) => {
-        const zones = Array.isArray(response)
-          ? response
-          : Array.isArray(response.data)
-          ? response.data
-          : response.zones ?? [];
-
-        this.zones = zones;
+        this.zones = this.extractArray(response, 'zones');
       },
       error: (error) => {
         console.log('ERROR loading zones', error);
@@ -51,23 +61,41 @@ export class TablesComponent implements OnInit {
     });
   }
 
-  loadTables(): void {
+  loadTablesAndOrders(): void {
     this.tableService.getTables().subscribe({
-      next: (response: any) => {
-        const tables = Array.isArray(response)
-          ? response
-          : Array.isArray(response.data)
-          ? response.data
-          : response.tables ?? [];
+      next: (tablesResponse: any) => {
+        const tables = this.extractArray(tablesResponse, 'tables');
 
-        this.tables = tables.map((table: TableItem, index: number) => ({
-          ...table,
-          status: index % 2 === 0 ? 'free' : 'occupied',
-        }));
+        this.orderService.getOrders().subscribe({
+          next: (ordersResponse: any) => {
+            this.orders = this.extractArray(ordersResponse, 'orders');
+            this.tables = this.buildTablesWithStatus(tables);
+          },
+          error: (error) => {
+            console.log('ERROR loading orders', error);
+            this.tables = this.buildTablesWithStatus(tables);
+          },
+        });
       },
       error: (error) => {
         console.log('ERROR loading tables', error);
       },
+    });
+  }
+
+  buildTablesWithStatus(tables: TableItem[]): TableWithOrder[] {
+    return tables.map((table) => {
+      const activeOrder = this.orders.find((order) => {
+        return (
+          String(order.table_id) === String(table.id) && order.status === 'open'
+        );
+      });
+
+      return {
+        ...table,
+        status: activeOrder ? 'occupied' : 'free',
+        activeOrderId: activeOrder?.id,
+      };
     });
   }
 
@@ -88,7 +116,7 @@ export class TablesComponent implements OnInit {
     return this.selectedZoneNumericId === zoneNumericId;
   }
 
-  getTablesByZone(zoneNumericId: number | undefined): TableItem[] {
+  getTablesByZone(zoneNumericId: number | undefined): TableWithOrder[] {
     if (!zoneNumericId) return [];
 
     return this.tables.filter(
@@ -104,7 +132,42 @@ export class TablesComponent implements OnInit {
     return zone?.name ?? '';
   }
 
-  openTable(tableId: string | number): void {
-    this.router.navigate(['/tpv/orders', tableId]);
+  openTable(table: TableWithOrder): void {
+    console.log('TABLE CLICKED', table);
+    console.log('USER', this.user);
+
+    if (table.status === 'occupied' && table.activeOrderId) {
+      this.router.navigate(['/tpv/orders', table.activeOrderId]);
+      return;
+    }
+
+    if (!this.user) return;
+
+    const payload = {
+      restaurant_id: Number(this.user.restaurant_id),
+      table_id: table.id,
+      opened_by_user_id: this.user.id,
+      diners: 2,
+    };
+
+    console.log('CREATE ORDER PAYLOAD', payload);
+
+    this.orderService.createOrder(payload).subscribe({
+      next: (response: any) => {
+        console.log('ORDER CREATED', response);
+        this.router.navigate(['/tpv/orders', response.id]);
+      },
+      error: (error) => {
+        console.log('ERROR creating order from table', error);
+      },
+    });
+  }
+
+  private extractArray(response: any, key: string): any[] {
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response?.data)) return response.data;
+    if (Array.isArray(response?.[key])) return response[key];
+
+    return [];
   }
 }

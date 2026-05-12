@@ -19,12 +19,16 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             ->where('uuid', $sale->orderId()->value())
             ->value('id');
 
+        $userId = DB::table('users')
+            ->where('uuid', $sale->userId()->value())
+            ->value('id');
+
         $this->model->newQuery()->updateOrCreate(
             ['uuid' => $sale->id()->value()],
             [
                 'restaurant_id' => $sale->restaurantId()->value(),
                 'order_id' => $orderId,
-                'user_id' => $sale->userId()->value(),
+                'user_id' => $userId,
                 'ticket_number' => $sale->ticketNumber()?->value(),
                 'value_date' => $sale->valueDate()->value(),
                 'total' => $sale->total()->value(),
@@ -135,11 +139,15 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             ->where('id', $model->order_id)
             ->value('uuid');
 
+        $userUuid = DB::table('users')
+            ->where('id', $model->user_id)
+            ->value('uuid');
+
         return Sale::fromPersistence(
             $model->uuid,
-            $model->restaurant_id,
+            (string) $model->restaurant_id,
             $orderUuid,
-            $model->user_id,
+            $userUuid,
             $model->ticket_number,
             $model->value_date->toDateTimeImmutable(),
             $model->total,

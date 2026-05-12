@@ -1,0 +1,225 @@
+<div class="settings-layout">
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3 *ngIf="productMode === 'create'">Crear producto</h3>
+      <h3 *ngIf="productMode === 'edit'">Editar producto</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input
+          *ngIf="productMode === 'create'"
+          type="text"
+          [(ngModel)]="createProductForm.name"
+          placeholder="Nombre del producto"
+        ></ion-input>
+        <ion-input
+          *ngIf="productMode === 'edit'"
+          type="text"
+          [(ngModel)]="editProductForm.name"
+          placeholder="Nombre del producto"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Familia</ion-label>
+
+        <ion-select
+          *ngIf="productMode === 'create'"
+          interface="popover"
+          [(ngModel)]="createProductForm.family_id"
+          placeholder="Selecciona una familia"
+        >
+          <ion-select-option *ngFor="let family of families" [value]="family.id">
+            {{ family.name }}
+          </ion-select-option>
+        </ion-select>
+
+        <ion-select
+          *ngIf="productMode === 'edit'"
+          interface="popover"
+          [(ngModel)]="editProductForm.family_id"
+          placeholder="Selecciona una familia"
+        >
+          <ion-select-option *ngFor="let family of families" [value]="family.id">
+            {{ family.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Impuesto</ion-label>
+
+        <ion-select
+          *ngIf="productMode === 'create'"
+          interface="popover"
+          [(ngModel)]="createProductForm.tax_id"
+          placeholder="Selecciona un impuesto"
+        >
+          <ion-select-option *ngFor="let tax of taxes" [value]="tax.id">
+            {{ tax.name }}
+          </ion-select-option>
+        </ion-select>
+
+        <ion-select
+          *ngIf="productMode === 'edit'"
+          interface="popover"
+          [(ngModel)]="editProductForm.tax_id"
+          placeholder="Selecciona un impuesto"
+        >
+          <ion-select-option *ngFor="let tax of taxes" [value]="tax.id">
+            {{ tax.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Precio (€)</ion-label>
+        <ion-input
+          *ngIf="productMode === 'create'"
+          type="number"
+          [(ngModel)]="createProductForm.price"
+          placeholder="0.00"
+        ></ion-input>
+        <ion-input
+          *ngIf="productMode === 'edit'"
+          type="number"
+          [(ngModel)]="editProductForm.price"
+          placeholder="0.00"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Stock</ion-label>
+        <ion-input
+          *ngIf="productMode === 'create'"
+          type="number"
+          [(ngModel)]="createProductForm.stock"
+          placeholder="0"
+        ></ion-input>
+        <ion-input
+          *ngIf="productMode === 'edit'"
+          type="number"
+          [(ngModel)]="editProductForm.stock"
+          placeholder="0"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Imagen</ion-label>
+        <ion-input
+          *ngIf="productMode === 'create'"
+          type="text"
+          [(ngModel)]="createProductForm.image_src"
+          placeholder="URL imagen"
+        ></ion-input>
+        <ion-input
+          *ngIf="productMode === 'edit'"
+          type="text"
+          [(ngModel)]="editProductForm.image_src"
+          placeholder="URL imagen"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-checkbox
+          *ngIf="productMode === 'create'"
+          [(ngModel)]="createProductForm.active"
+          slot="start"
+        ></ion-checkbox>
+        <ion-checkbox
+          *ngIf="productMode === 'edit'"
+          [(ngModel)]="editProductForm.active"
+          slot="start"
+        ></ion-checkbox>
+        <ion-label>Activo</ion-label>
+      </ion-item>
+
+      <div class="error-box" *ngIf="productErrorMessages.length > 0">
+        <p class="error-title">Revisa estos campos:</p>
+        <ul>
+          <li *ngFor="let error of productErrorMessages">{{ error }}</li>
+        </ul>
+      </div>
+
+      <div class="form-actions" *ngIf="productMode === 'create'">
+        <ion-button expand="block" (click)="createProduct()">
+          Crear producto
+        </ion-button>
+      </div>
+
+      <div class="form-actions edit-actions" *ngIf="productMode === 'edit'">
+        <ion-button color="medium" (click)="cancelEditProduct()">
+          Cancelar
+        </ion-button>
+        <ion-button (click)="saveEditProduct()">Guardar cambios</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="panel-card">
+    <ion-card-content>
+      <h3>Productos</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Buscar</ion-label>
+        <ion-input
+          type="text"
+          [(ngModel)]="productSearchTerm"
+          (ngModelChange)="onProductSearchChange()"
+          placeholder="Buscar por nombre"
+        ></ion-input>
+      </ion-item>
+
+      <ion-button
+        fill="outline"
+        size="small"
+        *ngIf="productSearchTerm"
+        (click)="clearProductSearch()"
+      >
+        Limpiar
+      </ion-button>
+
+      <p *ngIf="productsLoading">Cargando productos...</p>
+
+      <div
+        *ngIf="!productsLoading && filteredProducts.length === 0"
+        class="empty-state"
+      >
+        No hay productos para mostrar.
+      </div>
+
+      <div
+        class="users-list"
+        *ngIf="!productsLoading && filteredProducts.length > 0"
+      >
+        <div *ngFor="let product of filteredProducts" class="user-row">
+          <div class="user-info">
+            <strong>{{ product.name }}</strong>
+            <span>Precio: {{ formatPrice(product.price) }}</span>
+            <span>Stock: {{ product.stock }}</span>
+            <span>Familia: {{ getFamilyName(product.family_id) }}</span>
+            <span>Impuesto: {{ getTaxName(product.tax_id) }}</span>
+          </div>
+
+          <div class="row-actions">
+            <ion-button
+              color="warning"
+              size="small"
+              (click)="startEditProduct(product)"
+            >
+              Editar
+            </ion-button>
+
+            <ion-button
+              color="danger"
+              size="small"
+              (click)="deleteProduct(product)"
+            >
+              Borrar
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>
