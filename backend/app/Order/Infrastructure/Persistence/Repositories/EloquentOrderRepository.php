@@ -64,9 +64,47 @@ final class EloquentOrderRepository implements OrderRepositoryInterface
         $models = $this->model->newQuery()->get();
 
         return $models
-            ->map(fn (EloquentOrder $model) => $this->mapToEntity($model))
+            ->map(fn(EloquentOrder $model) => $this->mapToEntity($model))
             ->all();
     }
+
+    /**
+     * @return Order[]
+     */
+    public function findOpenByRestaurant(string $restaurantId): array
+    {
+        $models = $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
+            ->where('status', 'open')
+            ->orderByDesc('opened_at')
+            ->get();
+
+        return $models
+            ->map(fn(EloquentOrder $model) => $this->mapToEntity($model))
+            ->all();
+    }
+
+    public function findOpenByTable(string $restaurantId, string $tableId): ?Order
+    {
+        $internalTableId = DB::table('tables')
+            ->where('uuid', $tableId)
+            ->value('id');
+
+        $model = $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
+            ->where('table_id', $internalTableId)
+            ->where('status', 'open')
+            ->first();
+
+        if ($model === null) {
+            return null;
+        }
+
+        return $this->mapToEntity($model);
+    }
+
+
+
 
     public function delete(Order $order): void
     {
