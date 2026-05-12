@@ -23,6 +23,7 @@ use App\Order\Infrastructure\Entrypoint\Http\PutController as OrderPutController
 use App\Order\Infrastructure\Entrypoint\Http\GetController as OrderGetController;
 use App\Order\Infrastructure\Entrypoint\Http\IndexController as OrderIndexController;
 use App\Order\Infrastructure\Entrypoint\Http\DeleteController as OrderDeleteController;
+use App\Order\Infrastructure\Entrypoint\Http\OpenIndexController as OrderOpenIndexController;
 
 // FAMILY
 use App\Family\Infrastructure\Entrypoint\Http\GetController as FamilyGetController;
@@ -150,8 +151,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', OrderPostController::class);
     Route::put('/orders/{id}', OrderPutController::class);
     Route::get('/orders', OrderIndexController::class);
+    Route::get('/orders/open', OrderOpenIndexController::class);
     Route::get('/orders/{id}', OrderGetController::class);
     Route::delete('/orders/{id}', OrderDeleteController::class);
+ 
 
     // ORDER LINES
     Route::post('/order-lines', OrderLinePostController::class);
