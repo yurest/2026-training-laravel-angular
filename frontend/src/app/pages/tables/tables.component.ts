@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import {
   IonContent,
   IonCard,
   IonCardContent,
-  IonButton,
 } from '@ionic/angular/standalone';
 import { TableService, TableItem } from '../../services/api/table.service';
 import { ZoneService, Zone } from '../../services/api/zone.service';
@@ -22,7 +22,7 @@ interface TableWithOrder extends TableItem {
   standalone: true,
   templateUrl: './tables.component.html',
   styleUrls: ['./tables.component.scss'],
-  imports: [CommonModule, IonContent, IonCard, IonCardContent, IonButton],
+  imports: [CommonModule, IonContent, IonCard, IonCardContent],
 })
 export class TablesComponent implements OnInit {
   zones: Zone[] = [];
@@ -38,6 +38,7 @@ export class TablesComponent implements OnInit {
     private tableService: TableService,
     private orderService: OrderService,
     private authService: AuthService,
+    private alertController: AlertController,
   ) {}
 
   ngOnInit(): void {
@@ -66,13 +67,20 @@ export class TablesComponent implements OnInit {
       next: (tablesResponse: any) => {
         const tables = this.extractArray(tablesResponse, 'tables');
 
-        this.orderService.getOrders().subscribe({
+        const restaurantId = this.user?.restaurant_id;
+
+        if (!restaurantId) {
+          this.tables = this.buildTablesWithStatus(tables);
+          return;
+        }
+
+        this.orderService.getOpenOrders(restaurantId).subscribe({
           next: (ordersResponse: any) => {
             this.orders = this.extractArray(ordersResponse, 'orders');
             this.tables = this.buildTablesWithStatus(tables);
           },
           error: (error) => {
-            console.log('ERROR loading orders', error);
+            console.log('ERROR loading open orders', error);
             this.tables = this.buildTablesWithStatus(tables);
           },
         });
@@ -86,9 +94,7 @@ export class TablesComponent implements OnInit {
   buildTablesWithStatus(tables: TableItem[]): TableWithOrder[] {
     return tables.map((table) => {
       const activeOrder = this.orders.find((order) => {
-        return (
-          String(order.table_id) === String(table.id) && order.status === 'open'
-        );
+        return String(order.table_id) === String(table.id);
       });
 
       return {
@@ -133,29 +139,74 @@ export class TablesComponent implements OnInit {
   }
 
   openTable(table: TableWithOrder): void {
-    console.log('TABLE CLICKED', table);
-    console.log('USER', this.user);
-
     if (table.status === 'occupied' && table.activeOrderId) {
       this.router.navigate(['/tpv/orders', table.activeOrderId]);
       return;
     }
 
+    this.openCreateOrderModal(table);
+  }
+
+  async openCreateOrderModal(table: TableWithOrder): Promise<void> {
+    const alert = await this.alertController.create({
+      header: `Abrir pedido - ${table.name}`,
+      message: 'Indica el número de comensales',
+      cssClass: 'custom-dark-alert',
+      mode: 'md',
+      inputs: [
+        {
+          name: 'diners',
+          type: 'number',
+          min: 1,
+          value: 2,
+          placeholder: 'Comensales',
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Abrir pedido',
+          handler: (data) => {
+            const diners = Number(data.diners);
+
+            if (!diners || diners < 1) {
+              return false;
+            }
+
+            this.createOrderFromTable(table, diners);
+            return true;
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  createOrderFromTable(table: TableWithOrder, diners: number): void {
     if (!this.user) return;
 
     const payload = {
       restaurant_id: Number(this.user.restaurant_id),
       table_id: table.id,
       opened_by_user_id: this.user.id,
-      diners: 2,
+      diners,
     };
-
-    console.log('CREATE ORDER PAYLOAD', payload);
 
     this.orderService.createOrder(payload).subscribe({
       next: (response: any) => {
-        console.log('ORDER CREATED', response);
-        this.router.navigate(['/tpv/orders', response.id]);
+        const orderId = response?.id ?? response?.order?.id;
+
+        if (!orderId) {
+          console.log('ORDER CREATED BUT ID NOT FOUND', response);
+          this.loadTablesAndOrders();
+          return;
+        }
+
+        this.router.navigate(['/tpv/orders', orderId]);
       },
       error: (error) => {
         console.log('ERROR creating order from table', error);

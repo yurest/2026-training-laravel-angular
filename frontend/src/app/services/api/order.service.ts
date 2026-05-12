@@ -45,4 +45,12 @@ export class OrderService extends BaseApiService {
   checkoutOrder(id: string, payload: any): Observable<ApiResponse> {
     return this.httpCall(`${this.endpoint}/${id}/checkout`, payload, 'post');
   }
+  getOpenOrders(restaurantId: string | number): Observable<ApiResponse> {
+    return this.httpCall(
+      `${this.endpoint}/open?restaurant_id=${restaurantId}`,
+      null,
+      'get',
+    );
+  }
+  
 }

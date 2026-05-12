@@ -12,23 +12,38 @@ export const routes: Routes = [
     path: 'tpv',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/tpv/layout/layout.component').then((m) => m.LayoutComponent),
+      import('./pages/tpv/layout/layout.component').then(
+        (m) => m.LayoutComponent,
+      ),
     children: [
       {
         path: 'tables',
         loadComponent: () =>
-          import('./pages/tables/tables.component').then((m) => m.TablesComponent),
+          import('./pages/tables/tables.component').then(
+            (m) => m.TablesComponent,
+          ),
       },
       {
         path: 'orders/:id',
         loadComponent: () =>
-          import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
+          import('./pages/orders/orders.component').then(
+            (m) => m.OrdersComponent,
+          ),
       },
       {
         path: 'settings',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
+          import('./pages/settings/settings.component').then(
+            (m) => m.SettingsComponent,
+          ),
+      },
+      {
+        path: 'open-orders',
+        loadComponent: () =>
+          import('./pages/open-orders/open-orders.component').then(
+            (m) => m.OpenOrdersComponent,
+          ),
       },
       {
         path: '',

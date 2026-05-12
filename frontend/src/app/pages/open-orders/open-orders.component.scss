@@ -1,0 +1,103 @@
+.open-orders-page {
+  --background: var(--app-background);
+  color: var(--app-text);
+}
+
+.open-orders-header {
+  margin-bottom: 20px;
+}
+
+.open-orders-header h2 {
+  color: var(--app-text);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.open-orders-header p {
+  color: var(--app-muted);
+  margin: 0;
+}
+
+.loading-text,
+.empty-state {
+  color: var(--app-muted);
+  margin-top: 16px;
+}
+
+.error-box {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.order-card {
+  margin: 0;
+  cursor: pointer;
+  border-radius: 18px;
+  border: 1px solid var(--app-border);
+  --background: var(--app-surface);
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.order-card:active {
+  transform: scale(0.98);
+}
+
+.order-card:hover {
+  border-color: var(--app-primary);
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.order-card-header h3 {
+  margin: 0 0 4px;
+  color: var(--app-text);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.order-card-header p {
+  margin: 0;
+  color: var(--app-muted);
+}
+
+.status-badge {
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(34, 197, 94, 0.18);
+  color: #22c55e;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--app-muted);
+  margin-bottom: 18px;
+}
+
+.open-order-button {
+  --border-radius: 12px;
+  text-transform: none;
+}
