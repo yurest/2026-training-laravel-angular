@@ -123,7 +123,6 @@ export class GestionPage {
   protected readonly zreportsFacade = inject(GestionZReportsFacade);
   protected readonly toastService = inject(ToastService);
 
-  public apiErrorMessage: string | null = null;
   public isSavingRestaurant: boolean = false;
   public isSavingUser: boolean = false;
   public isSavingFamily: boolean = false;
@@ -232,10 +231,6 @@ export class GestionPage {
     this.loadRestaurantsFromApi();
   }
 
-  public clearApiError(): void {
-    this.apiErrorMessage = null;
-  }
-
   public unlinkDevice(): void {
     if (confirm('¿Estás seguro de que deseas desvincular este dispositivo?')) {
       console.log('Before clear - isDeviceLinked:', this.deviceStorageService.isDeviceLinked());
@@ -250,13 +245,10 @@ export class GestionPage {
       await this.familiesFacade.load();
       this.syncFamiliesMirror();
       this.syncForms();
-
-      if (!silent) {
-        this.apiErrorMessage = null;
-      }
     } catch (error: unknown) {
       if (!silent) {
-        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las familias.';
+        const message = error instanceof Error ? error.message : 'No se pudieron cargar las familias.';
+        this.toastService.presentError(message);
       }
     }
   }
@@ -280,13 +272,10 @@ export class GestionPage {
       await this.taxesFacade.load();
       this.syncTaxesMirror();
       this.syncForms();
-
-      if (!silent) {
-        this.apiErrorMessage = null;
-      }
     } catch (error: unknown) {
       if (!silent) {
-        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los impuestos.';
+        const message = error instanceof Error ? error.message : 'No se pudieron cargar los impuestos.';
+        this.toastService.presentError(message);
       }
     }
   }
@@ -310,13 +299,10 @@ export class GestionPage {
       await this.productsFacade.load();
       this.syncProductsMirror();
       this.syncForms();
-
-      if (!silent) {
-        this.apiErrorMessage = null;
-      }
     } catch (error: unknown) {
       if (!silent) {
-        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los productos.';
+        const message = error instanceof Error ? error.message : 'No se pudieron cargar los productos.';
+        this.toastService.presentError(message);
       }
     }
   }
@@ -345,13 +331,10 @@ export class GestionPage {
       this.syncZonesMirror();
       this.updateRestaurantKpis(this.managementState.restaurantId);
       this.syncForms();
-
-      if (!silent) {
-        this.apiErrorMessage = null;
-      }
     } catch (error: unknown) {
       if (!silent) {
-        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar las zonas.';
+        const message = error instanceof Error ? error.message : 'No se pudieron cargar las zonas.';
+        this.toastService.presentError(message);
       }
     }
   }
@@ -463,13 +446,11 @@ export class GestionPage {
               const message = error instanceof Error ? error.message : 'No se pudo seleccionar el restaurante.';
 
               if (message === 'Forbidden for this tax id.') {
-                this.apiErrorMessage = null;
                 this.loadRestaurantsFromApi();
-
                 return;
               }
 
-              this.apiErrorMessage = message;
+              this.toastService.presentError(message);
             },
           });
       }
@@ -556,10 +537,9 @@ export class GestionPage {
             this.syncFamiliesMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess('Familia eliminada.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo eliminar la familia.';
+            this.toastService.presentError(result.error || 'No se pudo eliminar la familia.');
           }
         });
         break;
@@ -588,10 +568,9 @@ export class GestionPage {
             this.syncUsersMirror(restaurant.uuid!);
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess('Usuario eliminado.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo eliminar el usuario.';
+            this.toastService.presentError(result.error || 'No se pudo eliminar el usuario.');
           }
         });
         break;
@@ -619,10 +598,9 @@ export class GestionPage {
             this.syncZonesMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess('Zona eliminada.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo eliminar la zona.';
+            this.toastService.presentError(result.error || 'No se pudo eliminar la zona.');
           }
         });
         break;
@@ -645,10 +623,9 @@ export class GestionPage {
             this.syncTaxesMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess('Impuesto eliminado.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo eliminar el impuesto.';
+            this.toastService.presentError(result.error || 'No se pudo eliminar el impuesto.');
           }
         });
         break;
@@ -671,10 +648,9 @@ export class GestionPage {
             this.syncProductsMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess('Producto eliminado.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo eliminar el producto.';
+            this.toastService.presentError(result.error || 'No se pudo eliminar el producto.');
           }
         });
         break;
@@ -716,14 +692,14 @@ export class GestionPage {
           restaurant.name = name;
           restaurant.email = email;
           this.restaurantForm.password = '';
-          this.apiErrorMessage = null;
 
           this.syncForms();
           this.isSavingRestaurant = false;
           this.toastService.presentSuccess('Restaurante actualizado.');
         },
         error: (error: unknown) => {
-          this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo actualizar el restaurante.';
+          const message = error instanceof Error ? error.message : 'No se pudo actualizar el restaurante.';
+          this.toastService.presentError(message);
           this.isSavingRestaurant = false;
         },
       });
@@ -777,10 +753,9 @@ export class GestionPage {
             this.syncUsersMirror(restaurantUuid);
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess(result.message || 'Usuario guardado.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo guardar el usuario.';
+            this.toastService.presentError(result.error || 'No se pudo guardar el usuario.');
           }
         });
         break;
@@ -807,10 +782,9 @@ export class GestionPage {
             this.syncFamiliesMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess(result.message || 'Familia guardada.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo guardar la familia.';
+            this.toastService.presentError(result.error || 'No se pudo guardar la familia.');
           }
         });
         break;
@@ -843,10 +817,9 @@ export class GestionPage {
             this.syncProductsMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess(result.message || 'Producto guardado.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo guardar el producto.';
+            this.toastService.presentError(result.error || 'No se pudo guardar el producto.');
           }
         });
         break;
@@ -873,10 +846,9 @@ export class GestionPage {
             this.syncZonesMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess(result.message || 'Zona guardada.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo guardar la zona.';
+            this.toastService.presentError(result.error || 'No se pudo guardar la zona.');
           }
         });
         break;
@@ -904,10 +876,9 @@ export class GestionPage {
             this.syncTaxesMirror();
             this.updateRestaurantKpis(this.managementState.restaurantId);
             this.syncForms();
-            this.apiErrorMessage = null;
             this.toastService.presentSuccess(result.message || 'Impuesto guardado.');
           } else {
-            this.apiErrorMessage = result.error || 'No se pudo guardar el impuesto.';
+            this.toastService.presentError(result.error || 'No se pudo guardar el impuesto.');
           }
         });
         break;
@@ -963,10 +934,9 @@ export class GestionPage {
     if (result.ok) {
       this.syncZonesMirror();
       this.syncForms();
-      this.apiErrorMessage = null;
       this.toastService.presentSuccess(result.message || 'Mesa guardada.');
     } else {
-      this.apiErrorMessage = result.error || 'No se pudo guardar la mesa.';
+      this.toastService.presentError(result.error || 'No se pudo guardar la mesa.');
     }
   }
 
@@ -998,10 +968,9 @@ export class GestionPage {
     if (result.ok) {
       this.syncZonesMirror();
       this.syncForms();
-      this.apiErrorMessage = null;
       this.toastService.presentSuccess('Mesa eliminada.');
     } else {
-      this.apiErrorMessage = result.error || 'No se pudo eliminar la mesa.';
+      this.toastService.presentError(result.error || 'No se pudo eliminar la mesa.');
     }
   }
 
@@ -1178,8 +1147,6 @@ export class GestionPage {
       .pipe(take(1))
       .subscribe({
         next: (response) => {
-          this.apiErrorMessage = null;
-
           if (!response.data.length) {
             this.managementRestaurants = [];
             for (const key of Object.keys(this.managementData)) {
@@ -1245,7 +1212,8 @@ export class GestionPage {
                   this.startBackgroundPreload();
                 },
                 error: (error: unknown) => {
-                  this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudo seleccionar el restaurante.';
+                  const message = error instanceof Error ? error.message : 'No se pudo seleccionar el restaurante.';
+                  this.toastService.presentError(message);
                 },
               });
           }
@@ -1258,7 +1226,8 @@ export class GestionPage {
           this.managementState.restaurantId = 0;
           this.contextService.clearActiveRestaurant();
           this.syncForms();
-          this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar restaurantes.';
+          const message = error instanceof Error ? error.message : 'No se pudieron cargar restaurantes.';
+          this.toastService.presentError(message);
         },
       });
   }
@@ -1393,13 +1362,10 @@ export class GestionPage {
       await this.usersFacade.load(restaurantUuid);
       this.syncUsersMirror(restaurantUuid);
       this.syncForms();
-
-      if (!silent) {
-        this.apiErrorMessage = null;
-      }
     } catch (error: unknown) {
       if (!silent) {
-        this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los usuarios.';
+        const message = error instanceof Error ? error.message : 'No se pudieron cargar los usuarios.';
+        this.toastService.presentError(message);
       }
     }
   }
@@ -1473,7 +1439,8 @@ export class GestionPage {
       this.isLoadingZReports = false;
     } catch (error) {
       this.isLoadingZReports = false;
-      this.apiErrorMessage = error instanceof Error ? error.message : 'No se pudieron cargar los Z-Reports.';
+      const message = error instanceof Error ? error.message : 'No se pudieron cargar los Z-Reports.';
+      this.toastService.presentError(message);
     }
   }
 

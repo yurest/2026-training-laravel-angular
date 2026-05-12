@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PinAuthModalComponent, PinAuthResult } from '../../../../components/pin-auth-modal/pin-auth-modal.component';
 import { PinAuthService } from '../../../../core/services/pin-auth.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { DinersStatusComponent } from '../../../../shared/components/diners-status/diners-status.component';
 import { FilterByPipe } from '../../../../pipes';
 import { MesasFacade, TableWithStatus } from '../../facades/mesas.facade';
@@ -23,20 +24,18 @@ export class MesasPage implements OnInit {
   protected readonly OrderStatus = OrderStatus;
   private readonly pinAuthService = inject(PinAuthService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   // ----- UI state: open-table modal -----
   public modalOpen = false;
   public showPinAuthModal = false;
   public diners = 1;
   public openingOrder = false;
-  public openingError: string | null = null;
-  public cajaError: string | null = null;
 
   // ----- UI state: close-account modal -----
   public showPinAuthModalForCloseAccount = false;
   public closeAccountModalOpen = false;
   public closingAccount = false;
-  public closeAccountError: string | null = null;
 
   // ----- UI state: cobrar -----
   public showPinAuthModalForCharge = false;
@@ -64,19 +63,15 @@ export class MesasPage implements OnInit {
   }
 
   public async selectTable(table: TableWithStatus): Promise<void> {
-    this.cajaError = null;
     await this.facade.selectTable(table);
   }
 
   // ----- Open table flow -----
   public async openModal(): Promise<void> {
-    this.cajaError = null;
-
     const result = await this.facade.ensureCashSessionOpen();
 
     if (!result.ok) {
-      this.cajaError = result.error;
-
+      this.toastService.presentError(result.error);
       return;
     }
 
@@ -121,7 +116,6 @@ export class MesasPage implements OnInit {
     }
 
     this.openingOrder = true;
-    this.openingError = null;
 
     try {
       const order = await this.facade.createOrderForSelectedTable(this.diners);
@@ -130,7 +124,8 @@ export class MesasPage implements OnInit {
         queryParams: { orderId: order.id, tableId: selectedTable.id },
       });
     } catch (err) {
-      this.openingError = err instanceof Error ? err.message : 'No se pudo abrir la mesa.';
+      const message = err instanceof Error ? err.message : 'No se pudo abrir la mesa.';
+      this.toastService.presentError(message);
     } finally {
       this.openingOrder = false;
     }
@@ -146,7 +141,6 @@ export class MesasPage implements OnInit {
       this.showPinAuthModalForCloseAccount = true;
     } else {
       this.closeAccountModalOpen = true;
-      this.closeAccountError = null;
     }
   }
 
@@ -154,7 +148,6 @@ export class MesasPage implements OnInit {
     this.applyPinAuth(result);
     this.showPinAuthModalForCloseAccount = false;
     this.closeAccountModalOpen = true;
-    this.closeAccountError = null;
   }
 
   public closeCloseAccountModal(): void {
@@ -171,13 +164,13 @@ export class MesasPage implements OnInit {
     }
 
     this.closingAccount = true;
-    this.closeAccountError = null;
 
     try {
       await this.facade.closeAccountForSelectedTable();
       this.closeAccountModalOpen = false;
     } catch (err) {
-      this.closeAccountError = err instanceof Error ? err.message : 'No se pudo cerrar la cuenta.';
+      const message = err instanceof Error ? err.message : 'No se pudo cerrar la cuenta.';
+      this.toastService.presentError(message);
     } finally {
       this.closingAccount = false;
     }
@@ -421,7 +414,6 @@ export class MesasPage implements OnInit {
   // ----- Private helpers -----
   private openOpenTableModal(): void {
     this.modalOpen = true;
-    this.openingError = null;
     this.diners = 1;
   }
 

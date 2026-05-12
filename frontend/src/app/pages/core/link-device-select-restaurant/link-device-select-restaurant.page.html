@@ -23,7 +23,7 @@
         </div>
       }
 
-      @if (errorMessage) {
+      @if (hasError) {
         <div class="error-container">
           <div class="error-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -31,13 +31,13 @@
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
-            <p>{{ errorMessage }}</p>
+            <p>No se pudieron cargar los restaurantes.</p>
           </div>
           <button class="btn-retry" type="button" (click)="loadRestaurants()">Reintentar</button>
         </div>
       }
 
-      @if (!isLoading && !errorMessage && restaurants.length > 0) {
+      @if (!isLoading && !hasError && restaurants.length > 0) {
         <div class="restaurants-list">
           @for (restaurant of restaurants; track restaurant) {
             <div class="restaurant-item" (click)="selectRestaurant(restaurant)">
@@ -59,7 +59,7 @@
         </div>
       }
 
-      @if (!isLoading && !errorMessage && restaurants.length === 0) {
+      @if (!isLoading && !hasError && restaurants.length === 0) {
         <div class="empty-container">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>

@@ -9,6 +9,7 @@ use App\Cash\Domain\Interfaces\TipRepositoryInterface;
 use App\Cash\Domain\ValueObject\DeviceId;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Order\Domain\Interfaces\OrderRepositoryInterface;
+use App\Sale\Application\CreateOrderFinalTicket\CreateOrderFinalTicket;
 use App\Sale\Domain\Entity\Sale;
 use App\Sale\Domain\Entity\SaleLine;
 use App\Sale\Domain\Entity\SalePayment;
@@ -35,6 +36,7 @@ final class CreateSale
         private readonly SaleLineRepositoryInterface $saleLineRepository,
         private readonly TipRepositoryInterface $tipRepository,
         private readonly TransactionManagerInterface $transactionManager,
+        private readonly CreateOrderFinalTicket $createOrderFinalTicket,
     ) {}
 
     public function __invoke(
@@ -131,6 +133,7 @@ final class CreateSale
                 $this->saleLineRepository->save($saleLine);
             }
 
+            $orderJustClosed = false;
             $order = $this->orderRepository->findByUuid($orderUuid);
             if ($order !== null) {
                 $originalTotal = 0;
@@ -153,6 +156,7 @@ final class CreateSale
 
                 if ($chargeSessionId === null && $totalPaid >= $originalTotal) {
                     $order->close(Uuid::create($closedByUserId));
+                    $orderJustClosed = true;
                 }
                 $this->orderRepository->save($order);
             }
@@ -194,6 +198,13 @@ final class CreateSale
                     beneficiaryUserId: null,
                 );
                 $this->tipRepository->save($tip);
+            }
+
+            if ($orderJustClosed) {
+                ($this->createOrderFinalTicket)(
+                    orderId: $orderUuid->value(),
+                    closedByUserId: $closedByUserId,
+                );
             }
 
             return CreateSaleResponse::create($sale);

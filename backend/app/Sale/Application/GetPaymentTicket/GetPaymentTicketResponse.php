@@ -18,6 +18,11 @@ final class GetPaymentTicketResponse
         public readonly ?int $remainingCents,
         public readonly array $payments,
         public readonly ?string $issuedAt,
+        public readonly ?string $issuedTime,
+        public readonly ?array $lines,
+        public readonly ?array $taxBreakdown,
+        public readonly ?int $zReportNumber,
+        public readonly ?string $operator,
         public readonly ?array $snapshot,
     ) {}
 
@@ -32,6 +37,11 @@ final class GetPaymentTicketResponse
         ?int $remainingCents,
         array $payments,
         ?string $issuedAt,
+        ?string $issuedTime,
+        ?array $lines,
+        ?array $taxBreakdown,
+        ?int $zReportNumber,
+        ?string $operator,
         ?array $snapshot,
     ): self {
         return new self(
@@ -46,6 +56,11 @@ final class GetPaymentTicketResponse
             remainingCents: $remainingCents,
             payments: $payments,
             issuedAt: $issuedAt,
+            issuedTime: $issuedTime,
+            lines: $lines,
+            taxBreakdown: $taxBreakdown,
+            zReportNumber: $zReportNumber,
+            operator: $operator,
             snapshot: $snapshot,
         );
     }
@@ -64,6 +79,11 @@ final class GetPaymentTicketResponse
             'remaining_cents' => $this->remainingCents,
             'payments' => $this->payments,
             'issued_at' => $this->issuedAt,
+            'issued_time' => $this->issuedTime,
+            'lines' => $this->lines,
+            'tax_breakdown' => $this->taxBreakdown,
+            'z_report_number' => $this->zReportNumber,
+            'operator' => $this->operator,
             'snapshot' => $this->snapshot,
         ];
     }

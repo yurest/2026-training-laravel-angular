@@ -1,8 +1,9 @@
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, take } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-register-modal',
@@ -26,9 +27,8 @@ export class RegisterModalComponent {
   });
 
   public isSubmitting: boolean = false;
-  public errorMessage: string | null = null;
-  public successMessage: string | null = null;
-  public generatedPinMessage: string | null = null;
+
+  private readonly toastService = inject(ToastService);
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -57,9 +57,6 @@ export class RegisterModalComponent {
     }
 
     this.isSubmitting = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-    this.generatedPinMessage = null;
 
     const { restaurantName, legalName, email, nif, pin, password } = this.registerForm.getRawValue();
 
@@ -73,9 +70,9 @@ export class RegisterModalComponent {
       )
       .subscribe({
         next: (response) => {
-          this.successMessage = 'Cuenta creada correctamente. Ya puedes iniciar sesion.';
+          this.toastService.presentSuccess('Cuenta creada correctamente. Ya puedes iniciar sesión.');
           if (response.admin_pin) {
-            this.generatedPinMessage = `PIN de administrador: ${response.admin_pin}`;
+            this.toastService.presentInfo(`PIN de administrador: ${response.admin_pin}`);
           }
           this.registerForm.patchValue({
             restaurantName: '',
@@ -92,7 +89,8 @@ export class RegisterModalComponent {
           }, 700);
         },
         error: (error: unknown) => {
-          this.errorMessage = error instanceof Error ? error.message : 'No se pudo crear la cuenta.';
+          const message = error instanceof Error ? error.message : 'No se pudo crear la cuenta.';
+          this.toastService.presentError(message);
         },
       });
   }

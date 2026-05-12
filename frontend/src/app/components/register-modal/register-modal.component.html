@@ -55,16 +55,6 @@
         }
       </div>
 
-      @if (errorMessage) {
-        <p class="server-error">{{ errorMessage }}</p>
-      }
-      @if (successMessage) {
-        <p class="success-message">{{ successMessage }}</p>
-      }
-      @if (generatedPinMessage) {
-        <p class="success-message">{{ generatedPinMessage }}</p>
-      }
-
       <button class="btn-login" style="margin-top:8px" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Creando...' : 'Crear cuenta' }}
       </button>

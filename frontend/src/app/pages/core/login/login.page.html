@@ -51,9 +51,6 @@
                 </p>
               }
             </div>
-            @if (facade.errorMessage(); as error) {
-              <p class="server-error">{{ error }}</p>
-            }
             <button class="btn-login" type="submit" [disabled]="facade.isSubmitting()">
               {{ facade.isSubmitting() ? 'Validando...' : 'Entrar' }}
             </button>
@@ -85,10 +82,10 @@
               <p>Cargando empleados...</p>
             </div>
           }
-          @if (facade.errorMessage() && !showPinPanel && !showEmailForm) {
+          @if (facade.hasError() && !showPinPanel && !showEmailForm) {
             <div class="error-container">
               <div class="error-box">
-                <p>{{ facade.errorMessage() }}</p>
+                <p>No se pudieron cargar los empleados.</p>
               </div>
             </div>
           }
@@ -146,9 +143,6 @@
             <div class="pin-dot" [class.filled]="isPinDotFilled(2)"></div>
             <div class="pin-dot" [class.filled]="isPinDotFilled(3)"></div>
           </div>
-          @if (facade.errorMessage(); as error) {
-            <div class="server-error">{{ error }}</div>
-          }
           <div class="pin-keypad">
             <button class="key" type="button" (click)="pinKey('1')">1</button>
             <button class="key" type="button" (click)="pinKey('2')">2</button>
@@ -211,9 +205,6 @@
                 </p>
               }
             </div>
-            @if (facade.errorMessage(); as error) {
-              <p class="server-error">{{ error }}</p>
-            }
             <button class="btn-login" type="submit" [disabled]="facade.isSubmitting()">
               {{ facade.isSubmitting() ? 'Validando...' : 'Entrar' }}
             </button>

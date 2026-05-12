@@ -1,10 +1,11 @@
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { finalize, take } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-link-device-admin-login',
@@ -19,7 +20,8 @@ export class LinkDeviceAdminLoginPage {
   });
 
   public isSubmitting: boolean = false;
-  public errorMessage: string | null = null;
+
+  private readonly toastService = inject(ToastService);
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -40,7 +42,6 @@ export class LinkDeviceAdminLoginPage {
 
   private loginWithApi(email: string, password: string): void {
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     this.authService
       .loginForDeviceLink(email, password)
@@ -56,11 +57,10 @@ export class LinkDeviceAdminLoginPage {
         },
         error: (error: unknown) => {
           const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión.';
-          if (message.includes('Only admin users can link devices')) {
-            this.errorMessage = 'Solo los usuarios admin pueden vincular dispositivos.';
-          } else {
-            this.errorMessage = message;
-          }
+          const friendlyMessage = message.includes('Only admin users can link devices')
+            ? 'Solo los usuarios admin pueden vincular dispositivos.'
+            : message;
+          this.toastService.presentError(friendlyMessage);
         },
       });
   }

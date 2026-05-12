@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -8,6 +8,7 @@ import { NumpadComponent } from '../../../../shared/components/numpad/numpad.com
 import { AmountDisplayComponent } from '../../../../shared/components/amount-display/amount-display.component';
 import { DinersStatusComponent } from '../../../../shared/components/diners-status/diners-status.component';
 import { PaymentMethod } from '../../../../core/enums/payment-method.enum';
+import { ToastService } from '../../../../core/services/toast.service';
 
 export interface OrderLine {
   id?: string;
@@ -35,6 +36,8 @@ export class CobrarModalComponent implements OnChanges {
   @Output() closeModal = new EventEmitter<void>();
   @Output() confirmPayment = new EventEmitter<{ method: PaymentMethod; amount: number; tip?: number; isManualPartial?: boolean }>();
   @Output() splitBill = new EventEmitter<void>();
+
+  private readonly toastService = inject(ToastService);
 
   public Math = Math;
   public method: PaymentMethod = PaymentMethod.CASH;
@@ -74,14 +77,16 @@ export class CobrarModalComponent implements OnChanges {
     [PaymentMethod.INVITATION]: 'Invitación',
   };
 
+  public static readonly METHODS: Array<{ value: PaymentMethod; label: string; icon: string }> = [
+    { value: PaymentMethod.CASH, label: 'Efectivo', icon: 'cash' },
+    { value: PaymentMethod.CARD, label: 'Tarjeta', icon: 'card' },
+    { value: PaymentMethod.BIZUM, label: 'Bizum', icon: 'phone' },
+    { value: PaymentMethod.MIXED, label: 'Mixto', icon: 'mixed' },
+    { value: PaymentMethod.INVITATION, label: 'Invitación', icon: 'gift' },
+  ];
+
   public get methods(): Array<{ value: PaymentMethod; label: string; icon: string }> {
-    return [
-      { value: PaymentMethod.CASH, label: 'Efectivo', icon: 'cash' },
-      { value: PaymentMethod.CARD, label: 'Tarjeta', icon: 'card' },
-      { value: PaymentMethod.BIZUM, label: 'Bizum', icon: 'phone' },
-      { value: PaymentMethod.MIXED, label: 'Mixto', icon: 'mixed' },
-      { value: PaymentMethod.INVITATION, label: 'Invitación', icon: 'gift' },
-    ];
+    return CobrarModalComponent.METHODS;
   }
 
 
@@ -96,19 +101,19 @@ export class CobrarModalComponent implements OnChanges {
     const amountToPay = this.effectiveAmount;
 
     if (amountToPay <= 0) {
-      alert('El importe a cobrar debe ser mayor a 0.');
+      this.toastService.presentWarning('El importe a cobrar debe ser mayor a 0.');
       return;
     }
 
     if (this.method === PaymentMethod.CASH) {
       if (this.inputAmount > this.total * 2 && this.total > 0) {
-        alert('El importe introducido parece demasiado alto. Por favor, verifíquelo.');
+        this.toastService.presentWarning('El importe introducido parece demasiado alto. Por favor, verifíquelo.');
         return;
       }
     }
 
     if (tip > amountToPay) {
-      alert('La propina no puede superar el importe a cobrar.');
+      this.toastService.presentWarning('La propina no puede superar el importe a cobrar.');
       return;
     }
 

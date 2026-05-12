@@ -18,6 +18,10 @@ final class GetFinalTicketPrintResponse
         public readonly array $taxBreakdown,
         public readonly array $paymentsSnapshot,
         public readonly string $createdAt,
+        public readonly ?string $createdTime,
+        public readonly ?array $orderLines,
+        public readonly ?int $zReportNumber,
+        public readonly ?string $operator,
     ) {}
 
     public static function fromPayload(
@@ -31,6 +35,10 @@ final class GetFinalTicketPrintResponse
         array $taxBreakdown,
         array $paymentsSnapshot,
         string $createdAt,
+        ?string $createdTime,
+        ?array $orderLines,
+        ?int $zReportNumber,
+        ?string $operator,
     ): self {
         return new self(
             type: 'final',
@@ -44,6 +52,10 @@ final class GetFinalTicketPrintResponse
             taxBreakdown: $taxBreakdown,
             paymentsSnapshot: $paymentsSnapshot,
             createdAt: $createdAt,
+            createdTime: $createdTime,
+            orderLines: $orderLines,
+            zReportNumber: $zReportNumber,
+            operator: $operator,
         );
     }
 
@@ -61,6 +73,10 @@ final class GetFinalTicketPrintResponse
             'tax_breakdown' => $this->taxBreakdown,
             'payments_snapshot' => $this->paymentsSnapshot,
             'created_at' => $this->createdAt,
+            'created_time' => $this->createdTime,
+            'order_lines' => $this->orderLines,
+            'z_report_number' => $this->zReportNumber,
+            'operator' => $this->operator,
         ];
     }
 }

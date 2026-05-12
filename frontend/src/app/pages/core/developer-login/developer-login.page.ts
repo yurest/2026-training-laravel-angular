@@ -1,10 +1,11 @@
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { finalize, take } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-developer-login',
@@ -19,7 +20,8 @@ export class DeveloperLoginPage {
   });
 
   public isSubmitting: boolean = false;
-  public errorMessage: string | null = null;
+
+  private readonly toastService = inject(ToastService);
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -45,7 +47,6 @@ export class DeveloperLoginPage {
 
   private submitLogin(email: string, password: string): void {
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     this.authService
       .superAdminLogin(email, password)
@@ -60,7 +61,8 @@ export class DeveloperLoginPage {
           this.router.navigateByUrl('/app/developer-dashboard');
         },
         error: (error: unknown) => {
-          this.errorMessage = error instanceof Error ? error.message : 'No se pudo iniciar sesion.';
+          const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión.';
+          this.toastService.presentError(message);
         },
       });
   }

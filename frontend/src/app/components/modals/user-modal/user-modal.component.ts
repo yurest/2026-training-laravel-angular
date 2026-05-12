@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService, AuthUser } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface UserModalData {
   mode: 'create' | 'edit' | 'list';
@@ -30,8 +31,9 @@ export class UserModalComponent implements OnChanges {
   public users: AuthUser[] = [];
   public isLoading = false;
   public isSubmitting = false;
-  public error: string | null = null;
   public currentMode: 'list' | 'form' = 'list';
+
+  private readonly toastService = inject(ToastService);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -60,7 +62,6 @@ export class UserModalComponent implements OnChanges {
   public onClose(): void {
     this.currentMode = 'list';
     this.form.reset();
-    this.error = null;
     this.close.emit();
   }
 
@@ -86,7 +87,6 @@ export class UserModalComponent implements OnChanges {
 
   private loadUsers(): void {
     this.isLoading = true;
-    this.error = null;
 
     this.authService.getRestaurantUsers(this.modalData.restaurantUuid).subscribe({
       next: (users) => {
@@ -94,7 +94,8 @@ export class UserModalComponent implements OnChanges {
         this.isLoading = false;
       },
       error: (error) => {
-        this.error = error instanceof Error ? error.message : 'Error al cargar usuarios';
+        const message = error instanceof Error ? error.message : 'Error al cargar usuarios';
+        this.toastService.presentError(message);
         this.isLoading = false;
       },
     });
@@ -106,7 +107,6 @@ export class UserModalComponent implements OnChanges {
     }
 
     this.isSubmitting = true;
-    this.error = null;
 
     if (this.currentMode === 'form') {
       const formValue = this.form.getRawValue();
@@ -129,7 +129,8 @@ export class UserModalComponent implements OnChanges {
           },
           error: (error) => {
             this.isSubmitting = false;
-            this.error = error instanceof Error ? error.message : 'Error al crear usuario';
+            const message = error instanceof Error ? error.message : 'Error al crear usuario';
+            this.toastService.presentError(message);
           },
         });
       } else if (this.modalData.mode === 'edit' && this.modalData.user) {
@@ -150,7 +151,8 @@ export class UserModalComponent implements OnChanges {
             },
             error: (error) => {
               this.isSubmitting = false;
-              this.error = error instanceof Error ? error.message : 'Error al actualizar usuario';
+              const message = error instanceof Error ? error.message : 'Error al actualizar usuario';
+              this.toastService.presentError(message);
             },
           });
       }
@@ -168,7 +170,8 @@ export class UserModalComponent implements OnChanges {
         this.save.emit();
       },
       error: (error) => {
-        this.error = error instanceof Error ? error.message : 'Error al eliminar usuario';
+        const message = error instanceof Error ? error.message : 'Error al eliminar usuario';
+        this.toastService.presentError(message);
       },
     });
   }
@@ -184,7 +187,6 @@ export class UserModalComponent implements OnChanges {
   }
 
   private initializeState(): void {
-    this.error = null;
     this.isSubmitting = false;
 
     if (this.modalData.mode === 'list') {
@@ -218,7 +220,6 @@ export class UserModalComponent implements OnChanges {
     this.form.get('password')?.enable();
     this.form.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
     this.form.get('password')?.updateValueAndValidity();
-    this.error = null;
   }
 
   private setupEditForm(user: AuthUser): void {
@@ -234,7 +235,6 @@ export class UserModalComponent implements OnChanges {
     this.form.get('password')?.clearAsyncValidators();
     this.form.get('password')?.clearValidators();
     this.form.get('password')?.updateValueAndValidity();
-    this.error = null;
   }
 
   private createForm(): FormGroup {

@@ -154,13 +154,40 @@
 }
 
 .method-icon {
-  width: 32px;
-  height: 32px;
+  font-size: 32px;
+  line-height: 1;
   color: var(--gray-600);
-  transition: color 0.12s;
+  transition: transform 0.12s;
 
   .active & {
+    transform: scale(1.1);
     color: var(--accent);
+  }
+}
+
+.method-icon-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000 !important;
+  letter-spacing: 0.5px;
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+
+  .active & {
+    color: var(--accent) !important;
+    border-color: var(--accent);
+  }
+}
+
+.method-icon-emoji {
+  font-size: 32px;
+  line-height: 1;
+  transition: transform 0.12s;
+
+  .active & {
+    transform: scale(1.1);
   }
 }
 

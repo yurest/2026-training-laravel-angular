@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { DeviceStorageService, LinkedRestaurant } from '../../../core/services/device-storage.service';
 import { UserRole } from '../../../core/enums/user-role.enum';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface QuickUser {
   name: string;
@@ -16,30 +17,31 @@ export interface QuickUser {
 export class LoginFacade {
   private readonly authService = inject(AuthService);
   private readonly deviceStorageService = inject(DeviceStorageService);
+  private readonly toastService = inject(ToastService);
 
   private readonly _employees = signal<QuickUser[]>([]);
   private readonly _linkedRestaurant = signal<LinkedRestaurant | null>(null);
   private readonly _isLoading = signal<boolean>(true);
   private readonly _isSubmitting = signal<boolean>(false);
-  private readonly _errorMessage = signal<string | null>(null);
+  private readonly _hasError = signal<boolean>(false);
 
   public readonly employees: Signal<QuickUser[]> = this._employees.asReadonly();
   public readonly linkedRestaurant: Signal<LinkedRestaurant | null> = this._linkedRestaurant.asReadonly();
   public readonly isLoading: Signal<boolean> = this._isLoading.asReadonly();
   public readonly isSubmitting: Signal<boolean> = this._isSubmitting.asReadonly();
-  public readonly errorMessage: Signal<string | null> = this._errorMessage.asReadonly();
+  public readonly hasError: Signal<boolean> = this._hasError.asReadonly();
 
   public refreshLinkedRestaurant(): void {
     this._linkedRestaurant.set(this.deviceStorageService.getLinkedRestaurant());
   }
 
   public clearError(): void {
-    this._errorMessage.set(null);
+    this._hasError.set(false);
   }
 
   public async loadEmployees(): Promise<void> {
     this._isLoading.set(true);
-    this._errorMessage.set(null);
+    this._hasError.set(false);
 
     try {
       const users = await firstValueFrom(
@@ -56,7 +58,9 @@ export class LoginFacade {
         })),
       );
     } catch (error) {
-      this._errorMessage.set(error instanceof Error ? error.message : 'No se pudieron cargar los empleados.');
+      const message = error instanceof Error ? error.message : 'No se pudieron cargar los empleados.';
+      this._hasError.set(true);
+      this.toastService.presentError(message);
     } finally {
       this._isLoading.set(false);
     }
@@ -68,14 +72,14 @@ export class LoginFacade {
 
   public async loginWithEmail(email: string, password: string): Promise<boolean> {
     this._isSubmitting.set(true);
-    this._errorMessage.set(null);
 
     try {
       await firstValueFrom(this.authService.login(email, password));
 
       return true;
     } catch (error) {
-      this._errorMessage.set(error instanceof Error ? error.message : 'No se pudo iniciar sesión.');
+      const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión.';
+      this.toastService.presentError(message);
 
       return false;
     } finally {
@@ -85,14 +89,14 @@ export class LoginFacade {
 
   public async loginWithPin(userUuid: string, pin: string): Promise<boolean> {
     this._isSubmitting.set(true);
-    this._errorMessage.set(null);
 
     try {
       await firstValueFrom(this.authService.loginWithPin(userUuid, pin, this.authService.getDeviceId()));
 
       return true;
     } catch (error) {
-      this._errorMessage.set(error instanceof Error ? error.message : 'No se pudo iniciar sesión con PIN.');
+      const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión con PIN.';
+      this.toastService.presentError(message);
 
       return false;
     } finally {

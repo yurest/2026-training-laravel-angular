@@ -6,10 +6,13 @@ namespace App\Sale\Application\GetFinalTicketPrint;
 
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Order\Domain\Interfaces\OrderRepositoryInterface;
+use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
 use App\Sale\Domain\Interfaces\OrderFinalTicketRepositoryInterface;
 use App\Shared\Domain\ValueObject\Uuid;
 use App\Tables\Domain\Interfaces\TableRepositoryInterface;
+use App\User\Domain\Interfaces\UserRepositoryInterface;
+use App\Cash\Domain\Interfaces\CashSessionRepositoryInterface;
 
 final class GetFinalTicketPrint
 {
@@ -19,6 +22,9 @@ final class GetFinalTicketPrint
         private readonly OrderLineRepositoryInterface $orderLineRepository,
         private readonly TableRepositoryInterface $tableRepository,
         private readonly RestaurantRepositoryInterface $restaurantRepository,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly CashSessionRepositoryInterface $cashSessionRepository,
+        private readonly ProductRepositoryInterface $productRepository,
     ) {}
 
     public function __invoke(string $orderId): ?GetFinalTicketPrintResponse
@@ -37,6 +43,37 @@ final class GetFinalTicketPrint
         $restaurant = $this->restaurantRepository->findByUuid($ticket->restaurantId());
 
         $taxBreakdown = $this->buildTaxBreakdown($orderUuid->value());
+
+        // Obtener hora
+        $createdTime = $ticket->createdAt()->format('H:i');
+
+        // Obtener líneas de la orden con nombres de productos
+        $orderLines = $this->orderLineRepository->findByOrderId($orderUuid);
+        $orderLinesPayload = [];
+        $productNameCache = [];
+        foreach ($orderLines as $line) {
+            $productId = $line->productId()->value();
+            if (! isset($productNameCache[$productId])) {
+                $product = $this->productRepository->findById($productId);
+                $productNameCache[$productId] = $product !== null ? $product->name()->value() : 'Producto';
+            }
+            $orderLinesPayload[] = [
+                'name' => $productNameCache[$productId],
+                'quantity' => $line->quantity()->value(),
+                'price_cents' => $line->price()->value(),
+                'total_cents' => $line->price()->value() * $line->quantity()->value(),
+            ];
+        }
+
+        // Obtener operario (del ticket)
+        $operator = null;
+        $operatorUser = $this->userRepository->findById($ticket->closedByUserId()->value());
+        if ($operatorUser !== null) {
+            $operator = $operatorUser->name()->value();
+        }
+
+        // Obtener Z-report number (de la sesión de caja - por ahora null, se puede obtener de la venta)
+        $zReportNumber = null;
 
         return GetFinalTicketPrintResponse::fromPayload(
             ticketId: $ticket->id()->value(),
@@ -57,6 +94,10 @@ final class GetFinalTicketPrint
             taxBreakdown: $taxBreakdown,
             paymentsSnapshot: $ticket->paymentsSnapshot(),
             createdAt: $ticket->createdAt()->format(\DateTimeInterface::ATOM),
+            createdTime: $createdTime,
+            orderLines: $orderLinesPayload,
+            zReportNumber: $zReportNumber,
+            operator: $operator,
         );
     }
 

@@ -30,6 +30,7 @@ import { PaymentMethod } from '../../../../core/enums/payment-method.enum';
 import { OrderStatus } from '../../../../core/enums/order-status.enum';
 import { CashMovementType } from '../../../../core/enums/cash-movement-type.enum';
 import { CashMovementReason } from '../../../../core/enums/cash-movement-reason.enum';
+import { ToastService } from '../../../../core/services/toast.service';
 
 interface LastClosedData {
   id: string;
@@ -100,6 +101,7 @@ export class CajaPage implements OnInit, OnDestroy {
   protected readonly chargeSessionService = inject(ChargeSessionService);
   protected readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
+  protected readonly toastService = inject(ToastService);
 
   // Computed signals from facade
   public readonly state = computed(() => this.sessionFacade.state());
@@ -439,7 +441,7 @@ export class CajaPage implements OnInit, OnDestroy {
         this.showMovementModal = false;
         this.loadSessionSummary();
       },
-      error: (error) => { alert('Error al registrar el movimiento: ' + error.message); },
+      error: (error) => { this.toastService.presentError('Error al registrar el movimiento: ' + error.message); },
     });
   }
 
@@ -453,14 +455,14 @@ export class CajaPage implements OnInit, OnDestroy {
         this.loadSessionSummary();
         this.stopRefreshInterval();
       },
-      error: (error) => { alert('Error al iniciar cierre: ' + error.message); },
+      error: (error) => { this.toastService.presentError('Error al iniciar cierre: ' + error.message); },
     });
   }
 
   public onCancelClosing(): void {
     if (!this.activeSession()) return;
     if (this.activeSession()!.status !== 'closing') {
-      alert('Solo se puede cancelar el cierre cuando la sesión está en proceso de cierre.');
+      this.toastService.presentWarning('Solo se puede cancelar el cierre cuando la sesión está en proceso de cierre.');
       return;
     }
     this.sessionFacade.cancelClosing({ cash_session_id: this.activeSession()!.uuid }).pipe(takeUntil(this.destroy$)).subscribe({
@@ -470,7 +472,7 @@ export class CajaPage implements OnInit, OnDestroy {
         this.sessionFacade.setActiveSession({ ...this.activeSession()!, status: response.status as 'open' | 'closing' | 'closed' | 'abandoned' });
         this.startRefreshInterval();
       },
-      error: (error) => { alert('Error al cancelar el cierre: ' + error.message); },
+      error: (error) => { this.toastService.presentError('Error al cancelar el cierre: ' + error.message); },
     });
   }
 
@@ -510,7 +512,7 @@ export class CajaPage implements OnInit, OnDestroy {
             this.sessionFacade.setActiveSession(session);
             this.proceedWithClose(data);
           } else {
-            alert('Error: La sesión no está en estado de cierre. Por favor, intente iniciar el cierre nuevamente.');
+            this.toastService.presentError('La sesión no está en estado de cierre. Por favor, intente iniciar el cierre nuevamente.');
             if (session) {
               this.sessionFacade.setActiveSession(session);
               this.sessionFacade.setState(session.status === 'open' ? CajaState.ACTIVA : CajaState.ARQUEO);
@@ -518,7 +520,7 @@ export class CajaPage implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          alert('Error al verificar el estado de la caja.');
+          this.toastService.presentError('Error al verificar el estado de la caja.');
         },
       });
       return;
@@ -542,7 +544,7 @@ export class CajaPage implements OnInit, OnDestroy {
         this.loadClosedSessions();
       },
       error: (error) => {
-        alert('Error al cerrar la caja: ' + error.message);
+        this.toastService.presentError('Error al cerrar la caja: ' + error.message);
       },
     });
   }
@@ -734,7 +736,7 @@ export class CajaPage implements OnInit, OnDestroy {
       }),
       catchError((error) => {
         console.error('Error in payment flow chain:', error);
-        alert('No se pudo cargar la orden.');
+        this.toastService.presentError('No se pudo cargar la orden.');
         this.pendingTableToCharge = null;
         return throwError(() => error);
       })
@@ -922,19 +924,19 @@ export class CajaPage implements OnInit, OnDestroy {
 
     if (!this.selectedTable) {
       console.error('No selected table');
-      alert('Error: No hay mesa seleccionada');
+      this.toastService.presentError('No hay mesa seleccionada');
       return;
     }
 
     if (!this.currentUser) {
       console.error('No current user');
-      alert('Error: No hay usuario actual');
+      this.toastService.presentError('No hay usuario actual');
       return;
     }
 
     if (!this.selectedTable?.order_id) {
       console.error('No order_id in selected table');
-      alert('Error: No hay orden seleccionada');
+      this.toastService.presentError('No hay orden seleccionada');
       return;
     }
 
@@ -1097,7 +1099,7 @@ export class CajaPage implements OnInit, OnDestroy {
       }),
       catchError((error) => {
         console.error('Error creating sale:', error);
-        alert('Error al crear la venta: ' + (error.message || 'Error desconocido'));
+        this.toastService.presentError('Error al crear la venta: ' + (error.message || 'Error desconocido'));
         this.paymentFacade.setIsProcessingPayment(false);
         return throwError(() => error);
       })

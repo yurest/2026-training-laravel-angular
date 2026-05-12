@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Demo seeder para el restaurante SAONA.
+ * Demo seeder para el restaurante Bar Manolo.
  * Idempotente: se puede ejecutar varias veces sin duplicar datos.
  *
  * Ejecutar con:
@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
  */
 class SaonaDemoSeeder extends Seeder
 {
-    private const RESTAURANT_EMAIL = 'saona@gmail.com';
+    private const RESTAURANT_EMAIL = 'barmanolo@gmail.com';
 
     private const DEMO_DEVICE_ID = 'seed-device-001';
 
@@ -34,14 +34,14 @@ class SaonaDemoSeeder extends Seeder
         $this->seedTables($restaurantId, $zoneIds, $now);
         $this->seedQuickAccess($restaurantId, $userIds, $now);
 
-        $this->command->info('SAONA demo seeded correctamente.');
+        $this->command->info('Bar Manolo demo seeded correctamente.');
         $this->command->info('  Admin:      '.self::RESTAURANT_EMAIL.' / 12345678 / PIN 1234');
         $this->command->info('  Supervisor: maria@saona.com / 12345678 / PIN 2345');
         $this->command->info('  Operadores: carlos/laura/javier/sofia@saona.com / 12345678 / PIN 3456-6789');
     }
 
     /**
-     * Borra todos los datos operativos del restaurante SAONA para dejar la
+     * Borra todos los datos operativos del restaurante Bar Manolo para dejar la
      * demo en un estado conocido. Se respeta el orden de FKs.
      */
     private function wipeExistingData(int $restaurantId): void
@@ -91,9 +91,9 @@ class SaonaDemoSeeder extends Seeder
             ['email' => self::RESTAURANT_EMAIL],
             [
                 'uuid' => (string) Str::uuid(),
-                'name' => 'SAONA',
-                'legal_name' => 'SAONA Mediterranean Food S.L.',
-                'tax_id' => 'B98765432',
+                'name' => 'Bar Manolo',
+                'legal_name' => 'Bar Manolo Restauración S.L.',
+                'tax_id' => 'B12345678',
                 'password' => Hash::make('12345678'),
                 'updated_at' => $now,
                 'created_at' => $now,
@@ -132,7 +132,7 @@ class SaonaDemoSeeder extends Seeder
         $password = Hash::make('12345678');
 
         $users = [
-            ['email' => self::RESTAURANT_EMAIL, 'name' => 'José María Castellar', 'role' => 'admin',       'pin' => '1234'],
+            ['email' => self::RESTAURANT_EMAIL, 'name' => 'Manolo Pérez',          'role' => 'admin',       'pin' => '1234'],
             ['email' => 'maria@saona.com',      'name' => 'María García',          'role' => 'supervisor', 'pin' => '2345'],
             ['email' => 'carlos@saona.com',     'name' => 'Carlos Ruiz',           'role' => 'operator',  'pin' => '3456'],
             ['email' => 'laura@saona.com',      'name' => 'Laura Martínez',        'role' => 'operator',  'pin' => '4567'],
@@ -236,7 +236,7 @@ class SaonaDemoSeeder extends Seeder
 
             // ── Ensaladas ──
             ['fam' => 'Ensaladas', 'tax' => $ivaReducido, 'name' => 'Ensalada César',           'price' => 1190, 'stock' => 50],
-            ['fam' => 'Ensaladas', 'tax' => $ivaReducido, 'name' => 'Ensalada Saona',           'price' => 1250, 'stock' => 50],
+            ['fam' => 'Ensaladas', 'tax' => $ivaReducido, 'name' => 'Ensalada de la Casa',     'price' => 1250, 'stock' => 50],
             ['fam' => 'Ensaladas', 'tax' => $ivaReducido, 'name' => 'Ensalada de quinoa',       'price' => 1150, 'stock' => 40],
             ['fam' => 'Ensaladas', 'tax' => $ivaReducido, 'name' => 'Ensalada de burrata',      'price' => 1350, 'stock' => 30],
             ['fam' => 'Ensaladas', 'tax' => $ivaReducido, 'name' => 'Ensalada de pollo crispy', 'price' => 1290, 'stock' => 40],
@@ -253,7 +253,7 @@ class SaonaDemoSeeder extends Seeder
             // ── Carnes ──
             ['fam' => 'Carnes', 'tax' => $ivaReducido, 'name' => 'Entrecot a la brasa',            'price' => 2250, 'stock' => 20],
             ['fam' => 'Carnes', 'tax' => $ivaReducido, 'name' => 'Solomillo de ternera',          'price' => 2400, 'stock' => 15],
-            ['fam' => 'Carnes', 'tax' => $ivaReducido, 'name' => 'Hamburguesa Saona',             'price' => 1390, 'stock' => 40],
+            ['fam' => 'Carnes', 'tax' => $ivaReducido, 'name' => 'Hamburguesa Manolo',           'price' => 1390, 'stock' => 40],
             ['fam' => 'Carnes', 'tax' => $ivaReducido, 'name' => 'Pollo teriyaki',                'price' => 1450, 'stock' => 35],
             ['fam' => 'Carnes', 'tax' => $ivaReducido, 'name' => 'Costillas a la barbacoa',       'price' => 1690, 'stock' => 25],
 

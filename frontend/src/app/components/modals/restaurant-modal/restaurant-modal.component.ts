@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject } from '@angular/core';
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonText } from '@ionic/angular/standalone';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface RestaurantModalData {
     mode: 'create' | 'edit';
@@ -34,7 +35,8 @@ export class RestaurantModalComponent implements OnChanges {
 
     public form: FormGroup;
     public isSubmitting = false;
-    public error: string | null = null;
+
+    private readonly toastService = inject(ToastService);
 
     constructor(
         private readonly fb: FormBuilder,
@@ -53,7 +55,6 @@ export class RestaurantModalComponent implements OnChanges {
     }
 
     private initializeForm(): void {
-        this.error = null;
         this.isSubmitting = false;
 
         if (this.modalData.mode === 'edit' && this.modalData.restaurant) {
@@ -115,7 +116,6 @@ export class RestaurantModalComponent implements OnChanges {
         }
 
         this.isSubmitting = true;
-        this.error = null;
 
         const formValue = this.form.getRawValue();
         console.log('Enviando:', this.modalData.mode, formValue);
@@ -152,8 +152,9 @@ export class RestaurantModalComponent implements OnChanges {
             },
             error: (error) => {
                 this.isSubmitting = false;
-                this.error = error instanceof Error ? error.message : 'Error al crear restaurante';
-                console.error('❌ Error crear:', this.error);
+                const message = error instanceof Error ? error.message : 'Error al crear restaurante';
+                console.error('❌ Error crear:', message);
+                this.toastService.presentError(message);
             },
         });
     }
@@ -178,8 +179,9 @@ export class RestaurantModalComponent implements OnChanges {
             },
             error: (error) => {
                 this.isSubmitting = false;
-                this.error = error instanceof Error ? error.message : 'Error al actualizar restaurante';
-                console.error('❌ Error actualizar:', this.error);
+                const message = error instanceof Error ? error.message : 'Error al actualizar restaurante';
+                console.error('❌ Error actualizar:', message);
+                this.toastService.presentError(message);
             },
         });
     }

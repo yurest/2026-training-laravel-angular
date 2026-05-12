@@ -1,8 +1,9 @@
 
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 export interface PinAuthResult {
   userId: string;
@@ -25,11 +26,11 @@ export class PinAuthModalComponent implements OnDestroy {
   @Output() authenticated = new EventEmitter<PinAuthResult>();
 
   public enteredPin = '';
-  public pinError: string | null = null;
   public isVerifying = false;
   public showSuccess = false;
 
   private successTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly toastService = inject(ToastService);
 
   constructor(private readonly authService: AuthService) {}
 
@@ -51,13 +52,11 @@ export class PinAuthModalComponent implements OnDestroy {
 
     if (key === 'del') {
       this.enteredPin = this.enteredPin.slice(0, -1);
-      this.pinError = null;
       return;
     }
 
     if (this.enteredPin.length < 4) {
       this.enteredPin += key;
-      this.pinError = null;
 
       if (this.enteredPin.length === 4) {
         void this.verifyPin();
@@ -68,19 +67,17 @@ export class PinAuthModalComponent implements OnDestroy {
   public clearPin(): void {
     if (this.isVerifying || this.showSuccess) return;
     this.enteredPin = '';
-    this.pinError = null;
   }
 
   private async verifyPin(): Promise<void> {
     if (this.enteredPin.length !== 4 || this.isVerifying) return;
 
     this.isVerifying = true;
-    this.pinError = null;
 
     try {
       const currentUser = await firstValueFrom(this.authService.currentUser$);
       if (!currentUser) {
-        this.pinError = 'No hay sesión activa';
+        this.toastService.presentError('No hay sesión activa');
         this.enteredPin = '';
         this.isVerifying = false;
         return;
@@ -106,10 +103,11 @@ export class PinAuthModalComponent implements OnDestroy {
     } catch (err) {
       this.isVerifying = false;
       if (err instanceof Error && err.message.includes('PIN')) {
-        this.pinError = 'PIN incorrecto';
+        this.toastService.presentError('PIN incorrecto');
         this.enteredPin = '';
       } else {
-        this.pinError = err instanceof Error ? err.message : 'Error al verificar';
+        const message = err instanceof Error ? err.message : 'Error al verificar';
+        this.toastService.presentError(message);
         this.enteredPin = '';
       }
     }
@@ -117,7 +115,6 @@ export class PinAuthModalComponent implements OnDestroy {
 
   private reset(): void {
     this.enteredPin = '';
-    this.pinError = null;
     this.isVerifying = false;
     this.showSuccess = false;
   }

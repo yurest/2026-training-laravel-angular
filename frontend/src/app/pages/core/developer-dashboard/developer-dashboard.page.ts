@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { take } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { RestaurantModalComponent } from '../../../components/modals/restaurant-modal/restaurant-modal.component';
 import { UserModalComponent } from '../../../components/modals/user-modal/user-modal.component';
 import { DeveloperDashboardFacade } from './facades/developer-dashboard.facade';
@@ -32,11 +33,11 @@ interface CompanyGroup {
 export class DeveloperDashboardPage implements OnInit {
     protected readonly dashboardFacade = inject(DeveloperDashboardFacade);
     private readonly router = inject(Router);
+    private readonly toastService = inject(ToastService);
 
     // Computed signals from facade
     public readonly companies = computed(() => this.dashboardFacade.dashboardCompanies());
     public readonly isLoading = computed(() => this.dashboardFacade.dashboardLoading());
-    public readonly error = computed(() => this.dashboardFacade.dashboardError());
 
     public restaurantModalOpen = false;
     public restaurantModalData: any = { mode: 'create' };
@@ -82,7 +83,8 @@ export class DeveloperDashboardPage implements OnInit {
                 this.dashboardFacade.loadRestaurants();
             },
             error: (error) => {
-                this.dashboardFacade.setError(error instanceof Error ? error.message : 'Error al eliminar restaurante');
+                const message = error instanceof Error ? error.message : 'Error al eliminar restaurante';
+                this.toastService.presentError(message);
             },
         });
     }

@@ -1,11 +1,12 @@
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { take } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { DeviceStorageService, LinkedRestaurant } from '../../../core/services/device-storage.service';
 import { AppContextService } from '../../../core/services/app-context.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 interface Restaurant {
   uuid: string;
@@ -24,8 +25,10 @@ interface Restaurant {
 export class LinkDeviceSelectRestaurantPage {
   public restaurants: Restaurant[] = [];
   public isLoading: boolean = true;
-  public errorMessage: string | null = null;
+  public hasError: boolean = false;
   public adminName: string = '';
+
+  private readonly toastService = inject(ToastService);
 
   constructor(
     private readonly authService: AuthService,
@@ -42,7 +45,7 @@ export class LinkDeviceSelectRestaurantPage {
 
   public loadRestaurants(): void {
     this.isLoading = true;
-    this.errorMessage = null;
+    this.hasError = false;
 
     this.authService
       .getAdminRestaurants()
@@ -53,8 +56,10 @@ export class LinkDeviceSelectRestaurantPage {
           this.isLoading = false;
         },
         error: (error: unknown) => {
-          this.errorMessage = error instanceof Error ? error.message : 'No se pudo cargar los restaurantes.';
+          const message = error instanceof Error ? error.message : 'No se pudo cargar los restaurantes.';
+          this.hasError = true;
           this.isLoading = false;
+          this.toastService.presentError(message);
         },
       });
   }
