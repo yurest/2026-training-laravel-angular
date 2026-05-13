@@ -13,22 +13,24 @@ import { ProductService } from '../../../../catalog/infrastructure/product.servi
 import { OrderService, Order } from '../../../infrastructure/order.service';
 import { OrderLineService } from '../../../infrastructure/order-line.service';
 import { AuthService } from '../../../../identity/infrastructure/auth.service';
-
-interface CurrentOrderLine {
-  id: string;
-  product_id: string | number;
-  name: string;
-  price: number;
-  quantity: number;
-  tax_percentage: number;
-}
+import {
+  CurrentOrderLine,
+  OrderSummaryComponent,
+} from '../components/order-summary/order-summary.component';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.scss'],
-  imports: [CommonModule, IonContent, IonCard, IonCardContent, IonButton],
+  imports: [
+    CommonModule,
+    IonContent,
+    IonCard,
+    IonCardContent,
+    IonButton,
+    OrderSummaryComponent,
+  ],
 })
 export class OrdersComponent implements OnInit {
   orderId: string | null = null;
@@ -57,7 +59,9 @@ export class OrdersComponent implements OnInit {
   }
 
   loadPageData(): void {
-    if (!this.orderId) return;
+    if (!this.orderId) {
+      return;
+    }
 
     this.isLoading = true;
 
@@ -72,10 +76,16 @@ export class OrdersComponent implements OnInit {
         const products = this.extractArray(productsResponse, 'products');
         this.products = products.filter((product: Product) => product.active);
 
-        const allOrderLines = this.extractArray(orderLinesResponse, 'order_lines');
+        const allOrderLines = this.extractArray(
+          orderLinesResponse,
+          'order_lines',
+        );
 
         this.orderLines = allOrderLines
-          .filter((line: any) => String(line.order_id) === String(this.currentOrder?.id))
+          .filter(
+            (line: any) =>
+              String(line.order_id) === String(this.currentOrder?.id),
+          )
           .map((line: any) => {
             const product = this.products.find(
               (item) => String(item.id) === String(line.product_id),
@@ -93,7 +103,7 @@ export class OrdersComponent implements OnInit {
 
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.log('ERROR loading order page', error);
         this.isLoading = false;
       },
@@ -101,7 +111,9 @@ export class OrdersComponent implements OnInit {
   }
 
   addProduct(product: Product): void {
-    if (!this.currentOrder || !this.user) return;
+    if (!this.currentOrder || !this.user) {
+      return;
+    }
 
     const existingLine = this.orderLines.find(
       (line) => String(line.product_id) === String(product.id),
@@ -112,29 +124,31 @@ export class OrdersComponent implements OnInit {
       return;
     }
 
-    this.orderLineService.createOrderLine({
-      restaurant_id: this.user.restaurant_id,
-      order_id: this.currentOrder.id,
-      product_id: product.id,
-      user_id: this.user.id,
-      quantity: 1,
-      price: product.price,
-      tax_percentage: 21,
-    }).subscribe({
-      next: (response: any) => {
-        this.orderLines.push({
-          id: response.id,
-          product_id: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          tax_percentage: 21,
-        });
-      },
-      error: (error) => {
-        console.log('ERROR creating order line', error);
-      },
-    });
+    this.orderLineService
+      .createOrderLine({
+        restaurant_id: this.user.restaurant_id,
+        order_id: this.currentOrder.id,
+        product_id: product.id,
+        user_id: this.user.id,
+        quantity: 1,
+        price: product.price,
+        tax_percentage: 21,
+      })
+      .subscribe({
+        next: (response: any) => {
+          this.orderLines.push({
+            id: response.id,
+            product_id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            tax_percentage: 21,
+          });
+        },
+        error: (error: unknown) => {
+          console.log('ERROR creating order line', error);
+        },
+      });
   }
 
   increaseLine(line: CurrentOrderLine): void {
@@ -151,17 +165,19 @@ export class OrdersComponent implements OnInit {
   }
 
   updateLineQuantity(line: CurrentOrderLine, quantity: number): void {
-    this.orderLineService.updateOrderLine(line.id, {
-      quantity,
-      price: line.price,
-    }).subscribe({
-      next: () => {
-        line.quantity = quantity;
-      },
-      error: (error) => {
-        console.log('ERROR updating order line', error);
-      },
-    });
+    this.orderLineService
+      .updateOrderLine(line.id, {
+        quantity,
+        price: line.price,
+      })
+      .subscribe({
+        next: () => {
+          line.quantity = quantity;
+        },
+        error: (error: unknown) => {
+          console.log('ERROR updating order line', error);
+        },
+      });
   }
 
   deleteLine(line: CurrentOrderLine): void {
@@ -169,44 +185,45 @@ export class OrdersComponent implements OnInit {
       next: () => {
         this.orderLines = this.orderLines.filter((item) => item.id !== line.id);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.log('ERROR deleting order line', error);
       },
     });
   }
 
   checkout(): void {
-    if (!this.currentOrder || !this.user || this.orderLines.length === 0) return;
+    if (!this.currentOrder || !this.user || this.orderLines.length === 0) {
+      return;
+    }
 
-    this.orderService.checkoutOrder(this.currentOrder.id, {
-      restaurant_id: this.user.restaurant_id,
-      user_id: this.user.id,
-    }).subscribe({
-      next: (response: any) => {
-        console.log('SALE CREATED', response);
-        this.router.navigate(['/tpv/tables']);
-      },
-      error: (error) => {
-        console.log('ERROR checkout', error);
-      },
-    });
-  }
-
-  getLineTotal(line: CurrentOrderLine): number {
-    return line.price * line.quantity;
-  }
-
-  getOrderTotal(): number {
-    return this.orderLines.reduce(
-      (total, line) => total + this.getLineTotal(line),
-      0,
-    );
+    this.orderService
+      .checkoutOrder(this.currentOrder.id, {
+        restaurant_id: this.user.restaurant_id,
+        user_id: this.user.id,
+      })
+      .subscribe({
+        next: (response: any) => {
+          console.log('SALE CREATED', response);
+          this.router.navigate(['/tpv/tables']);
+        },
+        error: (error: unknown) => {
+          console.log('ERROR checkout', error);
+        },
+      });
   }
 
   private extractArray(response: any, key: string): any[] {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.[key])) return response[key];
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response?.[key])) {
+      return response[key];
+    }
 
     return [];
   }

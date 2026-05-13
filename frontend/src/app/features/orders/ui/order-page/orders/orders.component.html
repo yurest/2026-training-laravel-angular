@@ -10,54 +10,17 @@
       <ion-card *ngFor="let product of products" (click)="addProduct(product)">
         <ion-card-content>
           <h4>{{ product.name }}</h4>
-          <p>{{ (product.price / 100) | number:'1.2-2' }} €</p>
+          <p>{{ product.price / 100 | number: "1.2-2" }} €</p>
         </ion-card-content>
       </ion-card>
     </div>
 
-    <div class="summary-section ion-padding">
-      <h3>Pedido actual</h3>
-
-      <div *ngIf="orderLines.length === 0">
-        <p>No hay productos añadidos todavía.</p>
-      </div>
-
-      <div *ngFor="let line of orderLines" class="order-line">
-        <div>
-          <strong>{{ line.name }}</strong>
-          <div>{{ (line.price / 100) | number:'1.2-2' }} € unidad</div>
-        </div>
-
-        <div class="line-actions">
-          <ion-button size="small" fill="outline" (click)="decreaseLine(line)">
-            -
-          </ion-button>
-
-          <span>x{{ line.quantity }}</span>
-
-          <ion-button size="small" fill="outline" (click)="increaseLine(line)">
-            +
-          </ion-button>
-
-          <ion-button size="small" color="danger" (click)="deleteLine(line)">
-            Borrar
-          </ion-button>
-        </div>
-
-        <span>{{ (getLineTotal(line) / 100) | number:'1.2-2' }} €</span>
-      </div>
-
-      <hr />
-
-      <h3>Total: {{ (getOrderTotal() / 100) | number:'1.2-2' }} €</h3>
-
-      <ion-button
-        expand="block"
-        [disabled]="orderLines.length === 0"
-        (click)="checkout()"
-      >
-        Cobrar pedido
-      </ion-button>
-    </div>
+    <app-order-summary
+      [orderLines]="orderLines"
+      (increaseLine)="increaseLine($event)"
+      (decreaseLine)="decreaseLine($event)"
+      (deleteLine)="deleteLine($event)"
+      (checkout)="checkout()"
+    ></app-order-summary>
   </div>
 </ion-content>
