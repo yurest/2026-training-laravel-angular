@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Restaurant\Application\DTO;
+namespace App\Restaurant\Infrastructure\Persistence\DTO;
 
 use App\Restaurant\Domain\Entity\Restaurant;
 

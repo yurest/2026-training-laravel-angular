@@ -10,13 +10,10 @@ final class ListRestaurants
         private readonly RestaurantRepositoryInterface $restaurantRepository,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(): ListRestaurantsCollectionResponse
     {
         $restaurants = $this->restaurantRepository->all();
 
-        return array_map(
-            static fn ($restaurant): array => ListRestaurantsResponse::create($restaurant)->toArray(),
-            $restaurants,
-        );
+        return ListRestaurantsCollectionResponse::create($restaurants);
     }
 }

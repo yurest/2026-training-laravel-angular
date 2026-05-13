@@ -23,18 +23,11 @@ final class RegisterRestaurantWithAdmin
         private readonly TransactionManagerInterface $transactionManager,
     ) {}
 
-    public function __invoke(
-        string $restaurantName,
-        ?string $legalName,
-        ?string $taxId,
-        string $email,
-        string $plainPassword,
-        ?string $adminName = null,
-        ?string $adminPin = null,
-    ): RegisterRestaurantWithAdminResponse {
-        $emailVO = Email::create($email);
-        $hashedPassword = $this->passwordHasher->hash($plainPassword);
-        $effectiveAdminPin = $adminPin;
+    public function __invoke(RegisterRestaurantWithAdminCommand $command): RegisterRestaurantWithAdminResponse
+    {
+        $emailVO = Email::create($command->email);
+        $hashedPassword = $this->passwordHasher->hash($command->plainPassword);
+        $effectiveAdminPin = $command->adminPin;
 
         if ($effectiveAdminPin === null || trim($effectiveAdminPin) === '') {
             $effectiveAdminPin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
@@ -44,17 +37,17 @@ final class RegisterRestaurantWithAdmin
 
         $restaurant = Restaurant::dddCreate(
             id: Uuid::generate(),
-            name: RestaurantName::create($restaurantName),
-            legalName: RestaurantLegalName::createNullable($legalName),
-            taxId: RestaurantTaxId::createNullable($taxId),
+            name: RestaurantName::create($command->restaurantName),
+            legalName: RestaurantLegalName::createNullable($command->legalName),
+            taxId: RestaurantTaxId::createNullable($command->taxId),
             email: $emailVO,
             password: RestaurantPasswordHash::create($hashedPassword),
         );
 
-        $effectiveAdminName = $adminName;
+        $effectiveAdminName = $command->adminName;
 
         if ($effectiveAdminName === null || trim($effectiveAdminName) === '') {
-            $effectiveAdminName = sprintf('Admin %s', $restaurantName);
+            $effectiveAdminName = sprintf('Admin %s', $command->restaurantName);
         }
 
         $this->transactionManager->run(function () use ($restaurant, $effectiveAdminName, $emailVO, $hashedPassword, $hashedPin): void {

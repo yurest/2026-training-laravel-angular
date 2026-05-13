@@ -2,6 +2,7 @@
 
 namespace App\Restaurant\Application\GetRestaurant;
 
+use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
 
 final class GetRestaurant
@@ -10,14 +11,14 @@ final class GetRestaurant
         private readonly RestaurantRepositoryInterface $restaurantRepository,
     ) {}
 
-    public function __invoke(string $id): ?GetRestaurantResponse
+    public function __invoke(GetRestaurantCommand $command): GetRestaurantResponse
     {
-        $restaurant = $this->restaurantRepository->getById($id);
+        $restaurant = $this->restaurantRepository->getById($command->id);
 
         if ($restaurant === null) {
-            return null;
+            throw RestaurantNotFoundException::withUuid($command->id);
         }
 
-        return GetRestaurantResponse::create($restaurant);
+        return GetRestaurantResponse::fromRestaurant($restaurant);
     }
 }

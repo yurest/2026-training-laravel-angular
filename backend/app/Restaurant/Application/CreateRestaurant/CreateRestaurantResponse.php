@@ -15,7 +15,25 @@ final class CreateRestaurantResponse
         public readonly string $email,
     ) {}
 
-    public static function create(Restaurant $restaurant): self
+    public static function create(
+        string $id,
+        string $uuid,
+        string $name,
+        ?string $legalName,
+        ?string $taxId,
+        string $email,
+    ): self {
+        return new self(
+            id: $id,
+            uuid: $uuid,
+            name: $name,
+            legalName: $legalName,
+            taxId: $taxId,
+            email: $email,
+        );
+    }
+
+    public static function fromRestaurant(Restaurant $restaurant): self
     {
         return new self(
             id: $restaurant->id()->value(),

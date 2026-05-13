@@ -2,7 +2,7 @@
 
 namespace App\Restaurant\Domain\Interfaces;
 
-use App\Restaurant\Application\DTO\RestaurantWithInternalId;
+use App\Restaurant\Infrastructure\Persistence\DTO\RestaurantWithInternalId;
 use App\Restaurant\Domain\Entity\Restaurant;
 use App\Shared\Domain\ValueObject\Email;
 use App\Shared\Domain\ValueObject\Uuid;

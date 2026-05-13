@@ -3,11 +3,17 @@
 namespace App\Restaurant\Application\UpdateRestaurant;
 
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
+use App\Restaurant\Domain\Exception\CannotUpdateLegalDataException;
+use App\Restaurant\Domain\Exception\ForbiddenException;
+use App\Restaurant\Domain\Exception\LinkedRestaurantNotFoundException;
+use App\Restaurant\Domain\Exception\NotAuthenticatedException;
+use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
 use App\Restaurant\Domain\ValueObject\RestaurantLegalName;
 use App\Restaurant\Domain\ValueObject\RestaurantName;
 use App\Restaurant\Domain\ValueObject\RestaurantPasswordHash;
 use App\Restaurant\Domain\ValueObject\RestaurantTaxId;
 use App\Shared\Domain\ValueObject\Email;
+use App\Shared\Domain\ValueObject\Uuid;
 use App\User\Domain\Interfaces\PasswordHasherInterface;
 use App\User\Domain\Interfaces\UserRepositoryInterface;
 
@@ -19,53 +25,88 @@ final class UpdateRestaurant
         private readonly UserRepositoryInterface $userRepository,
     ) {}
 
-    public function __invoke(
-        string $id,
-        ?string $name = null,
-        ?string $legalName = null,
-        ?string $taxId = null,
-        ?string $email = null,
-        ?string $plainPassword = null,
-    ): ?UpdateRestaurantResponse {
-        $restaurant = $this->restaurantRepository->getById($id);
+    public function __invoke(UpdateRestaurantCommand $command): UpdateRestaurantResponse
+    {
+        // Authorization check
+        if (! $command->isSuperAdmin) {
+            if (! is_string($command->authUserUuid) || $command->authUserUuid === '') {
+                throw NotAuthenticatedException::create();
+            }
+
+            $user = $this->userRepository->findById($command->authUserUuid);
+
+            if ($user === null || $user->role() === null || ! $user->role()->isAdmin() || $user->restaurantId() === null) {
+                throw ForbiddenException::create();
+            }
+
+            $linkedRestaurant = $this->restaurantRepository->findByInternalId($user->restaurantId()->toInt());
+            $targetRestaurant = $this->restaurantRepository->findByUuid(Uuid::create($command->id));
+
+            if ($linkedRestaurant === null) {
+                throw LinkedRestaurantNotFoundException::create();
+            }
+
+            if ($targetRestaurant === null) {
+                throw RestaurantNotFoundException::withUuid($command->id);
+            }
+
+            $linkedTaxId = $linkedRestaurant->taxId()?->value();
+
+            if (! is_string($linkedTaxId) || $linkedTaxId === '') {
+                if ($targetRestaurant->uuid()->value() !== $linkedRestaurant->uuid()->value()) {
+                    throw ForbiddenException::create();
+                }
+            } else {
+                if ($targetRestaurant->taxId()?->value() !== $linkedTaxId) {
+                    throw ForbiddenException::create();
+                }
+            }
+
+            // Check if trying to update legal data
+            if ($command->legalName !== null || $command->taxId !== null) {
+                throw CannotUpdateLegalDataException::create();
+            }
+        }
+
+        $restaurant = $this->restaurantRepository->getById($command->id);
 
         if ($restaurant === null) {
-            return null;
+            throw RestaurantNotFoundException::withUuid($command->id);
         }
 
-        if ($name !== null) {
-            $restaurant->updateName(RestaurantName::create($name));
+        if ($command->name !== null) {
+            $restaurant->updateName(RestaurantName::create($command->name));
         }
 
-        if ($legalName !== null) {
-            $restaurant->updateLegalName(RestaurantLegalName::createNullable($legalName));
+        if ($command->legalName !== null) {
+            $restaurant->updateLegalName(RestaurantLegalName::createNullable($command->legalName));
         }
 
-        if ($taxId !== null) {
-            $restaurant->updateTaxId(RestaurantTaxId::createNullable($taxId));
+        if ($command->taxId !== null) {
+            $restaurant->updateTaxId(RestaurantTaxId::createNullable($command->taxId));
         }
 
-        if ($email !== null) {
-            $restaurant->updateEmail(Email::create($email));
+        if ($command->email !== null) {
+            $restaurant->updateEmail(Email::create($command->email));
         }
 
         $passwordHash = null;
 
-        if ($plainPassword !== null) {
-            $passwordHash = $this->passwordHasher->hash($plainPassword);
+        if ($command->plainPassword !== null) {
+            $passwordHash = $this->passwordHasher->hash($command->plainPassword);
             $restaurant->updatePassword(RestaurantPasswordHash::create($passwordHash));
         }
 
         $this->restaurantRepository->save($restaurant);
 
-        if ($email !== null || $passwordHash !== null) {
+        if ($command->email !== null || $passwordHash !== null) {
             $this->userRepository->syncAdminCredentialsForRestaurant(
                 restaurantUuid: $restaurant->id()->value(),
-                email: $email,
+                email: $command->email,
                 passwordHash: $passwordHash,
             );
         }
 
-        return UpdateRestaurantResponse::create($restaurant);
+        return UpdateRestaurantResponse::fromRestaurant($restaurant);
     }
 }

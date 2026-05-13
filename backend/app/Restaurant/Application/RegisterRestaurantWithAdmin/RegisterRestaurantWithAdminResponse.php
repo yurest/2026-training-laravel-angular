@@ -36,7 +36,6 @@ final readonly class RegisterRestaurantWithAdminResponse
             'admin_email' => $this->adminEmail,
             'admin_name' => $this->adminName,
             'admin_pin' => $this->adminPin,
-            'message' => 'Restaurant and admin user created successfully.',
         ];
     }
 }

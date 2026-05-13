@@ -6,7 +6,7 @@ use App\Restaurant\Domain\Entity\Restaurant;
 
 final class UpdateRestaurantResponse
 {
-    public function __construct(
+    private function __construct(
         public readonly string $id,
         public readonly string $name,
         public readonly ?string $legal_name,
@@ -14,7 +14,23 @@ final class UpdateRestaurantResponse
         public readonly string $email,
     ) {}
 
-    public static function create(Restaurant $restaurant): self
+    public static function create(
+        string $id,
+        string $name,
+        ?string $legal_name,
+        ?string $tax_id,
+        string $email,
+    ): self {
+        return new self(
+            id: $id,
+            name: $name,
+            legal_name: $legal_name,
+            tax_id: $tax_id,
+            email: $email,
+        );
+    }
+
+    public static function fromRestaurant(Restaurant $restaurant): self
     {
         return new self(
             id: $restaurant->id()->value(),

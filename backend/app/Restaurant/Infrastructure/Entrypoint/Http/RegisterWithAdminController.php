@@ -3,8 +3,8 @@
 namespace App\Restaurant\Infrastructure\Entrypoint\Http;
 
 use App\Restaurant\Application\RegisterRestaurantWithAdmin\RegisterRestaurantWithAdmin;
+use App\Restaurant\Infrastructure\Entrypoint\Http\Requests\RegisterRestaurantWithAdminRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class RegisterWithAdminController
 {
@@ -12,29 +12,15 @@ final class RegisterWithAdminController
         private readonly RegisterRestaurantWithAdmin $registerRestaurantWithAdmin,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(RegisterRestaurantWithAdminRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'restaurant_name' => ['required', 'string', 'max:255'],
-            'legal_name' => ['nullable', 'string', 'max:255'],
-            'tax_id' => ['nullable', 'string', 'max:50'],
-            'admin_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email', 'unique:restaurants,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'pin' => ['sometimes', 'nullable', 'digits:4'],
-        ], [
-            'email.unique' => 'Email is already registered.',
-        ]);
+        try {
+            $response = ($this->registerRestaurantWithAdmin)($request->toCommand());
+        } catch (\Throwable $e) {
+            report($e);
 
-        $response = ($this->registerRestaurantWithAdmin)(
-            restaurantName: $validated['restaurant_name'],
-            legalName: $validated['legal_name'] ?? null,
-            taxId: $validated['tax_id'] ?? null,
-            email: $validated['email'],
-            plainPassword: $validated['password'],
-            adminName: $validated['admin_name'] ?? null,
-            adminPin: $validated['pin'] ?? null,
-        );
+            return new JsonResponse(['message' => 'Internal error.'], 500);
+        }
 
         return new JsonResponse($response->toArray(), 201);
     }

@@ -37,7 +37,6 @@ final class AdminSelectRestaurantContextController
         $request->session()->put('tenant_restaurant_uuid', $response->restaurantUuid());
 
         return new JsonResponse([
-            'success' => true,
             'restaurant_id' => $response->restaurantUuid(),
             'name' => $response->restaurantName(),
         ]);

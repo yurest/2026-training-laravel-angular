@@ -15,7 +15,6 @@ export interface AuthUser {
 }
 
 interface LoginResponse {
-  success: boolean;
   message?: string;
   id?: string;
   name?: string;
@@ -26,7 +25,6 @@ interface LoginResponse {
 }
 
 interface GetMeResponse {
-  success: boolean;
   message?: string;
   id?: string;
   name?: string;
@@ -37,7 +35,6 @@ interface GetMeResponse {
 }
 
 interface SuperAdminLoginResponse {
-  success: boolean;
   message?: string;
   id?: string;
   name?: string;
@@ -117,7 +114,7 @@ export class AuthService {
       )
       .pipe(
         map((response: LoginResponse) => {
-          if (!response.success || !response.id || !response.name || !response.email) {
+          if (!response.id || !response.name || !response.email) {
             const message: string = response.message ?? 'No se pudo iniciar sesión.';
 
             throw new Error(message);
@@ -152,7 +149,7 @@ export class AuthService {
       )
       .pipe(
         map((response: LoginResponse) => {
-          if (!response.success || !response.id || !response.name || !response.email) {
+          if (!response.id || !response.name || !response.email) {
             const message: string = response.message ?? 'No se pudo iniciar sesión.';
 
             throw new Error(message);
@@ -187,7 +184,7 @@ export class AuthService {
       )
       .pipe(
         map((response: LoginResponse) => {
-          if (!response.success || !response.id || !response.name || !response.email) {
+          if (!response.id || !response.name || !response.email) {
             const message: string = response.message ?? 'No se pudo iniciar sesion con PIN.';
 
             throw new Error(message);
@@ -231,7 +228,7 @@ export class AuthService {
   public getMe(): Observable<AuthUser> {
     return this.http.get<GetMeResponse>(`${this.authBaseUrl}/me`, { withCredentials: true }).pipe(
       map((response: GetMeResponse) => {
-        if (!response.success || !response.id || !response.name || !response.email) {
+        if (!response.id || !response.name || !response.email) {
           const message: string = response.message ?? 'Sesion no valida.';
 
           throw new Error(message);
@@ -298,7 +295,7 @@ export class AuthService {
       )
       .pipe(
         map((response: SuperAdminLoginResponse) => {
-          if (!response.success || !response.id) {
+          if (!response.id) {
             const message: string = response.message ?? 'No se pudo iniciar sesion.';
 
             throw new Error(message);

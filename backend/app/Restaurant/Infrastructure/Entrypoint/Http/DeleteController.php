@@ -3,8 +3,10 @@
 namespace App\Restaurant\Infrastructure\Entrypoint\Http;
 
 use App\Restaurant\Application\DeleteRestaurant\DeleteRestaurant;
+use App\Restaurant\Domain\Exception\NotSuperAdminException;
+use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
+use App\Restaurant\Infrastructure\Entrypoint\Http\Requests\DeleteRestaurantRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class DeleteController
 {
@@ -12,20 +14,18 @@ final class DeleteController
         private readonly DeleteRestaurant $deleteRestaurant,
     ) {}
 
-    public function __invoke(Request $request, string $id): JsonResponse
+    public function __invoke(DeleteRestaurantRequest $request, string $id): JsonResponse
     {
-        $superAdminUuid = $request->session()->get('super_admin_id');
+        try {
+            ($this->deleteRestaurant)($request->toCommand($id));
+        } catch (NotSuperAdminException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 403);
+        } catch (RestaurantNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if (! is_string($superAdminUuid) || $superAdminUuid === '') {
-            return new JsonResponse([
-                'message' => 'Forbidden. Only superadmins can delete restaurants.',
-            ], 403);
-        }
-
-        $deleted = ($this->deleteRestaurant)($id);
-
-        if (! $deleted) {
-            return new JsonResponse(['message' => 'Restaurant not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse(status: 204);

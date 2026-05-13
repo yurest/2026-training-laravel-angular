@@ -2,6 +2,8 @@
 
 namespace App\Restaurant\Application\DeleteRestaurant;
 
+use App\Restaurant\Domain\Exception\NotSuperAdminException;
+use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
 use App\Restaurant\Domain\Interfaces\RestaurantCascadeDeleteInterface;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
 
@@ -12,14 +14,18 @@ final class DeleteRestaurant
         private readonly RestaurantCascadeDeleteInterface $restaurantCascadeDelete,
     ) {}
 
-    public function __invoke(string $id): bool
+    public function __invoke(DeleteRestaurantCommand $command): void
     {
-        $restaurant = $this->restaurantRepository->getById($id);
-
-        if ($restaurant === null) {
-            return false;
+        if (! is_string($command->superAdminUuid) || $command->superAdminUuid === '') {
+            throw NotSuperAdminException::create();
         }
 
-        return $this->restaurantCascadeDelete->deleteByRestaurantUuid($id);
+        $restaurant = $this->restaurantRepository->getById($command->id);
+
+        if ($restaurant === null) {
+            throw RestaurantNotFoundException::withUuid($command->id);
+        }
+
+        $this->restaurantCascadeDelete->deleteByRestaurantUuid($command->id);
     }
 }

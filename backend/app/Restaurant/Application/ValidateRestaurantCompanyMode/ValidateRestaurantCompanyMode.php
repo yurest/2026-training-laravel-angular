@@ -2,6 +2,8 @@
 
 namespace App\Restaurant\Application\ValidateRestaurantCompanyMode;
 
+use App\Restaurant\Domain\Exception\TaxIdAlreadyExistsException;
+use App\Restaurant\Domain\Exception\TaxIdDoesNotExistException;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
 
 final class ValidateRestaurantCompanyMode
@@ -10,18 +12,16 @@ final class ValidateRestaurantCompanyMode
         private RestaurantRepositoryInterface $restaurantRepository,
     ) {}
 
-    public function __invoke(string $taxId, string $companyMode): ValidateRestaurantCompanyModeResponse
+    public function __invoke(string $taxId, string $companyMode): void
     {
         $companyExists = count($this->restaurantRepository->findByTaxId($taxId)) > 0;
 
         if ($companyMode === 'new' && $companyExists) {
-            return ValidateRestaurantCompanyModeResponse::taxIdAlreadyExists();
+            throw TaxIdAlreadyExistsException::create($taxId);
         }
 
         if ($companyMode === 'existing' && ! $companyExists) {
-            return ValidateRestaurantCompanyModeResponse::taxIdDoesNotExist();
+            throw TaxIdDoesNotExistException::create($taxId);
         }
-
-        return ValidateRestaurantCompanyModeResponse::success();
     }
 }

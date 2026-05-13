@@ -3,6 +3,7 @@
 namespace App\Restaurant\Infrastructure\Entrypoint\Http;
 
 use App\Restaurant\Application\ListRestaurants\ListRestaurants;
+use App\Restaurant\Infrastructure\Entrypoint\Http\Requests\ListRestaurantsRequest;
 use Illuminate\Http\JsonResponse;
 
 final class GetCollectionController
@@ -11,8 +12,16 @@ final class GetCollectionController
         private readonly ListRestaurants $listRestaurants,
     ) {}
 
-    public function __invoke(): JsonResponse
+    public function __invoke(ListRestaurantsRequest $request): JsonResponse
     {
-        return new JsonResponse(($this->listRestaurants)());
+        try {
+            $response = ($this->listRestaurants)();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return new JsonResponse(['message' => 'Internal error.'], 500);
+        }
+
+        return new JsonResponse($response->toArray());
     }
 }

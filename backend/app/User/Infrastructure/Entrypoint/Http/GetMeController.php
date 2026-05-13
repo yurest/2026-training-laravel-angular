@@ -19,7 +19,6 @@ final class GetMeController
 
         if (! is_string($userId) || $userId === '') {
             return new JsonResponse([
-                'success' => false,
                 'message' => 'Not authenticated.',
             ], 401);
         }
@@ -30,18 +29,16 @@ final class GetMeController
             $request->session()->forget('auth_user_id');
 
             return new JsonResponse([
-                'success' => false,
                 'message' => 'Not authenticated.',
             ], 401);
         } catch (\Throwable $e) {
             report($e);
 
             return new JsonResponse([
-                'success' => false,
                 'message' => 'Internal error.',
             ], 500);
         }
 
-        return new JsonResponse(array_merge(['success' => true], $response->toArray()), 200);
+        return new JsonResponse($response->toArray(), 200);
     }
 }

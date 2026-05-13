@@ -15,7 +15,6 @@ final class LogoutController
         $request->session()->regenerateToken();
 
         return new JsonResponse([
-            'success' => true,
             'message' => 'Logged out.',
         ]);
     }

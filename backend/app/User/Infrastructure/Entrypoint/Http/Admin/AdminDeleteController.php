@@ -28,7 +28,6 @@ final class AdminDeleteController
 
             if (! is_string($authUserUuid) || $authUserUuid === '') {
                 return new JsonResponse([
-                    'success' => false,
                     'message' => 'Not authenticated.',
                 ], 401);
             }
@@ -39,28 +38,28 @@ final class AdminDeleteController
                     targetRestaurantUuid: $uuid,
                 ));
             } catch (NotAuthenticatedException $e) {
-                return new JsonResponse(['success' => false, 'message' => $e->getMessage()], 401);
+                return new JsonResponse(['message' => $e->getMessage()], 401);
             } catch (RestaurantNotFoundException $e) {
-                return new JsonResponse(['success' => false, 'message' => $e->getMessage()], 404);
+                return new JsonResponse(['message' => $e->getMessage()], 404);
             } catch (ForbiddenRestaurantAccessException $e) {
-                return new JsonResponse(['success' => false, 'message' => $e->getMessage()], 403);
+                return new JsonResponse(['message' => $e->getMessage()], 403);
             } catch (\Throwable $e) {
                 report($e);
 
-                return new JsonResponse(['success' => false, 'message' => 'Internal error.'], 500);
+                return new JsonResponse(['message' => 'Internal error.'], 500);
             }
         }
 
         try {
             $response = ($this->deleteRestaurantUser)($request->toCommand($uuid, $userUuid));
         } catch (UserNotFoundException $e) {
-            return new JsonResponse(['success' => false, 'message' => 'User not found.'], 404);
+            return new JsonResponse(['message' => 'User not found.'], 404);
         } catch (\Throwable $e) {
             report($e);
 
-            return new JsonResponse(['success' => false, 'message' => 'Internal error.'], 500);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
-        return new JsonResponse(array_merge(['success' => true], $response->toArray()), 200);
+        return new JsonResponse($response->toArray(), 200);
     }
 }

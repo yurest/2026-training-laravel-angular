@@ -3,6 +3,8 @@
 namespace App\Restaurant\Infrastructure\Entrypoint\Http;
 
 use App\Restaurant\Application\GetRestaurant\GetRestaurant;
+use App\Restaurant\Domain\Exception\RestaurantNotFoundException;
+use App\Restaurant\Infrastructure\Entrypoint\Http\Requests\GetRestaurantRequest;
 use Illuminate\Http\JsonResponse;
 
 final class GetController
@@ -11,12 +13,16 @@ final class GetController
         private readonly GetRestaurant $getRestaurant,
     ) {}
 
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(GetRestaurantRequest $request, string $id): JsonResponse
     {
-        $response = ($this->getRestaurant)($id);
+        try {
+            $response = ($this->getRestaurant)($request->toCommand($id));
+        } catch (RestaurantNotFoundException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
 
-        if ($response === null) {
-            return new JsonResponse(['message' => 'Restaurant not found.'], 404);
+            return new JsonResponse(['message' => 'Internal error.'], 500);
         }
 
         return new JsonResponse($response->toArray());
