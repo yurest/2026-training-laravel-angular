@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { Order, OrderService } from '../../services/api/order.service';
-import { TableItem, TableService } from '../../services/api/table.service';
+import { TableItem, TableService } from '../../features/floor/infrastructure/table.service';
 import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
@@ -82,7 +82,9 @@ export class OpenOrdersComponent implements OnInit {
   }
 
   getTableName(tableId: string | number): string {
-    const table = this.tables.find((item) => String(item.id) === String(tableId));
+    const table = this.tables.find(
+      (item) => String(item.id) === String(tableId),
+    );
 
     return table?.name ?? `Mesa ${tableId}`;
   }

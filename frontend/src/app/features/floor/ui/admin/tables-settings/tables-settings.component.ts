@@ -11,11 +11,11 @@ import {
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
-import { TableItem, TableService } from '../../../../services/api/table.service';
-import { Zone, ZoneService } from '../../../../services/api/zone.service';
-import { AuthService } from '../../../../services/auth/auth.service';
-import { AlertService } from '../../../../shared/services/alert.service';
-import { extractBackendErrors } from '../../../../shared/helpers/extract-backend-errors.helper';
+import { TableItem, TableService } from '../../../infrastructure/table.service';
+import { Zone, ZoneService } from '../../../infrastructure/zone.service';
+import { AuthService } from '../../../../../services/auth/auth.service';
+import { AlertService } from '../../../../../shared/services/alert.service';
+import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 
 @Component({
   selector: 'app-tables-settings',

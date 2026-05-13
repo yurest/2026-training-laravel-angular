@@ -9,10 +9,10 @@ import {
   IonLabel,
   IonInput,
 } from '@ionic/angular/standalone';
-import { Zone, ZoneService } from '../../../../services/api/zone.service';
-import { AuthService } from '../../../../services/auth/auth.service';
-import { AlertService } from '../../../../shared/services/alert.service';
-import { extractBackendErrors } from '../../../../shared/helpers/extract-backend-errors.helper';
+import { Zone, ZoneService } from '../../../infrastructure/zone.service';
+import { AuthService } from '../../../../../services/auth/auth.service';
+import { AlertService } from '../../../../../shared/services/alert.service';
+import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 
 @Component({
   selector: 'app-zones-settings',

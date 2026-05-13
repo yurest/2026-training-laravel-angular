@@ -4,8 +4,8 @@ import { IonContent, IonButton } from '@ionic/angular/standalone';
 import { ProductsSettingsComponent } from '../../features/catalog/ui/admin/products-settings/products-settings.component';
 import { FamiliesSettingsComponent } from '../../features/catalog/ui/admin/families-settings/families-settings.component';
 import { TaxesSettingsComponent } from '../../features/catalog/ui/admin/taxes-settings/taxes-settings.component';
-import { ZonesSettingsComponent } from './components/zones-settings/zones-settings.component';
-import { TablesSettingsComponent } from './components/tables-settings/tables-settings.component';
+import { ZonesSettingsComponent } from '../../features/floor/ui/admin/zones-settings/zones-settings.component';
+import { TablesSettingsComponent } from '../../features/floor/ui/admin/tables-settings/tables-settings.component';
 import { UsersSettingsComponent } from './components/users-settings/users-settings.component';
 
 type SettingsSection =

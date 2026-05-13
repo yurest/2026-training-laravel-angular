@@ -19,7 +19,7 @@ export const routes: Routes = [
       {
         path: 'tables',
         loadComponent: () =>
-          import('./pages/tables/tables.component').then(
+          import('./features/floor/ui/tables-page/tables/tables.component').then(
             (m) => m.TablesComponent,
           ),
       },

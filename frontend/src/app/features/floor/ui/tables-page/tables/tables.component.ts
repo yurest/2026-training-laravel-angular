@@ -2,13 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
-import {
-  IonContent,
-  IonCard,
-  IonCardContent,
-} from '@ionic/angular/standalone';
-import { TableService, TableItem } from '../../services/api/table.service';
-import { ZoneService, Zone } from '../../services/api/zone.service';
+import { IonContent, IonCard, IonCardContent } from '@ionic/angular/standalone';
+import { TableItem, TableService } from '../../../infrastructure/table.service';
+import { Zone, ZoneService } from '../../../infrastructure/zone.service';
 import { Order, OrderService } from '../../../../../services/api/order.service';
 import { AuthService } from '../../../../../services/auth/auth.service';
 
@@ -56,7 +52,7 @@ export class TablesComponent implements OnInit {
       next: (response: any) => {
         this.zones = this.extractArray(response, 'zones');
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.log('ERROR loading zones', error);
       },
     });
@@ -79,13 +75,13 @@ export class TablesComponent implements OnInit {
             this.orders = this.extractArray(ordersResponse, 'orders');
             this.tables = this.buildTablesWithStatus(tables);
           },
-          error: (error) => {
+          error: (error: unknown) => {
             console.log('ERROR loading open orders', error);
             this.tables = this.buildTablesWithStatus(tables);
           },
         });
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.log('ERROR loading tables', error);
       },
     });
@@ -106,7 +102,10 @@ export class TablesComponent implements OnInit {
   }
 
   selectZone(zoneNumericId: number | undefined): void {
-    if (!zoneNumericId) return;
+    if (!zoneNumericId) {
+      return;
+    }
+
     this.selectedZoneNumericId = zoneNumericId;
   }
 
@@ -123,7 +122,9 @@ export class TablesComponent implements OnInit {
   }
 
   getTablesByZone(zoneNumericId: number | undefined): TableWithOrder[] {
-    if (!zoneNumericId) return [];
+    if (!zoneNumericId) {
+      return [];
+    }
 
     return this.tables.filter(
       (table) => Number(table.zone_id) === Number(zoneNumericId),
@@ -187,7 +188,9 @@ export class TablesComponent implements OnInit {
   }
 
   createOrderFromTable(table: TableWithOrder, diners: number): void {
-    if (!this.user) return;
+    if (!this.user) {
+      return;
+    }
 
     const payload = {
       restaurant_id: Number(this.user.restaurant_id),
@@ -208,16 +211,24 @@ export class TablesComponent implements OnInit {
 
         this.router.navigate(['/tpv/orders', orderId]);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.log('ERROR creating order from table', error);
       },
     });
   }
 
   private extractArray(response: any, key: string): any[] {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.[key])) return response[key];
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response?.[key])) {
+      return response[key];
+    }
 
     return [];
   }
