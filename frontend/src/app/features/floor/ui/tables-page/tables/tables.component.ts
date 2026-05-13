@@ -6,7 +6,7 @@ import { IonContent, IonCard, IonCardContent } from '@ionic/angular/standalone';
 import { TableItem, TableService } from '../../../infrastructure/table.service';
 import { Zone, ZoneService } from '../../../infrastructure/zone.service';
 import { Order, OrderService } from '../../../../../services/api/order.service';
-import { AuthService } from '../../../../../services/auth/auth.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 
 interface TableWithOrder extends TableItem {
   status: 'free' | 'occupied';

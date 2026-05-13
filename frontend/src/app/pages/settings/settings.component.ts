@@ -6,7 +6,7 @@ import { FamiliesSettingsComponent } from '../../features/catalog/ui/admin/famil
 import { TaxesSettingsComponent } from '../../features/catalog/ui/admin/taxes-settings/taxes-settings.component';
 import { ZonesSettingsComponent } from '../../features/floor/ui/admin/zones-settings/zones-settings.component';
 import { TablesSettingsComponent } from '../../features/floor/ui/admin/tables-settings/tables-settings.component';
-import { UsersSettingsComponent } from './components/users-settings/users-settings.component';
+import { UsersSettingsComponent } from '../../features/identity/ui/admin/users-settings/users-settings.component';
 
 type SettingsSection =
   | 'users'

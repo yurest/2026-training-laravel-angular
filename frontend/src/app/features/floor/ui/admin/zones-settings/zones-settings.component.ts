@@ -10,7 +10,7 @@ import {
   IonInput,
 } from '@ionic/angular/standalone';
 import { Zone, ZoneService } from '../../../infrastructure/zone.service';
-import { AuthService } from '../../../../../services/auth/auth.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 import { AlertService } from '../../../../../shared/services/alert.service';
 import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 

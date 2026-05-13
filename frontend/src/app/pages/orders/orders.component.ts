@@ -12,7 +12,7 @@ import { Product } from '../../features/catalog/domain/product.model';
 import { ProductService } from '../../features/catalog/infrastructure/product.service';
 import { OrderService, Order } from '../../services/api/order.service';
 import { OrderLineService } from '../../services/api/order-line.service';
-import { AuthService } from '../../services/auth/auth.service';
+import { AuthService } from '../../features/identity/infrastructure/auth.service';
 
 interface CurrentOrderLine {
   id: string;

@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { moon, sunny } from 'ionicons/icons';
-import { AuthService } from '../../../services/auth/auth.service';
+import { AuthService } from '../../../features/identity/infrastructure/auth.service';
 
 @Component({
   selector: 'app-layout',

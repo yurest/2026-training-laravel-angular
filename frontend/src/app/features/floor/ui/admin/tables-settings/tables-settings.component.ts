@@ -13,7 +13,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TableItem, TableService } from '../../../infrastructure/table.service';
 import { Zone, ZoneService } from '../../../infrastructure/zone.service';
-import { AuthService } from '../../../../../services/auth/auth.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 import { AlertService } from '../../../../../shared/services/alert.service';
 import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 

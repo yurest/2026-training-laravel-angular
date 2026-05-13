@@ -18,7 +18,7 @@ import { Family } from '../../../domain/family.model';
 import { FamilyService } from '../../../infrastructure/family.service';
 import { Tax } from '../../../domain/tax.model';
 import { TaxService } from '../../../infrastructure/tax.service';
-import { AuthService } from '../../../../../services/auth/auth.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 import { AlertService } from '../../../../../shared/services/alert.service';
 import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 

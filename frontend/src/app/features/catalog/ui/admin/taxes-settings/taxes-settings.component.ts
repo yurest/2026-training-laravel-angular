@@ -11,7 +11,7 @@ import {
 } from '@ionic/angular/standalone';
 import { Tax } from '../../../domain/tax.model';
 import { TaxService } from '../../../infrastructure/tax.service';
-import { AuthService } from '../../../../../services/auth/auth.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 import { AlertService } from '../../../../../shared/services/alert.service';
 import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 

@@ -12,7 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import { Family } from '../../../domain/family.model';
 import { FamilyService } from '../../../infrastructure/family.service';
-import { AuthService } from '../../../../../services/auth/auth.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 import { AlertService } from '../../../../../shared/services/alert.service';
 import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 

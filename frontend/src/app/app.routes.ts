@@ -6,7 +6,7 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./pages/login/login.component').then((m) => m.LoginComponent),
+      import('./features/identity/ui/login/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'tpv',
