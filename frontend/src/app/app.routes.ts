@@ -26,7 +26,7 @@ export const routes: Routes = [
       {
         path: 'orders/:id',
         loadComponent: () =>
-          import('./pages/orders/orders.component').then(
+          import('./features/orders/ui/order-page/orders/orders.component').then(
             (m) => m.OrdersComponent,
           ),
       },
@@ -41,7 +41,7 @@ export const routes: Routes = [
       {
         path: 'open-orders',
         loadComponent: () =>
-          import('./pages/open-orders/open-orders.component').then(
+          import('./features/orders/ui/open-orders-page/open-orders/open-orders.component').then(
             (m) => m.OpenOrdersComponent,
           ),
       },

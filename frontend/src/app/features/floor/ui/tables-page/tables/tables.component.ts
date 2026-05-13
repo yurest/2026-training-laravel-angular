@@ -5,7 +5,7 @@ import { AlertController } from '@ionic/angular';
 import { IonContent, IonCard, IonCardContent } from '@ionic/angular/standalone';
 import { TableItem, TableService } from '../../../infrastructure/table.service';
 import { Zone, ZoneService } from '../../../infrastructure/zone.service';
-import { Order, OrderService } from '../../../../../services/api/order.service';
+import { Order, OrderService } from '../../../../orders/infrastructure/order.service';
 import { AuthService } from '../../../../identity/infrastructure/auth.service';
 
 interface TableWithOrder extends TableItem {

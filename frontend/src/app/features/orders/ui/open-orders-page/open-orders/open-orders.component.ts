@@ -7,9 +7,9 @@ import {
   IonButton,
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { Order, OrderService } from '../../services/api/order.service';
-import { TableItem, TableService } from '../../features/floor/infrastructure/table.service';
-import { AuthService } from '../../features/identity/infrastructure/auth.service';
+import { Order, OrderService } from '../../../infrastructure/order.service';
+import { TableItem, TableService } from '../../../../floor/infrastructure/table.service';
+import { AuthService } from '../../../../identity/infrastructure/auth.service';
 
 @Component({
   selector: 'app-open-orders',

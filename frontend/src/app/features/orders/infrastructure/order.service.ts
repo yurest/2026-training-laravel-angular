@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiResponse, BaseApiService } from './base-api.service';
+import { ApiResponse, BaseApiService } from '../../../services/api/base-api.service';
 
 export interface Order {
   id: string;
