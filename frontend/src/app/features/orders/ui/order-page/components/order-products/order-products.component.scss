@@ -1,0 +1,11 @@
+.products-section ion-card {
+  cursor: pointer;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #1e1e1e;
+  color: white;
+}
+
+.products-section ion-card:active {
+  transform: scale(0.98);
+}

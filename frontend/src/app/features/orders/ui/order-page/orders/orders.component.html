@@ -4,16 +4,10 @@
   <p *ngIf="isLoading">Cargando pedido...</p>
 
   <div class="orders-layout" *ngIf="!isLoading">
-    <div class="products-section">
-      <h3>Productos</h3>
-
-      <ion-card *ngFor="let product of products" (click)="addProduct(product)">
-        <ion-card-content>
-          <h4>{{ product.name }}</h4>
-          <p>{{ product.price / 100 | number: "1.2-2" }} €</p>
-        </ion-card-content>
-      </ion-card>
-    </div>
+    <app-order-products
+      [products]="products"
+      (productSelected)="addProduct($event)"
+    ></app-order-products>
 
     <app-order-summary
       [orderLines]="orderLines"

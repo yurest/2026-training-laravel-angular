@@ -47,3 +47,8 @@ ion-button {
   align-items: center;
   gap: 8px;
 }
+.orders-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}

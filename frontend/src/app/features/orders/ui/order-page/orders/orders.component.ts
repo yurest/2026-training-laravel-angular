@@ -1,15 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  IonContent,
-  IonCard,
-  IonCardContent,
-  IonButton,
-} from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import { forkJoin } from 'rxjs';
 import { Product } from '../../../../catalog/domain/product.model';
 import { ProductService } from '../../../../catalog/infrastructure/product.service';
+import { OrderProductsComponent } from '../components/order-products/order-products.component';
 import { OrderService, Order } from '../../../infrastructure/order.service';
 import { OrderLineService } from '../../../infrastructure/order-line.service';
 import { AuthService } from '../../../../identity/infrastructure/auth.service';
@@ -26,10 +22,8 @@ import {
   imports: [
     CommonModule,
     IonContent,
-    IonCard,
-    IonCardContent,
-    IonButton,
     OrderSummaryComponent,
+    OrderProductsComponent,
   ],
 })
 export class OrdersComponent implements OnInit {
