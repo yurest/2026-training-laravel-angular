@@ -8,7 +8,8 @@ import {
   IonButton,
 } from '@ionic/angular/standalone';
 import { forkJoin } from 'rxjs';
-import { Product, ProductService } from '../../services/api/product.service';
+import { Product } from '../../features/catalog/domain/product.model';
+import { ProductService } from '../../features/catalog/infrastructure/product.service';
 import { OrderService, Order } from '../../services/api/order.service';
 import { OrderLineService } from '../../services/api/order-line.service';
 import { AuthService } from '../../services/auth/auth.service';

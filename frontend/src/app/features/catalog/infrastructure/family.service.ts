@@ -1,16 +1,10 @@
 import { Injectable, Injector } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BaseApiService, ApiResponse } from './base-api.service';
-
-export interface Family {
-  id: string | number;
-  uuid?: string;
-  restaurant_id: string | number;
-  name: string;
-  active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+import { BaseApiService, ApiResponse } from '../../../services/api/base-api.service';
+import {
+  CreateFamilyPayload,
+  UpdateFamilyPayload,
+} from '../domain/family.model';
 
 @Injectable({
   providedIn: 'root',
@@ -26,11 +20,11 @@ export class FamilyService extends BaseApiService {
     return this.httpCall(this.endpoint, null, 'get');
   }
 
-  createFamily(data: any): Observable<ApiResponse> {
+  createFamily(data: CreateFamilyPayload): Observable<ApiResponse> {
     return this.httpCall(this.endpoint, data, 'post');
   }
 
-  updateFamily(id: string, data: any): Observable<ApiResponse> {
+  updateFamily(id: string, data: UpdateFamilyPayload): Observable<ApiResponse> {
     return this.httpCall(`${this.endpoint}/${id}`, data, 'put');
   }
 

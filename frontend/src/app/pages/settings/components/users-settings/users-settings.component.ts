@@ -13,8 +13,8 @@ import {
 } from '@ionic/angular/standalone';
 import { User, UserService } from '../../../../services/api/user.service';
 import { AuthService } from '../../../../services/auth/auth.service';
-import { AlertService } from '../../../../services/ui/alert.service';
-import { extractBackendErrors } from '../../../../shared/api-error.util';
+import { AlertService } from '../../../../shared/services/alert.service';
+import { extractBackendErrors } from '../../../../shared/helpers/extract-backend-errors.helper';
 
 @Component({
   selector: 'app-users-settings',

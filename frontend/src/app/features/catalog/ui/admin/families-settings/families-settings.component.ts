@@ -10,10 +10,11 @@ import {
   IonInput,
   IonCheckbox,
 } from '@ionic/angular/standalone';
-import { Family, FamilyService } from '../../../../services/api/family.service';
-import { AuthService } from '../../../../services/auth/auth.service';
-import { AlertService } from '../../../../services/ui/alert.service';
-import { extractBackendErrors } from '../../../../shared/api-error.util';
+import { Family } from '../../../domain/family.model';
+import { FamilyService } from '../../../infrastructure/family.service';
+import { AuthService } from '../../../../../services/auth/auth.service';
+import { AlertService } from '../../../../../shared/services/alert.service';
+import { extractBackendErrors } from '../../../../../shared/helpers/extract-backend-errors.helper';
 
 @Component({
   selector: 'app-families-settings',

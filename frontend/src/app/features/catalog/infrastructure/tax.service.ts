@@ -1,16 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BaseApiService, ApiResponse } from './base-api.service';
-
-export interface Tax {
-  id: string | number;
-  uuid?: string;
-  restaurant_id: string | number;
-  name: string;
-  percentage: number;
-  created_at?: string;
-  updated_at?: string;
-}
+import { BaseApiService, ApiResponse } from '../../../services/api/base-api.service';
+import { CreateTaxPayload, UpdateTaxPayload } from '../domain/tax.model';
 
 @Injectable({
   providedIn: 'root',
@@ -26,11 +17,11 @@ export class TaxService extends BaseApiService {
     return this.httpCall(this.endpoint, null, 'get');
   }
 
-  createTax(data: any): Observable<ApiResponse> {
+  createTax(data: CreateTaxPayload): Observable<ApiResponse> {
     return this.httpCall(this.endpoint, data, 'post');
   }
 
-  updateTax(id: string, data: any): Observable<ApiResponse> {
+  updateTax(id: string, data: UpdateTaxPayload): Observable<ApiResponse> {
     return this.httpCall(`${this.endpoint}/${id}`, data, 'put');
   }
 
