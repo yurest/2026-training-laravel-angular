@@ -4,7 +4,6 @@ namespace App\Tables\Infrastructure\Entrypoint\Http;
 
 use App\Tables\Application\MergeTables\MergeTables;
 use App\Tables\Domain\Exception\MinimumTwoTablesRequiredException;
-use App\Tables\Domain\Exception\TablesAlreadyMergedException;
 use App\Tables\Domain\Exception\TablesNotInSameZoneException;
 use App\Tables\Domain\Exception\TablesNotFoundException;
 use App\Tables\Domain\Exception\TablesWithOpenOrdersException;
@@ -25,8 +24,6 @@ final class MergeTablesController
             return new JsonResponse(['message' => $e->getMessage()], 400);
         } catch (TablesNotFoundException $e) {
             return new JsonResponse(['message' => $e->getMessage()], 404);
-        } catch (TablesAlreadyMergedException $e) {
-            return new JsonResponse(['message' => $e->getMessage()], 400);
         } catch (TablesNotInSameZoneException $e) {
             return new JsonResponse(['message' => $e->getMessage()], 400);
         } catch (TablesWithOpenOrdersException $e) {

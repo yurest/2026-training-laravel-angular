@@ -56,6 +56,9 @@
                   [class.merge-mode]="isMergeMode"
                   [class.merge-selected]="isTableSelectedForMerge(table.id)"
                   [class.vibrating]="isMergeMode"
+                  [class.drag-target-hover]="dragTargetId === table.id"
+                  [attr.data-table-id]="table.id"
+                  (pointerdown)="onPointerDown($event, table)"
                   (click)="isMergeMode ? toggleTableForMerge(table.id) : selectTable(table)"
                   >
                   <span class="mesa-zone-label">{{ getZoneName(table.zone_id) }}</span>
@@ -81,6 +84,9 @@
                   [class.occupied]="isAnyMergedTableOccupied(mergedTables) && getMergedTableStatus(mergedTables) === OrderStatus.OPEN"
                   [class.cobrar]="getMergedTableStatus(mergedTables) === OrderStatus.TO_CHARGE"
                   [class.selected]="facade.selectedTable()?.id === mergedTables[0].id"
+                  [class.drag-target-hover]="dragTargetId === mergedTables[0].id"
+                  [attr.data-table-id]="mergedTables[0].id"
+                  (pointerdown)="onPointerDown($event, mergedTables[0])"
                   (click)="selectTable(mergedTables[0])"
                 >
                   <span class="mesa-zone-label">{{ getZoneName(mergedTables[0].zone_id) }}</span>

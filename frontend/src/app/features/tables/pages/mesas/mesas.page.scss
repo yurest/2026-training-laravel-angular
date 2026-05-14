@@ -218,6 +218,14 @@
     box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.2);
   }
 
+  &.drag-target-hover {
+    border-color: #22C55E;
+    border-width: 3px;
+    background: rgba(34, 197, 94, 0.08);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+    transform: scale(1.02);
+  }
+
   @keyframes vibrate {
     0%, 100% { transform: rotate(0deg); }
     25% { transform: rotate(-2deg); }
@@ -268,7 +276,26 @@
       background: #1558C8;
       border-color: #1558C8;
     }
+
+    &.drag-target-hover {
+      border-color: #22C55E;
+      border-width: 3px;
+      background: rgba(34, 197, 94, 0.08);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+      transform: scale(1.02);
+    }
   }
+}
+
+// ── Drag preview (clon de mesa flotante) ────────
+.mesa-drag-preview {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(34, 197, 94, 0.35);
+  border-radius: 18px;
+  transition: box-shadow 0.15s;
+  cursor: grabbing;
 }
 
 .mesa-zone-label {

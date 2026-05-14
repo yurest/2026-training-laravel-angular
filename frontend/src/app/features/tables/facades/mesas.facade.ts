@@ -136,15 +136,34 @@ export class MesasFacade {
     this._selectedTable.set(table);
     this._orderLines.set([]);
 
-    if (!table.occupied || !table.order_id) {
+    // Recolectar todas las mesas del grupo (o solo la mesa si no está fusionada)
+    const tablesToLoad: TableWithStatus[] = [];
+    if (table.merged_table_group_id) {
+      const group = this.tablesByMergedGroup().get(table.merged_table_group_id);
+      if (group) {
+        tablesToLoad.push(...group);
+      }
+    } else {
+      tablesToLoad.push(table);
+    }
+
+    const orderIds = tablesToLoad
+      .filter(t => t.occupied && t.order_id)
+      .map(t => t.order_id!);
+
+    if (orderIds.length === 0) {
       return;
     }
 
     this._loadingLines.set(true);
 
     try {
-      const lines = await firstValueFrom(this.tpvService.getOrderLines(table.order_id));
-      this._orderLines.set(lines);
+      const allLines: TpvOrderLine[] = [];
+      for (const orderId of orderIds) {
+        const lines = await firstValueFrom(this.tpvService.getOrderLines(orderId));
+        allLines.push(...lines);
+      }
+      this._orderLines.set(allLines);
     } catch {
       this._orderLines.set([]);
     } finally {

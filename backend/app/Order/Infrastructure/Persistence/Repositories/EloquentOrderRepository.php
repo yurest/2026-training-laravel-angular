@@ -63,9 +63,15 @@ final class EloquentOrderRepository implements OrderRepositoryInterface
 
     public function findByTableId(Uuid $tableId): ?Order
     {
+        $tableInternalId = EloquentTable::query()->where('uuid', $tableId->value())->value('id');
+
+        if ($tableInternalId === null) {
+            return null;
+        }
+
         $model = $this->model->newQuery()
             ->with(['restaurant', 'table', 'openedByUser', 'closedByUser'])
-            ->where('table_id', $tableId->value())
+            ->where('table_id', $tableInternalId)
             ->where('status', 'open')
             ->first();
 
