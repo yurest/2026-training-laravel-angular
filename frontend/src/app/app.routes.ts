@@ -1,32 +1,34 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
-import { adminGuard } from './guards/admin.guard';
+import { authGuard } from './core/auth/guards/auth.guard';
+import { adminGuard } from './core/auth/guards/admin.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./pages/login/login.component').then((m) => m.LoginComponent),
+      import('./features/identity/ui/login/login/login.component').then(
+        (m) => m.LoginComponent,
+      ),
   },
   {
     path: 'tpv',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/tpv/layout/layout.component').then(
+      import('./core/layout/tpv-layout/layout.component').then(
         (m) => m.LayoutComponent,
       ),
     children: [
       {
         path: 'tables',
         loadComponent: () =>
-          import('./pages/tables/tables.component').then(
+          import('./features/floor/ui/tables-page/tables/tables.component').then(
             (m) => m.TablesComponent,
           ),
       },
       {
         path: 'orders/:id',
         loadComponent: () =>
-          import('./pages/orders/orders.component').then(
+          import('./features/orders/ui/order-page/orders/orders.component').then(
             (m) => m.OrdersComponent,
           ),
       },
@@ -34,14 +36,14 @@ export const routes: Routes = [
         path: 'settings',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import('./pages/settings/settings.component').then(
+          import('./features/settings/ui/settings-page/settings.component').then(
             (m) => m.SettingsComponent,
           ),
       },
       {
         path: 'open-orders',
         loadComponent: () =>
-          import('./pages/open-orders/open-orders.component').then(
+          import('./features/orders/ui/open-orders-page/open-orders/open-orders.component').then(
             (m) => m.OpenOrdersComponent,
           ),
       },
