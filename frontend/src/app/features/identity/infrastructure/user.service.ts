@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BaseApiService, ApiResponse } from '../../../services/api/base-api.service';
+import { BaseApiService, ApiResponse } from '../../../shared/data-access/base-api.service';
 
 export interface User {
   id: string | number;

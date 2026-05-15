@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { adminGuard } from './core/auth/guards/admin.guard';
 
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -12,7 +13,7 @@ export const routes: Routes = [
     path: 'tpv',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/tpv/layout/layout.component').then(
+      import('./core/layout/tpv-layout/layout.component').then(
         (m) => m.LayoutComponent,
       ),
     children: [
@@ -34,7 +35,7 @@ export const routes: Routes = [
         path: 'settings',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import('./pages/settings/settings.component').then(
+          import('./features/settings/ui/settings-page/settings.component').then(
             (m) => m.SettingsComponent,
           ),
       },
