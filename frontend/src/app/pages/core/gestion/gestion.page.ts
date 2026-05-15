@@ -45,6 +45,7 @@ interface ManagementRestaurant {
   users: number;
   zones: number;
   products: number;
+  cashOpen: boolean;
 }
 
 interface UserRow {
@@ -1219,6 +1220,7 @@ export class GestionPage {
             users: item.users,
             zones: item.zones,
             products: item.products,
+            cashOpen: item.has_open_cash_session,
           }));
 
           this._managementRestaurants.set(restaurants);

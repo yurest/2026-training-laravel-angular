@@ -114,6 +114,20 @@ final class EloquentCashSessionRepository implements CashSessionRepositoryInterf
         return $model ? $this->toDomain($model) : null;
     }
 
+    public function hasOpenSessionForRestaurant(Uuid $restaurantId): bool
+    {
+        $restaurantIdInt = EloquentRestaurant::query()->where('uuid', $restaurantId->value())->value('id');
+
+        if ($restaurantIdInt === null) {
+            return false;
+        }
+
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantIdInt)
+            ->where('status', 'open')
+            ->exists();
+    }
+
     public function delete(Uuid $id): void
     {
         $this->model->newQuery()->where('uuid', $id->value())->delete();

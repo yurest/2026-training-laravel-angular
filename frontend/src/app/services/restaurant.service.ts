@@ -11,6 +11,7 @@ export interface AdminRestaurantItem {
   users: number;
   zones: number;
   products: number;
+  has_open_cash_session: boolean;
 }
 
 export interface AdminRestaurantUser {

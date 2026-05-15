@@ -15,5 +15,7 @@ interface OrderRepositoryInterface
 
     public function findByTableId(Uuid $tableId): ?Order;
 
+    public function countActiveByRestaurantId(Uuid $restaurantId): int;
+
     public function delete(Uuid $id): void;
 }

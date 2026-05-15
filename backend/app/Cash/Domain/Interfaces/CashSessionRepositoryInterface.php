@@ -24,5 +24,7 @@ interface CashSessionRepositoryInterface
 
     public function findOrphanByRestaurant(Uuid $restaurantId): ?CashSession;
 
+    public function hasOpenSessionForRestaurant(Uuid $restaurantId): bool;
+
     public function delete(Uuid $id): void;
 }

@@ -78,6 +78,20 @@ final class EloquentOrderRepository implements OrderRepositoryInterface
         return $model ? $this->toDomain($model) : null;
     }
 
+    public function countActiveByRestaurantId(Uuid $restaurantId): int
+    {
+        $restaurantIdInt = EloquentRestaurant::query()->where('uuid', $restaurantId->value())->value('id');
+
+        if ($restaurantIdInt === null) {
+            return 0;
+        }
+
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantIdInt)
+            ->whereIn('status', ['open', 'to-charge'])
+            ->count();
+    }
+
     public function delete(Uuid $id): void
     {
         $this->model->newQuery()->where('uuid', $id->value())->delete();

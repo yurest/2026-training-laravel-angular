@@ -12,6 +12,7 @@ export interface ManagementRestaurant {
   users: number;
   zones: number;
   products: number;
+  cashOpen: boolean;
 }
 
 @Component({

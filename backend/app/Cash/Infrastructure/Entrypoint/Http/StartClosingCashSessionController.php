@@ -7,6 +7,7 @@ namespace App\Cash\Infrastructure\Entrypoint\Http;
 use App\Cash\Application\StartClosingCashSession\StartClosingCashSession;
 use App\Cash\Domain\Exception\CashSessionCannotStartClosingException;
 use App\Cash\Domain\Exception\CashSessionNotFoundException;
+use App\Cash\Domain\Exception\OpenOperationsPreventClosingException;
 use App\Cash\Infrastructure\Entrypoint\Http\Requests\StartClosingCashSessionRequest;
 use Illuminate\Http\JsonResponse;
 
@@ -24,6 +25,11 @@ final class StartClosingCashSessionController
             return new JsonResponse(['message' => $e->getMessage()], 404);
         } catch (CashSessionCannotStartClosingException $e) {
             return new JsonResponse(['message' => $e->getMessage()], 409);
+        } catch (OpenOperationsPreventClosingException $e) {
+            return new JsonResponse([
+                'message' => $e->getMessage(),
+                'active_orders' => $e->activeOrders,
+            ], 409);
         } catch (\Throwable $e) {
             report($e);
 

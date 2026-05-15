@@ -2,6 +2,7 @@
 
 namespace App\Restaurant\Application\GetAdminRestaurantCollection;
 
+use App\Cash\Domain\Interfaces\CashSessionRepositoryInterface;
 use App\Restaurant\Domain\Entity\Restaurant;
 use App\Restaurant\Domain\Exception\LinkedRestaurantNotFoundException;
 use App\Restaurant\Domain\Exception\NotAuthenticatedException;
@@ -13,6 +14,7 @@ class GetAdminRestaurantCollection
     public function __construct(
         private UserRepositoryInterface $userRepository,
         private RestaurantRepositoryInterface $restaurantRepository,
+        private CashSessionRepositoryInterface $cashSessionRepository,
     ) {}
 
     public function __invoke(GetAdminRestaurantCollectionCommand $command): GetAdminRestaurantCollectionResponse
@@ -72,6 +74,7 @@ class GetAdminRestaurantCollection
                     'users' => $kpis['users'],
                     'zones' => $kpis['zones'],
                     'products' => $kpis['products'],
+                    'has_open_cash_session' => $this->cashSessionRepository->hasOpenSessionForRestaurant($restaurant->uuid()),
                 ];
             },
             $restaurants,

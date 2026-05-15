@@ -3,6 +3,7 @@ import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { catchError, finalize, switchMap, take, tap } from 'rxjs/operators';
 import { TpvService, TpvCashSession, TpvCashSessionListItem, TpvCashSessionSummary, TpvCashMovement } from '../services/tpv.service';
 import { CajaState } from '../../../core/enums/caja-state.enum';
+import { CashSessionStatusService } from '../../../core/services/cash-session-status.service';
 
 export interface LastClosedData {
   id: string;
@@ -60,6 +61,7 @@ export interface CancelClosingPayload {
 @Injectable()
 export class CajaSessionFacade {
   private readonly tpvService = inject(TpvService);
+  private readonly cashSessionStatus = inject(CashSessionStatusService);
 
   private readonly _state = signal<CajaState>(CajaState.PRE_APERTURA);
   private readonly _activeSession = signal<TpvCashSession | null>(null);
@@ -88,6 +90,7 @@ export class CajaSessionFacade {
 
   public setActiveSession(value: TpvCashSession | null): void {
     this._activeSession.set(value);
+    this.cashSessionStatus.setOpen(value?.status === 'open');
   }
 
   public setLoading(value: boolean): void {

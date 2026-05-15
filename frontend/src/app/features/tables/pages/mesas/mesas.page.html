@@ -126,20 +126,17 @@
 
       @if (facade.selectedTable(); as selectedTable) {
         <div class="order-panel-header">
-          <!-- Botón menú 3 puntos (solo mesas ocupadas) -->
-          @if (selectedTable.occupied) {
-            <button
-              class="panel-menu-btn"
-              (click)="openTableMenu($event, selectedTable)"
-              title="Opciones de mesa"
-              >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="5" r="2"/>
-                <circle cx="12" cy="12" r="2"/>
-                <circle cx="12" cy="19" r="2"/>
-              </svg>
-            </button>
-          }
+          <button
+            class="panel-menu-btn"
+            (click)="openTableMenu($event, selectedTable)"
+            title="Opciones de mesa"
+            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <circle cx="12" cy="19" r="2"/>
+            </svg>
+          </button>
           <div class="order-table-info">
             <div>
               <div class="order-table-name">{{ selectedTable.name }} · {{ getZoneName(selectedTable.zone_id) }}</div>
@@ -358,16 +355,18 @@
       <button class="table-menu-close" (click)="closeTableMenu()">✕</button>
     </div>
     <div class="table-menu-items">
-      <button class="table-menu-item" (click)="onEditDiners()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <span>Editar comensales</span>
-      </button>
-      @if (tableMenuTable?.merged_table_group_id) {
+      @if (tableMenuTable.occupied) {
+        <button class="table-menu-item" (click)="onEditDiners()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span>Editar comensales</span>
+        </button>
+      }
+      @if (tableMenuTable.merged_table_group_id) {
         <button class="table-menu-item" (click)="onUnmergeTable()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -383,17 +382,19 @@
         </svg>
         <span>Juntar mesa</span>
       </button>
-      <button class="table-menu-item" (click)="onTransferAccount()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-          <path d="M12 11h4"/>
-          <path d="M12 16h4"/>
-          <path d="M8 11h.01"/>
-          <path d="M8 16h.01"/>
-        </svg>
-        <span>Traspasar cuenta</span>
-      </button>
+      @if (tableMenuTable.occupied) {
+        <button class="table-menu-item" (click)="onTransferAccount()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            <path d="M12 11h4"/>
+            <path d="M12 16h4"/>
+            <path d="M8 11h.01"/>
+            <path d="M8 16h.01"/>
+          </svg>
+          <span>Traspasar cuenta</span>
+        </button>
+      }
     </div>
   </div>
 }

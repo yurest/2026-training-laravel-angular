@@ -61,10 +61,10 @@ export class TableService extends BaseApiService {
   }
 
   public mergeTables(tableIds: string[]): Observable<MergeTablesResponse> {
-    return this.post<MergeTablesResponse>('/api/tpv/tables/merge', { table_ids: tableIds });
+    return this.post<MergeTablesResponse>('/tpv/tables/merge', { table_ids: tableIds });
   }
 
   public unmergeTables(groupId: string): Observable<UnmergeTablesResponse> {
-    return this.post<UnmergeTablesResponse>('/api/tpv/tables/unmerge', { group_id: groupId });
+    return this.post<UnmergeTablesResponse>('/tpv/tables/unmerge', { group_id: groupId });
   }
 }

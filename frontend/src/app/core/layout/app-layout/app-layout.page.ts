@@ -1,10 +1,12 @@
 
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { AppContextService } from '../../services/app-context.service';
 import { AuthService, AuthUser } from '../../services/auth.service';
+import { CashSessionStatusService } from '../../services/cash-session-status.service';
+import { RestaurantContextService } from '../../services/restaurant-context.service';
 import { RestaurantContextFacade } from '../../facades/restaurant-context.facade';
 import { TpvService } from '../../../features/cash/services/tpv.service';
 import { AppLayoutFacade } from '../facades/app-layout.facade';
@@ -33,13 +35,35 @@ export class AppLayoutPage implements OnInit, OnDestroy {
 
   protected readonly layoutFacade = inject(AppLayoutFacade);
   protected readonly restaurantContextFacade = inject(RestaurantContextFacade);
+  private readonly restaurantContextService = inject(RestaurantContextService);
+  private readonly cashSessionStatus = inject(CashSessionStatusService);
+
+  private previousRestaurantUuid: string | null | undefined = undefined;
 
   constructor(
     private readonly authService: AuthService,
     private readonly contextService: AppContextService,
     private readonly tpvService: TpvService,
     private readonly router: Router,
-  ) {}
+  ) {
+    effect(() => {
+      const status = this.cashSessionStatus.isOpen();
+      if (status !== null) {
+        this.isCajaOpen = status;
+        this.cajaLoaded = true;
+      }
+    });
+
+    effect(() => {
+      const uuid = this.restaurantContextService.selectedRestaurantUuid();
+      if (this.previousRestaurantUuid !== undefined && this.previousRestaurantUuid !== uuid) {
+        this.cajaLoaded = false;
+        this.cashSessionStatus.clear();
+        this.refreshCajaStatus();
+      }
+      this.previousRestaurantUuid = uuid;
+    });
+  }
 
   public ngOnInit(): void {
     this.timerSubscription = interval(1000).subscribe(() => {
@@ -108,12 +132,10 @@ export class AppLayoutPage implements OnInit, OnDestroy {
   private refreshCajaStatus(): void {
     this.layoutFacade.refreshCajaStatus().subscribe({
       next: (session: any) => {
-        this.isCajaOpen = session?.status === 'open';
-        this.cajaLoaded = true;
+        this.cashSessionStatus.setOpen(session?.status === 'open');
       },
       error: () => {
-        this.isCajaOpen = false;
-        this.cajaLoaded = true;
+        this.cashSessionStatus.setOpen(false);
       },
     });
   }

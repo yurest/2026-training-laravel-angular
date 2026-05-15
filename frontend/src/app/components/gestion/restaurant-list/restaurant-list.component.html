@@ -15,7 +15,9 @@
             <div class="gestion-restaurant-name">{{ restaurant.name }}</div>
             <div class="gestion-restaurant-meta">{{ restaurant.legalName }}<br />{{ restaurant.taxId }} · {{ restaurant.email }}</div>
           </div>
-          <span class="gestion-status-pill live">Activo</span>
+          <span class="gestion-status-pill" [class.live]="restaurant.cashOpen" [class.closed]="!restaurant.cashOpen">
+            {{ restaurant.cashOpen ? 'Caja abierta' : 'Caja cerrada' }}
+          </span>
         </div>
         <div class="gestion-restaurant-kpis">
           <div class="gestion-kpi-mini">
