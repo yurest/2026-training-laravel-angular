@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
-import { forkJoin } from 'rxjs';
 import { Product } from '../../../../catalog/domain/product.model';
 import { ProductService } from '../../../../catalog/infrastructure/product.service';
 import { OrderProductsComponent } from '../components/order-products/order-products.component';
@@ -14,6 +13,7 @@ import {
   OrderSummaryComponent,
 } from '../components/order-summary/order-summary.component';
 import { extractArrayFromResponse } from '../../../../../shared/helpers/api-response.helper';
+import { CurrentOrderFacade } from '../../../application/current-order.facade';
 
 @Component({
   selector: 'app-orders',
@@ -44,6 +44,7 @@ export class OrdersComponent implements OnInit {
     private orderService: OrderService,
     private orderLineService: OrderLineService,
     private authService: AuthService,
+    private currentOrderFacade: CurrentOrderFacade,
   ) {}
 
   ngOnInit(): void {
@@ -60,11 +61,7 @@ export class OrdersComponent implements OnInit {
 
     this.isLoading = true;
 
-    forkJoin({
-      orderResponse: this.orderService.getOrder(this.orderId),
-      productsResponse: this.productService.getProducts(),
-      orderLinesResponse: this.orderLineService.getOrderLines(),
-    }).subscribe({
+    this.currentOrderFacade.loadPageData(this.orderId).subscribe({
       next: ({ orderResponse, productsResponse, orderLinesResponse }: any) => {
         this.currentOrder = orderResponse;
 
