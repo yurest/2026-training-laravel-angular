@@ -13,6 +13,7 @@ import {
   CurrentOrderLine,
   OrderSummaryComponent,
 } from '../components/order-summary/order-summary.component';
+import { extractArrayFromResponse } from '../../../../../shared/helpers/api-response.helper';
 
 @Component({
   selector: 'app-orders',
@@ -67,10 +68,13 @@ export class OrdersComponent implements OnInit {
       next: ({ orderResponse, productsResponse, orderLinesResponse }: any) => {
         this.currentOrder = orderResponse;
 
-        const products = this.extractArray(productsResponse, 'products');
+        const products = extractArrayFromResponse<Product>(
+          productsResponse,
+          'products',
+        );
         this.products = products.filter((product: Product) => product.active);
 
-        const allOrderLines = this.extractArray(
+        const allOrderLines = extractArrayFromResponse<any>(
           orderLinesResponse,
           'order_lines',
         );
@@ -204,21 +208,5 @@ export class OrdersComponent implements OnInit {
           console.log('ERROR checkout', error);
         },
       });
-  }
-
-  private extractArray(response: any, key: string): any[] {
-    if (Array.isArray(response)) {
-      return response;
-    }
-
-    if (Array.isArray(response?.data)) {
-      return response.data;
-    }
-
-    if (Array.isArray(response?.[key])) {
-      return response[key];
-    }
-
-    return [];
   }
 }
