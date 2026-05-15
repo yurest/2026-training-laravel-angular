@@ -4,6 +4,9 @@ namespace App\Product\Application\CreateProduct;
 
 final readonly class CreateProductCommand
 {
+    /**
+     * @param string[] $allergens
+     */
     public function __construct(
         public string $familyId,
         public string $taxId,
@@ -12,5 +15,6 @@ final readonly class CreateProductCommand
         public int $price,
         public int $stock,
         public bool $active,
+        public array $allergens = [],
     ) {}
 }

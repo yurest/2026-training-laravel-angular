@@ -1,9 +1,11 @@
 
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GestionProductsFacade, ProductRow, ProductFormData } from '../../../pages/core/gestion/facades/gestion-products.facade';
+import { ProductItem } from '../../../services/product.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
+import { ProductModifiersModalComponent } from '../product-modifiers-modal/product-modifiers-modal.component';
 
 export interface TaxOption {
   uuid?: string;
@@ -19,7 +21,7 @@ export interface FamilyOption {
 @Component({
   selector: 'app-products-management',
   standalone: true,
-  imports: [FormsModule, ToggleComponent],
+  imports: [FormsModule, ToggleComponent, ProductModifiersModalComponent],
   templateUrl: './products-management.component.html',
   styleUrls: ['./products-management.component.scss'],
 })
@@ -33,6 +35,33 @@ export class ProductsManagementComponent {
   public readonly formData = computed(() => this.facade().formData());
   public readonly selectedIndex = computed(() => this.facade().selectedIndex());
   public readonly isSaving = computed(() => this.facade().isSaving());
+
+  public readonly modifiersModalOpen = signal(false);
+
+  public readonly selectedProduct = computed<ProductRow | null>(() => {
+    const index = this.selectedIndex();
+    if (index < 0) {
+      return null;
+    }
+    return this.products()[index] ?? null;
+  });
+
+  openModifiers(): void {
+    if (!this.selectedProduct()) {
+      this.toastService.presentWarning('Selecciona un producto antes de configurar modificadores.');
+      return;
+    }
+    this.modifiersModalOpen.set(true);
+  }
+
+  closeModifiers(): void {
+    this.modifiersModalOpen.set(false);
+  }
+
+  onModifiersSaved(updated: ProductItem): void {
+    this.facade().applyAllergens(updated.id, updated.allergens);
+    this.toastService.presentSuccess('Modificadores guardados.');
+  }
 
   isSelected(index: number): boolean {
     return this.selectedIndex() === index;

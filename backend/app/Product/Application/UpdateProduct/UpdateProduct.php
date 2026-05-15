@@ -4,6 +4,7 @@ namespace App\Product\Application\UpdateProduct;
 
 use App\Product\Domain\Exception\ProductNotFoundException;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
+use App\Product\Domain\ValueObject\ProductAllergens;
 use App\Product\Domain\ValueObject\ProductImageSrc;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
@@ -29,6 +30,7 @@ class UpdateProduct
             price: ProductPrice::create($command->price),
             stock: ProductStock::create($command->stock),
             active: $command->active,
+            allergens: ProductAllergens::create($command->allergens),
         );
 
         $this->productRepository->save($product);
@@ -42,6 +44,7 @@ class UpdateProduct
             price: $product->price()->value(),
             stock: $product->stock()->value(),
             active: $product->isActive(),
+            allergens: $product->allergens()->values(),
             createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
         );

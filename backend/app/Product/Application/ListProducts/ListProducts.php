@@ -30,6 +30,7 @@ class ListProducts
                 price: $product->price()->value(),
                 stock: $product->stock()->value(),
                 active: $product->isActive(),
+                allergens: $product->allergens()->values(),
                 createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
                 updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
             ),

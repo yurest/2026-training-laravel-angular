@@ -34,6 +34,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
                 'price' => $product->price()->value(),
                 'stock' => $product->stock()->value(),
                 'active' => $product->isActive(),
+                'allergens' => $product->allergens()->values(),
                 'created_at' => $product->createdAt()->value(),
                 'updated_at' => $product->updatedAt()->value(),
             ],
@@ -63,6 +64,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
             price: (int) $model->price,
             stock: (int) $model->stock,
             active: (bool) $model->active,
+            allergens: is_array($model->allergens) ? $model->allergens : [],
             createdAt: $model->created_at->toDateTimeImmutable(),
             updatedAt: $model->updated_at->toDateTimeImmutable(),
         );
@@ -94,6 +96,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
                 price: (int) $model->price,
                 stock: (int) $model->stock,
                 active: (bool) $model->active,
+                allergens: is_array($model->allergens) ? $model->allergens : [],
                 createdAt: $model->created_at->toDateTimeImmutable(),
                 updatedAt: $model->updated_at->toDateTimeImmutable(),
             ))

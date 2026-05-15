@@ -4,6 +4,9 @@ namespace App\Product\Application\CreateProduct;
 
 final readonly class CreateProductResponse
 {
+    /**
+     * @param string[] $allergens
+     */
     private function __construct(
         public string $id,
         public string $familyId,
@@ -13,10 +16,14 @@ final readonly class CreateProductResponse
         public int $price,
         public int $stock,
         public bool $active,
+        public array $allergens,
         public string $createdAt,
         public string $updatedAt,
     ) {}
 
+    /**
+     * @param string[] $allergens
+     */
     public static function create(
         string $id,
         string $familyId,
@@ -26,6 +33,7 @@ final readonly class CreateProductResponse
         int $price,
         int $stock,
         bool $active,
+        array $allergens,
         string $createdAt,
         string $updatedAt,
     ): self {
@@ -38,6 +46,7 @@ final readonly class CreateProductResponse
             price: $price,
             stock: $stock,
             active: $active,
+            allergens: $allergens,
             createdAt: $createdAt,
             updatedAt: $updatedAt,
         );
@@ -54,6 +63,7 @@ final readonly class CreateProductResponse
             'price' => $this->price,
             'stock' => $this->stock,
             'active' => $this->active,
+            'allergens' => $this->allergens,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

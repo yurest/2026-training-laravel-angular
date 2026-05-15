@@ -4,6 +4,7 @@ namespace App\Product\Application\CreateProduct;
 
 use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
+use App\Product\Domain\ValueObject\ProductAllergens;
 use App\Product\Domain\ValueObject\ProductImageSrc;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
@@ -26,6 +27,7 @@ class CreateProduct
             price: ProductPrice::create($command->price),
             stock: ProductStock::create($command->stock),
             active: $command->active,
+            allergens: ProductAllergens::create($command->allergens),
         );
 
         $this->productRepository->save($product);
@@ -39,6 +41,7 @@ class CreateProduct
             price: $product->price()->value(),
             stock: $product->stock()->value(),
             active: $product->isActive(),
+            allergens: $product->allergens()->values(),
             createdAt: $product->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $product->updatedAt()->format(\DateTimeInterface::ATOM),
         );

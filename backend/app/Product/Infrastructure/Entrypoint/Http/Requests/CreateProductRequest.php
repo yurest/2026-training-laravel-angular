@@ -3,6 +3,7 @@
 namespace App\Product\Infrastructure\Entrypoint\Http\Requests;
 
 use App\Product\Application\CreateProduct\CreateProductCommand;
+use App\Product\Domain\ValueObject\ProductAllergens;
 use App\Shared\Infrastructure\Tenant\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,11 +39,15 @@ final class CreateProductRequest extends FormRequest
             'price' => ['required', 'integer', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'active' => ['sometimes', 'boolean'],
+            'allergens' => ['sometimes', 'array'],
+            'allergens.*' => ['string', Rule::in(ProductAllergens::ALLERGENS)],
         ];
     }
 
     public function toCommand(): CreateProductCommand
     {
+        $allergens = $this->input('allergens', []);
+
         return new CreateProductCommand(
             familyId: (string) $this->input('family_id'),
             taxId: (string) $this->input('tax_id'),
@@ -51,6 +56,7 @@ final class CreateProductRequest extends FormRequest
             price: (int) $this->input('price'),
             stock: (int) $this->input('stock'),
             active: (bool) ($this->input('active') ?? true),
+            allergens: is_array($allergens) ? array_values(array_map('strval', $allergens)) : [],
         );
     }
 }

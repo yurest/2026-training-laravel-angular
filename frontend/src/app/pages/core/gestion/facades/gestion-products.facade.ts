@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ProductItem, ProductService } from '../../../../services/product.service';
+import { AllergenCode, ProductItem, ProductService } from '../../../../services/product.service';
 
 export interface ProductRow {
   uuid?: string;
@@ -10,6 +10,7 @@ export interface ProductRow {
   price: number;
   stock: number;
   active: boolean;
+  allergens: AllergenCode[];
 }
 
 export interface ProductFormData {
@@ -19,6 +20,7 @@ export interface ProductFormData {
   price: number;
   stock: number;
   active: boolean;
+  allergens: AllergenCode[];
 }
 
 const EMPTY_FORM: ProductFormData = {
@@ -28,6 +30,7 @@ const EMPTY_FORM: ProductFormData = {
   price: 0,
   stock: 0,
   active: true,
+  allergens: [],
 };
 
 export interface OperationResult {
@@ -65,7 +68,7 @@ export class GestionProductsFacade {
     try {
       const productsResponse = await firstValueFrom(this.productService.listProducts());
       const products = Array.isArray(productsResponse) ? productsResponse : (productsResponse as any).items || [];
-      
+
       const rows: ProductRow[] = products.map((product: ProductItem) => ({
         uuid: product.id,
         family_id: product.family_id,
@@ -74,6 +77,7 @@ export class GestionProductsFacade {
         price: product.price,
         stock: product.stock,
         active: product.active,
+        allergens: product.allergens ?? [],
       }));
 
       this._products.set(rows);
@@ -105,6 +109,15 @@ export class GestionProductsFacade {
 
   public setForm(data: ProductFormData): void {
     this._formData.set({ ...data });
+  }
+
+  public applyAllergens(uuid: string, allergens: AllergenCode[]): void {
+    this._products.update((current) =>
+      current.map((product) =>
+        product.uuid === uuid ? { ...product, allergens: [...allergens] } : product,
+      ),
+    );
+    this.syncFormFromIndex();
   }
 
   public async deleteSelected(): Promise<OperationResult> {
@@ -150,6 +163,7 @@ export class GestionProductsFacade {
     const price = Number(form.price);
     const stock = Number(form.stock);
     const active = form.active;
+    const allergens = form.allergens ?? [];
 
     if (!name || !family_id || !tax_id || price <= 0 || !Number.isFinite(stock) || stock < 0) {
       return { ok: false, error: 'Revisa los datos del producto.' };
@@ -162,7 +176,7 @@ export class GestionProductsFacade {
     try {
       if (selected?.uuid) {
         const updated = await firstValueFrom(
-          this.productService.updateProduct(selected.uuid, { name, family_id, tax_id, price, stock, active }),
+          this.productService.updateProduct(selected.uuid, { name, family_id, tax_id, price, stock, active, allergens }),
         );
 
         const finalProduct = active
@@ -177,6 +191,7 @@ export class GestionProductsFacade {
           price: finalProduct.price,
           stock: finalProduct.stock,
           active: finalProduct.active,
+          allergens: finalProduct.allergens ?? [],
         });
 
         this.syncFormFromIndex();
@@ -185,7 +200,7 @@ export class GestionProductsFacade {
       }
 
       const created = await firstValueFrom(
-        this.productService.createProduct({ name, family_id, tax_id, price, stock, active }),
+        this.productService.createProduct({ name, family_id, tax_id, price, stock, active, allergens }),
       );
       const finalProduct = active ? created : await firstValueFrom(this.productService.deactivateProduct(created.id));
 
@@ -197,6 +212,7 @@ export class GestionProductsFacade {
         price: finalProduct.price,
         stock: finalProduct.stock,
         active: finalProduct.active,
+        allergens: finalProduct.allergens ?? [],
       };
 
       const newList = [...this._products(), newRow];
@@ -227,6 +243,7 @@ export class GestionProductsFacade {
         price: product.price,
         stock: product.stock,
         active: product.active,
+        allergens: [...product.allergens],
       });
     } else {
       this._formData.set({ ...EMPTY_FORM });

@@ -1,0 +1,256 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 300;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  width: 92%;
+  max-width: 720px;
+  max-height: 88vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.modal-title-product {
+  font-weight: 500;
+  color: var(--gray-500);
+  margin-left: 4px;
+}
+
+.close-btn {
+  border: none;
+  background: none;
+  font-size: 22px;
+  color: var(--gray-400);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+
+  &:hover {
+    color: var(--gray-600);
+  }
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 18px 0;
+  border-bottom: 1px solid var(--gray-200);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.modal-tab {
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: var(--gray-700);
+  }
+
+  &.active {
+    color: var(--primary, var(--black));
+    border-bottom-color: var(--primary, var(--black));
+  }
+}
+
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 22px 24px;
+}
+
+.tab-description {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-bottom: 18px;
+  line-height: 1.4;
+}
+
+.tab-placeholder {
+  border: 1px dashed var(--gray-300);
+  border-radius: var(--radius-lg, 12px);
+  padding: 40px 24px;
+  text-align: center;
+  background: var(--gray-50, #fafafa);
+}
+
+.placeholder-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.placeholder-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 4px;
+}
+
+.placeholder-sub {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.allergen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.allergen-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border: 2px solid var(--gray-200);
+  border-radius: 12px;
+  background: var(--white);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.05s;
+  font-family: inherit;
+
+  &:hover {
+    border-color: var(--gray-400);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &.selected {
+    border-color: var(--primary, var(--black));
+    background: var(--primary-soft, rgba(0, 0, 0, 0.04));
+  }
+}
+
+.allergen-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.allergen-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-700);
+  text-align: center;
+}
+
+.allergen-card.selected .allergen-label {
+  color: var(--black);
+}
+
+.allergen-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: var(--primary, var(--black));
+  font-weight: 700;
+}
+
+.allergen-summary {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--gray-500);
+  text-align: right;
+}
+
+.modal-footer {
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.modal-error {
+  background: var(--red-soft, #fdecea);
+  color: var(--red, #c0392b);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-secondary {
+  border: 1px solid var(--gray-300);
+  background: var(--white);
+  color: var(--gray-700);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--gray-50);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  border: none;
+  background: var(--primary, var(--black));
+  color: var(--white);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

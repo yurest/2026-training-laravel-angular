@@ -3,6 +3,7 @@
 namespace App\Product\Infrastructure\Entrypoint\Http\Requests;
 
 use App\Product\Application\UpdateProduct\UpdateProductCommand;
+use App\Product\Domain\ValueObject\ProductAllergens;
 use App\Shared\Infrastructure\Tenant\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -39,11 +40,15 @@ final class UpdateProductRequest extends FormRequest
             'price' => ['required', 'integer', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'active' => ['required', 'boolean'],
+            'allergens' => ['sometimes', 'array'],
+            'allergens.*' => ['string', Rule::in(ProductAllergens::ALLERGENS)],
         ];
     }
 
     public function toCommand(string $id): UpdateProductCommand
     {
+        $allergens = $this->input('allergens', []);
+
         return new UpdateProductCommand(
             id: $id,
             familyId: (string) $this->input('family_id'),
@@ -53,6 +58,7 @@ final class UpdateProductRequest extends FormRequest
             price: (int) $this->input('price'),
             stock: (int) $this->input('stock'),
             active: (bool) $this->input('active'),
+            allergens: is_array($allergens) ? array_values(array_map('strval', $allergens)) : [],
         );
     }
 }

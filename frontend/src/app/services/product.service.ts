@@ -2,6 +2,22 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../core/services/api/base-api.service';
 
+export type AllergenCode =
+  | 'gluten'
+  | 'crustaceans'
+  | 'eggs'
+  | 'fish'
+  | 'peanuts'
+  | 'soy'
+  | 'dairy'
+  | 'nuts'
+  | 'celery'
+  | 'mustard'
+  | 'sesame'
+  | 'sulphites'
+  | 'lupin'
+  | 'molluscs';
+
 export interface ProductItem {
   id: string;
   family_id: string;
@@ -11,6 +27,7 @@ export interface ProductItem {
   price: number;
   stock: number;
   active: boolean;
+  allergens: AllergenCode[];
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +40,7 @@ interface CreateProductPayload {
   price: number;
   stock: number;
   active?: boolean;
+  allergens?: AllergenCode[];
 }
 
 interface UpdateProductPayload {
@@ -33,6 +51,7 @@ interface UpdateProductPayload {
   price: number;
   stock: number;
   active: boolean;
+  allergens?: AllergenCode[];
 }
 
 @Injectable({

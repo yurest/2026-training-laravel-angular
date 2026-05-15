@@ -836,7 +836,8 @@ export class GestionPage {
           this.productsFacade.startCreate();
         }
 
-        this.productsFacade.setForm({ name, family_id: familyId, tax_id: taxId, price, stock, active });
+        const currentAllergens = this.productsFacade.selectedProduct()?.allergens ?? [];
+        this.productsFacade.setForm({ name, family_id: familyId, tax_id: taxId, price, stock, active, allergens: currentAllergens });
         this.productsFacade.save().then((result) => {
           if (result.ok) {
             this.syncProductsMirror();

@@ -2,6 +2,7 @@
 
 namespace App\Product\Domain\Entity;
 
+use App\Product\Domain\ValueObject\ProductAllergens;
 use App\Product\Domain\ValueObject\ProductImageSrc;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
@@ -20,6 +21,7 @@ class Product
         private ProductPrice $price,
         private ProductStock $stock,
         private bool $active,
+        private ProductAllergens $allergens,
         private DomainDateTime $createdAt,
         private DomainDateTime $updatedAt,
     ) {}
@@ -32,6 +34,7 @@ class Product
         ProductPrice $price,
         ProductStock $stock,
         bool $active = true,
+        ?ProductAllergens $allergens = null,
     ): self {
         $now = DomainDateTime::now();
 
@@ -44,6 +47,7 @@ class Product
             price: $price,
             stock: $stock,
             active: $active,
+            allergens: $allergens ?? ProductAllergens::empty(),
             createdAt: $now,
             updatedAt: $now,
         );
@@ -58,6 +62,7 @@ class Product
         int $price,
         int $stock,
         bool $active,
+        array $allergens,
         \DateTimeImmutable $createdAt,
         \DateTimeImmutable $updatedAt,
     ): self {
@@ -70,6 +75,7 @@ class Product
             price: ProductPrice::create($price),
             stock: ProductStock::create($stock),
             active: $active,
+            allergens: ProductAllergens::create($allergens),
             createdAt: DomainDateTime::create($createdAt),
             updatedAt: DomainDateTime::create($updatedAt),
         );
@@ -83,6 +89,7 @@ class Product
         ProductPrice $price,
         ProductStock $stock,
         bool $active,
+        ?ProductAllergens $allergens = null,
     ): void {
         $this->familyId = $familyId;
         $this->taxId = $taxId;
@@ -91,6 +98,11 @@ class Product
         $this->price = $price;
         $this->stock = $stock;
         $this->active = $active;
+
+        if ($allergens !== null) {
+            $this->allergens = $allergens;
+        }
+
         $this->touch();
     }
 
@@ -148,6 +160,11 @@ class Product
     public function isActive(): bool
     {
         return $this->active;
+    }
+
+    public function allergens(): ProductAllergens
+    {
+        return $this->allergens;
     }
 
     public function decreaseStock(int $amount): void

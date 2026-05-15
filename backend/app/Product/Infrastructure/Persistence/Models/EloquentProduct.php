@@ -26,6 +26,7 @@ class EloquentProduct extends Model
         'price',
         'stock',
         'active',
+        'allergens',
     ];
 
     protected function casts(): array
@@ -34,6 +35,7 @@ class EloquentProduct extends Model
             'price' => 'integer',
             'stock' => 'integer',
             'active' => 'boolean',
+            'allergens' => 'array',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',

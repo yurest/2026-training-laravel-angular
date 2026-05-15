@@ -1,0 +1,79 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">
+          Modificadores
+          @if (product) {
+            <span class="modal-title-product">— {{ product.name }}</span>
+          }
+        </div>
+        <button class="close-btn" type="button" (click)="onClose()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="modal-tabs">
+        @for (tab of tabs; track tab.key) {
+          <button
+            type="button"
+            class="modal-tab"
+            [class.active]="activeTab === tab.key"
+            (click)="selectTab(tab.key)"
+            >
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+
+      <div class="modal-body">
+        <div class="tab-description">{{ currentTab.description }}</div>
+
+        @if (activeTab === 'allergens') {
+          <div class="allergen-grid">
+            @for (allergen of allergenCatalog; track allergen.code) {
+              <button
+                type="button"
+                class="allergen-card"
+                [class.selected]="isAllergenSelected(allergen.code)"
+                (click)="toggleAllergen(allergen.code)"
+                >
+                <span class="allergen-icon">{{ allergen.icon }}</span>
+                <span class="allergen-label">{{ allergen.label }}</span>
+                @if (isAllergenSelected(allergen.code)) {
+                  <span class="allergen-check">✓</span>
+                }
+              </button>
+            }
+          </div>
+          <div class="allergen-summary">
+            {{ selectedAllergens().length }} de {{ allergenCatalog.length }} seleccionados
+          </div>
+        } @else {
+          <div class="tab-placeholder">
+            <div class="placeholder-icon">🚧</div>
+            <div class="placeholder-text">Próximamente</div>
+            <div class="placeholder-sub">Esta sección se implementará en la siguiente fase.</div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        @if (error()) {
+          <div class="modal-error">{{ error() }}</div>
+        }
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" type="button" (click)="onClose()" [disabled]="isSaving()">
+            Cerrar
+          </button>
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="onSave()"
+            [disabled]="!hasChanges() || isSaving()"
+            >
+            {{ isSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
