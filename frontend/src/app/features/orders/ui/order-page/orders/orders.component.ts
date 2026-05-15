@@ -3,16 +3,14 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { Product } from '../../../../catalog/domain/product.model';
-import { ProductService } from '../../../../catalog/infrastructure/product.service';
 import { OrderProductsComponent } from '../components/order-products/order-products.component';
-import { OrderService, Order } from '../../../infrastructure/order.service';
-import { OrderLineService } from '../../../infrastructure/order-line.service';
 import { AuthService } from '../../../../identity/infrastructure/auth.service';
 import {
   CurrentOrderLine,
   OrderSummaryComponent,
 } from '../components/order-summary/order-summary.component';
 import { extractArrayFromResponse } from '../../../../../shared/helpers/api-response.helper';
+import { Order } from '../../../infrastructure/order.service';
 import { CurrentOrderFacade } from '../../../application/current-order.facade';
 
 @Component({
@@ -40,9 +38,6 @@ export class OrdersComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private productService: ProductService,
-    private orderService: OrderService,
-    private orderLineService: OrderLineService,
     private authService: AuthService,
     private currentOrderFacade: CurrentOrderFacade,
   ) {}
@@ -141,7 +136,7 @@ export class OrdersComponent implements OnInit {
   }
 
   increaseLine(line: CurrentOrderLine): void {
-    this.updateLineQuantity(line, line.quantity + 1);
+    this.changeLineQuantity(line, line.quantity + 1);
   }
 
   decreaseLine(line: CurrentOrderLine): void {
@@ -150,27 +145,28 @@ export class OrdersComponent implements OnInit {
       return;
     }
 
-    this.updateLineQuantity(line, line.quantity - 1);
+    this.changeLineQuantity(line, line.quantity - 1);
   }
 
-  updateLineQuantity(line: CurrentOrderLine, quantity: number): void {
-    this.orderLineService
-      .updateOrderLine(line.id, {
-        quantity,
-        price: line.price,
-      })
-      .subscribe({
-        next: () => {
-          line.quantity = quantity;
-        },
-        error: (error: unknown) => {
-          console.log('ERROR updating order line', error);
-        },
-      });
+  changeLineQuantity(line: CurrentOrderLine, quantity: number): void {
+    this.currentOrderFacade.updateLineQuantity(line, quantity).subscribe({
+      next: (updatedLine) => {
+        const existingLine = this.orderLines.find(
+          (item) => item.id === updatedLine?.id,
+        );
+
+        if (existingLine && updatedLine) {
+          existingLine.quantity = updatedLine.quantity;
+        }
+      },
+      error: (error: unknown) => {
+        console.log('ERROR updating order line', error);
+      },
+    });
   }
 
   deleteLine(line: CurrentOrderLine): void {
-    this.orderLineService.deleteOrderLine(line.id).subscribe({
+    this.currentOrderFacade.deleteLine(line.id).subscribe({
       next: () => {
         this.orderLines = this.orderLines.filter((item) => item.id !== line.id);
       },
@@ -185,11 +181,8 @@ export class OrdersComponent implements OnInit {
       return;
     }
 
-    this.orderService
-      .checkoutOrder(this.currentOrder.id, {
-        restaurant_id: this.user.restaurant_id,
-        user_id: this.user.id,
-      })
+    this.currentOrderFacade
+      .checkoutOrder(this.currentOrder.id, this.user)
       .subscribe({
         next: (response: any) => {
           console.log('SALE CREATED', response);

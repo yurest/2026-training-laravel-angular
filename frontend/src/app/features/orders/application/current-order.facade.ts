@@ -88,4 +88,15 @@ export class CurrentOrderFacade {
         });
     });
   }
+
+  deleteLine(lineId: string) {
+    return this.orderLineService.deleteOrderLine(lineId);
+  }
+
+  checkoutOrder(orderId: string, user: any) {
+    return this.orderService.checkoutOrder(orderId, {
+      restaurant_id: user.restaurant_id,
+      user_id: user.id,
+    });
+  }
 }
