@@ -6,6 +6,9 @@ import { OrderService } from '../infrastructure/order.service';
 import { OrderLineService } from '../infrastructure/order-line.service';
 import { Product } from '../../catalog/domain/product.model';
 import { CurrentOrderLine } from '../ui/order-page/components/order-summary/order-summary.component';
+import { map } from 'rxjs/operators';
+import { Order } from '../infrastructure/order.service';
+import { extractArrayFromResponse } from '../../../shared/helpers/api-response.helper';
 
 @Injectable({
   providedIn: 'root',
@@ -98,5 +101,48 @@ export class CurrentOrderFacade {
       restaurant_id: user.restaurant_id,
       user_id: user.id,
     });
+  }
+
+  loadCurrentOrderPage(orderId: string) {
+    return this.loadPageData(orderId).pipe(
+      map(({ orderResponse, productsResponse, orderLinesResponse }: any) => {
+        const currentOrder: Order = orderResponse;
+
+        const products = extractArrayFromResponse<Product>(
+          productsResponse,
+          'products',
+        ).filter((product) => product.active);
+
+        const allOrderLines = extractArrayFromResponse<any>(
+          orderLinesResponse,
+          'order_lines',
+        );
+
+        const orderLines: CurrentOrderLine[] = allOrderLines
+          .filter(
+            (line: any) => String(line.order_id) === String(currentOrder.id),
+          )
+          .map((line: any) => {
+            const product = products.find(
+              (item) => String(item.id) === String(line.product_id),
+            );
+
+            return {
+              id: line.id,
+              product_id: line.product_id,
+              name: product?.name ?? 'Producto',
+              price: line.price,
+              quantity: line.quantity,
+              tax_percentage: line.tax_percentage,
+            };
+          });
+
+        return {
+          currentOrder,
+          products,
+          orderLines,
+        };
+      }),
+    );
   }
 }

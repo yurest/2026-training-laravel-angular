@@ -56,41 +56,11 @@ export class OrdersComponent implements OnInit {
 
     this.isLoading = true;
 
-    this.currentOrderFacade.loadPageData(this.orderId).subscribe({
-      next: ({ orderResponse, productsResponse, orderLinesResponse }: any) => {
-        this.currentOrder = orderResponse;
-
-        const products = extractArrayFromResponse<Product>(
-          productsResponse,
-          'products',
-        );
-        this.products = products.filter((product: Product) => product.active);
-
-        const allOrderLines = extractArrayFromResponse<any>(
-          orderLinesResponse,
-          'order_lines',
-        );
-
-        this.orderLines = allOrderLines
-          .filter(
-            (line: any) =>
-              String(line.order_id) === String(this.currentOrder?.id),
-          )
-          .map((line: any) => {
-            const product = this.products.find(
-              (item) => String(item.id) === String(line.product_id),
-            );
-
-            return {
-              id: line.id,
-              product_id: line.product_id,
-              name: product?.name ?? 'Producto',
-              price: line.price,
-              quantity: line.quantity,
-              tax_percentage: line.tax_percentage,
-            };
-          });
-
+    this.currentOrderFacade.loadCurrentOrderPage(this.orderId).subscribe({
+      next: ({ currentOrder, products, orderLines }) => {
+        this.currentOrder = currentOrder;
+        this.products = products;
+        this.orderLines = orderLines;
         this.isLoading = false;
       },
       error: (error: unknown) => {
