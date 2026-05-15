@@ -1,0 +1,44 @@
+<ion-content class="open-orders-page">
+  <div class="open-orders-header">
+    <h2>Pedidos abiertos</h2>
+    <p>Consulta y continúa los pedidos activos</p>
+  </div>
+
+  <p *ngIf="loading" class="loading-text">Cargando pedidos...</p>
+
+  <div class="error-box" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && orders.length === 0" class="empty-state">
+    No hay pedidos abiertos.
+  </div>
+
+  <div class="orders-grid" *ngIf="!loading && orders.length > 0">
+    <ion-card
+      *ngFor="let order of orders"
+      class="order-card"
+      (click)="openOrder(order)"
+    >
+      <ion-card-content>
+        <div class="order-card-header">
+          <div>
+            <h3>{{ getTableName(order.table_id) }}</h3>
+            <p>Pedido abierto</p>
+          </div>
+
+          <span class="status-badge">Open</span>
+        </div>
+
+        <div class="order-info">
+          <span>Comensales: {{ order.diners }}</span>
+          <span>Apertura: {{ formatDate(order.opened_at) }}</span>
+        </div>
+
+        <ion-button expand="block" class="open-order-button">
+          Entrar al pedido
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

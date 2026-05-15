@@ -1,0 +1,20 @@
+<ion-content class="ion-padding">
+  <h2>Pedido abierto</h2>
+
+  <p *ngIf="isLoading">Cargando pedido...</p>
+
+  <div class="orders-layout" *ngIf="!isLoading">
+    <app-order-products
+      [products]="products"
+      (productSelected)="addProduct($event)"
+    ></app-order-products>
+
+    <app-order-summary
+      [orderLines]="orderLines"
+      (increaseLine)="increaseLine($event)"
+      (decreaseLine)="decreaseLine($event)"
+      (deleteLine)="deleteLine($event)"
+      (checkout)="checkout()"
+    ></app-order-summary>
+  </div>
+</ion-content>
