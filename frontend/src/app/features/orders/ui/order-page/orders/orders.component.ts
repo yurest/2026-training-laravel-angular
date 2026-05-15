@@ -110,38 +110,32 @@ export class OrdersComponent implements OnInit {
       return;
     }
 
-    const existingLine = this.orderLines.find(
-      (line) => String(line.product_id) === String(product.id),
-    );
-
-    if (existingLine) {
-      this.updateLineQuantity(existingLine, existingLine.quantity + 1);
-      return;
-    }
-
-    this.orderLineService
-      .createOrderLine({
-        restaurant_id: this.user.restaurant_id,
-        order_id: this.currentOrder.id,
-        product_id: product.id,
-        user_id: this.user.id,
-        quantity: 1,
-        price: product.price,
-        tax_percentage: 21,
-      })
+    this.currentOrderFacade
+      .addProductToOrder(
+        product,
+        this.currentOrder.id,
+        this.user,
+        this.orderLines,
+      )
       .subscribe({
-        next: (response: any) => {
-          this.orderLines.push({
-            id: response.id,
-            product_id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: 1,
-            tax_percentage: 21,
-          });
+        next: (line) => {
+          if (!line) {
+            return;
+          }
+
+          const existingLine = this.orderLines.find(
+            (item) => String(item.id) === String(line.id),
+          );
+
+          if (existingLine) {
+            existingLine.quantity = line.quantity;
+            return;
+          }
+
+          this.orderLines.push(line);
         },
         error: (error: unknown) => {
-          console.log('ERROR creating order line', error);
+          console.log('ERROR adding product to order', error);
         },
       });
   }
