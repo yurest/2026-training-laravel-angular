@@ -9,9 +9,9 @@ import {
   CurrentOrderLine,
   OrderSummaryComponent,
 } from '../components/order-summary/order-summary.component';
-import { extractArrayFromResponse } from '../../../../../shared/helpers/api-response.helper';
 import { Order } from '../../../infrastructure/order.service';
 import { CurrentOrderFacade } from '../../../application/current-order.facade';
+import { Family } from '../../../../catalog/domain/family.model';
 
 @Component({
   selector: 'app-orders',
@@ -29,11 +29,16 @@ export class OrdersComponent implements OnInit {
   orderId: string | null = null;
   currentOrder: Order | null = null;
 
+  families: Family[] = [];
+
   products: Product[] = [];
   orderLines: CurrentOrderLine[] = [];
 
   user: any = null;
   isLoading = false;
+
+  isSentToKitchen = false;
+  sentLineIds: string[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -57,10 +62,11 @@ export class OrdersComponent implements OnInit {
     this.isLoading = true;
 
     this.currentOrderFacade.loadCurrentOrderPage(this.orderId).subscribe({
-      next: ({ currentOrder, products, orderLines }) => {
+      next: ({ currentOrder, products, orderLines, families }) => {
         this.currentOrder = currentOrder;
         this.products = products;
         this.orderLines = orderLines;
+        this.families = families;
         this.isLoading = false;
       },
       error: (error: unknown) => {
@@ -80,7 +86,7 @@ export class OrdersComponent implements OnInit {
         product,
         this.currentOrder.id,
         this.user,
-        this.orderLines,
+        this.getEditableOrderLines(),
       )
       .subscribe({
         next: (line) => {
@@ -103,6 +109,15 @@ export class OrdersComponent implements OnInit {
           console.log('ERROR adding product to order', error);
         },
       });
+  }
+  getEditableOrderLines(): CurrentOrderLine[] {
+    if (!this.isSentToKitchen) {
+      return this.orderLines;
+    }
+
+    return this.orderLines.filter(
+      (line) => !this.sentLineIds.includes(line.id),
+    );
   }
 
   increaseLine(line: CurrentOrderLine): void {
@@ -162,5 +177,13 @@ export class OrdersComponent implements OnInit {
           console.log('ERROR checkout', error);
         },
       });
+  }
+  sendToKitchen(): void {
+    if (this.orderLines.length === 0) {
+      return;
+    }
+
+    this.isSentToKitchen = true;
+    this.sentLineIds = this.orderLines.map((line) => line.id);
   }
 }

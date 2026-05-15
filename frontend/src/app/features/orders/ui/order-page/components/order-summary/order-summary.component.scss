@@ -1,26 +1,52 @@
 .summary-section {
+  height: 100%;
   padding: 16px;
   border-radius: 12px;
-  background: #1e1e1e;
-  color: white;
+  background: var(--app-surface);
+  color: var(--app-text);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.order-lines {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .order-line {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  color: var(--app-text);
 }
 
 .summary-section h3 {
-  margin-top: 10px;
-}
-
-ion-button {
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .line-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.line-actions span {
+  color: var(--app-text);
+}
+
+.summary-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.summary-actions {
+  display: grid;
+  gap: 10px;
+}
+
+ion-button {
+  margin-top: 0;
 }
