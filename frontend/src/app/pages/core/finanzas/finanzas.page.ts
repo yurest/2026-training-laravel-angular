@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FinanzasFacade } from './facades/finanzas.facade';
@@ -31,6 +32,7 @@ import type { FinanzasTab, FinanzasPeriod } from './models/finanzas.models';
 export class FinanzasPage {
   protected readonly facade = inject(FinanzasFacade);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
 
   protected readonly alertsOpen = signal(false);
   protected readonly hardwareOpen = signal(false);
@@ -67,7 +69,7 @@ export class FinanzasPage {
   };
 
   protected goBack(): void {
-    this.router.navigateByUrl('/app/gestion');
+    this.location.back();
   }
 
   protected toggleAlerts(): void {

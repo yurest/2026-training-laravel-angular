@@ -251,7 +251,7 @@ export class GestionPage {
   }
 
   public goToFinanzas(): void {
-    this.router.navigateByUrl('/app/finanzas');
+    this.router.navigateByUrl('/finanzas');
   }
 
   public unlinkDevice(): void {
