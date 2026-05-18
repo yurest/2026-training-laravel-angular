@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDA — Yurest TPV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #FF4D4D;
+      --accent-light: #FF7070;
+      --accent-soft: #FFECEC;
+      --black: #0D0D0D;
+      --gray-900: #1A1A1A;
+      --gray-800: #2C2C2C;
+      --gray-700: #3D3D3D;
+      --gray-600: #555555;
+      --gray-500: #7A7A7A;
+      --gray-400: #A0A0A0;
+      --gray-200: #E8E8E8;
+      --gray-100: #F4F4F4;
+      --gray-50: #FAFAFA;
+      --white: #FFFFFF;
+      --green: #1A9E5A;
+      --green-soft: #E8F7EF;
+      --blue: #1A6FE8;
+      --blue-soft: #EBF2FE;
+      --orange: #E8440A;
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+      --radius-sm: 8px;
+      --radius: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow: 0 4px 16px rgba(0,0,0,0.10);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.18);
+    }
+
+    html, body {
+      font-family: var(--font);
+      background: #111;
+      height: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .stage {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      gap: 32px;
+      flex-wrap: wrap;
+      padding: 24px;
+    }
+
+    /* ── PDA FRAME ── */
+    .pda-frame {
+      width: 375px;
+      height: 780px;
+      background: var(--white);
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 0 10px #1a1a1a, 0 0 0 12px #333, 0 32px 80px rgba(0,0,0,0.7);
+      flex-shrink: 0;
+    }
+
+    /* Notch bar at top */
+    .pda-frame::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 28px;
+      background: #1a1a1a;
+      border-radius: 0 0 18px 18px;
+      z-index: 1000;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+      display: flex;
+      flex-direction: column;
+      padding-top: 28px; /* notch */
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ════════════════════════════
+       SCREEN 1: PIN LOGIN
+    ════════════════════════════ */
+    #screen-pin {
+      background: var(--gray-50);
+    }
+
+    .pin-header {
+      padding: 20px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pin-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pin-logo-icon {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .pin-logo-icon svg { width: 14px; height: 14px; }
+
+    .pin-logo-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .pin-email-link {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .pin-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px 16px;
+      gap: 20px;
+    }
+
+    .pin-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      align-self: flex-start;
+    }
+
+    /* Operator chips row */
+    .operator-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .op-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 12px;
+      background: var(--white);
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      min-width: 68px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .op-chip.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .op-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+      color: var(--white);
+    }
+
+    .op-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--black);
+    }
+
+    /* PIN dots */
+    .pin-dots {
+      display: flex;
+      gap: 14px;
+    }
+
+    .pin-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--gray-200);
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .pin-dot.filled {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+
+    /* PIN keypad */
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .key {
+      height: 58px;
+      background: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--black);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.1s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .key:active { background: var(--gray-100); transform: scale(0.96); }
+
+    .key-del { font-size: 18px; color: var(--gray-500); }
+
+    .key-enter {
+      background: var(--accent);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .key-enter:active { background: var(--accent-light); }
+
+    /* ════════════════════════════
+       SCREEN 2: OPERATOR SELECT
+    ════════════════════════════ */
+    #screen-operators {
+      background: var(--white);
+    }
+
+    .ops-header {
+      padding: 20px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--gray-200);
+      padding-bottom: 16px;
+    }
+
+    .btn-back {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--black);
+      flex-shrink: 0;
+    }
+
+    .ops-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .ops-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .ops-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .op-card {
+      background: var(--gray-50);
+      border: 2px solid transparent;
+      border-radius: var(--radius-lg);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .op-card:active { transform: scale(0.97); }
+
+    .op-card-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 600;
+      color: var(--white);
+    }
+
+    .op-card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .op-card-role {
+      font-size: 11px;
+      color: var(--gray-500);
+      font-weight: 400;
+    }
+
+    .ops-email-btn {
+      margin: 16px 20px;
+      padding: 14px;
+      background: var(--gray-100);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-700);
+      cursor: pointer;
+      width: calc(100% - 40px);
+      transition: background 0.15s;
+    }
+
+    .ops-email-btn:active { background: var(--gray-200); }
+
+    /* ════════════════════════════
+       SCREEN 3: EMAIL LOGIN
+    ════════════════════════════ */
+    #screen-email {
+      background: var(--white);
+    }
+
+    .email-header {
+      padding: 20px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--gray-200);
+      padding-bottom: 16px;
+    }
+
+    .email-body {
+      flex: 1;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .email-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--black);
+      letter-spacing: -0.5px;
+    }
+
+    .email-sub {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-top: -12px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+      letter-spacing: 0.3px;
+    }
+
+    .form-input {
+      height: 48px;
+      background: var(--gray-50);
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--black);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus { border-color: var(--accent); }
+
+    .btn-login-email {
+      height: 52px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-login-email:active { background: var(--accent-light); transform: scale(0.99); }
+
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .divider-line { flex: 1; height: 1px; background: var(--gray-200); }
+    .divider-text { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+
+    .btn-pin-back {
+      height: 44px;
+      background: transparent;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-600);
+      cursor: pointer;
+    }
+
+    /* ════════════════════════════
+       SCREEN 4: MESAS
+    ════════════════════════════ */
+    #screen-mesas {
+      background: var(--gray-50);
+    }
+
+    .topbar {
+      background: var(--white);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+    }
+
+    .topbar-info { display: flex; flex-direction: column; gap: 1px; }
+    .topbar-restaurant { font-size: 14px; font-weight: 600; color: var(--black); }
+    .topbar-date { font-size: 11px; color: var(--gray-500); }
+
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+    .user-chip-sm {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      color: var(--white);
+      cursor: pointer;
+    }
+
+    /* Zone tabs */
+    .zone-tabs {
+      display: flex;
+      gap: 0;
+      padding: 12px 16px 0;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+
+    .zone-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-500);
+      background: none;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      font-family: var(--font);
+    }
+
+    .zone-tab.active {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    /* Tables grid */
+    .mesas-grid {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .mesa-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 16px 14px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    .mesa-card:active { transform: scale(0.97); }
+
+    .mesa-card.open { border-color: var(--accent-soft); }
+    .mesa-card.libre { opacity: 0.65; }
+
+    .mesa-num {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--black);
+      font-family: var(--mono);
+    }
+
+    .mesa-label { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+    .mesa-status {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    .mesa-status.open { background: var(--accent); }
+    .mesa-status.libre { background: var(--gray-300); }
+
+    .mesa-footer {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mesa-diners {
+      font-size: 11px;
+      color: var(--gray-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mesa-importe {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+      font-family: var(--mono);
+    }
+
+    /* bottom nav */
+    .bottom-nav {
+      background: var(--white);
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      padding: 8px 0 16px;
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      color: var(--gray-400);
+      font-size: 10px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 20px; height: 20px; }
+
+    /* ════════════════════════════
+       SCREEN 5: MESA ABIERTA
+    ════════════════════════════ */
+    #screen-mesa {
+      background: var(--gray-50);
+    }
+
+    .mesa-topbar {
+      background: var(--white);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+    }
+
+    .mesa-topbar-info { flex: 1; }
+    .mesa-topbar-name { font-size: 16px; font-weight: 600; color: var(--black); }
+    .mesa-topbar-meta { font-size: 11px; color: var(--gray-500); margin-top: 1px; }
+
+    .btn-dots {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--black);
+      position: relative;
+    }
+
+    /* Commandas list */
+    .comandas-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .comanda-group {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .comanda-group-header {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .comanda-group-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-500);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .comanda-group-time {
+      font-size: 10px;
+      color: var(--gray-400);
+    }
+
+    .comanda-line {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .comanda-line:last-child { border-bottom: none; }
+
+    .cl-qty {
+      width: 22px; height: 22px;
+      background: var(--gray-100);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--black);
+      flex-shrink: 0;
+    }
+
+    .cl-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--black);
+    }
+
+    .cl-note {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .cl-price {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+      font-family: var(--mono);
+    }
+
+    .cl-status {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cl-status.pending { background: var(--orange); }
+    .cl-status.done { background: var(--green); }
+
+    /* Mesa bottom bar */
+    .mesa-bottom {
+      background: var(--white);
+      border-top: 1px solid var(--gray-200);
+      padding: 12px 16px 20px;
+      flex-shrink: 0;
+    }
+
+    .mesa-total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .mesa-total-label { font-size: 12px; color: var(--gray-500); }
+    .mesa-total-val { font-size: 20px; font-weight: 600; color: var(--black); font-family: var(--mono); }
+
+    .mesa-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-add-comanda {
+      flex: 1;
+      height: 50px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+
+    .btn-add-comanda:active { background: var(--accent-light); }
+
+    .btn-more-opts {
+      width: 50px; height: 50px;
+      background: var(--gray-100);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--black);
+      transition: background 0.15s;
+    }
+
+    .btn-more-opts:active { background: var(--gray-200); }
+
+    /* ── DROPDOWN MENU ── */
+    .dropdown-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 500;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .dropdown-overlay.open { display: flex; }
+
+    .dropdown-sheet {
+      background: var(--white);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      width: 100%;
+      padding: 8px 0 32px;
+    }
+
+    .dropdown-handle {
+      width: 36px; height: 4px;
+      background: var(--gray-200);
+      border-radius: 2px;
+      margin: 10px auto 16px;
+    }
+
+    .dropdown-item {
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .dropdown-item:active { background: var(--gray-50); }
+
+    .dropdown-item-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dropdown-item-label { font-size: 15px; font-weight: 500; color: var(--black); }
+    .dropdown-item-sub { font-size: 12px; color: var(--gray-500); margin-top: 1px; }
+    .dropdown-item.danger .dropdown-item-label { color: var(--accent); }
+
+    .dropdown-divider { height: 1px; background: var(--gray-100); margin: 4px 0; }
+
+    /* ════════════════════════════
+       SCREEN 6: PEDIDOS
+    ════════════════════════════ */
+    #screen-pedidos {
+      background: var(--gray-50);
+    }
+
+    .pedidos-topbar {
+      background: var(--white);
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+    }
+
+    .pedidos-title { font-size: 18px; font-weight: 600; color: var(--black); }
+    .pedidos-sub { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+    .pedidos-filters {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      flex-shrink: 0;
+    }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1.5px solid var(--gray-200);
+      background: var(--white);
+      color: var(--gray-500);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.15s;
+    }
+
+    .filter-chip.active {
+      background: var(--black);
+      border-color: var(--black);
+      color: var(--white);
+    }
+
+    .pedidos-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pedido-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: transform 0.12s;
+    }
+
+    .pedido-card:active { transform: scale(0.98); }
+
+    .pedido-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .pedido-mesa { font-size: 14px; font-weight: 600; color: var(--black); }
+    .pedido-hora { font-size: 11px; color: var(--gray-500); }
+
+    .pedido-badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .pedido-badge.pendiente { background: #FFF3E0; color: #E65100; }
+    .pedido-badge.en-curso  { background: var(--blue-soft); color: var(--blue); }
+    .pedido-badge.listo     { background: var(--green-soft); color: var(--green); }
+
+    .pedido-items {
+      font-size: 12px;
+      color: var(--gray-600);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .pedido-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pedido-importe { font-size: 15px; font-weight: 600; color: var(--black); font-family: var(--mono); }
+    .pedido-camarero { font-size: 11px; color: var(--gray-400); }
+
+    /* ════════════════════════════
+       SCREEN 7: CAJA
+    ════════════════════════════ */
+    #screen-caja {
+      background: var(--gray-50);
+    }
+
+    .caja-topbar {
+      background: var(--white);
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+    }
+
+    .caja-title { font-size: 18px; font-weight: 600; color: var(--black); }
+    .caja-sub { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+    .caja-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .caja-balance-card {
+      background: var(--black);
+      border-radius: var(--radius-xl);
+      padding: 24px 20px;
+      color: var(--white);
+    }
+
+    .caja-balance-label { font-size: 11px; color: var(--gray-500); letter-spacing: 1px; text-transform: uppercase; }
+    .caja-balance-amount { font-size: 38px; font-weight: 300; font-family: var(--mono); letter-spacing: -1.5px; margin: 6px 0; }
+    .caja-balance-meta { font-size: 11px; color: var(--gray-600); }
+
+    .caja-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .caja-stat {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 16px 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .caja-stat-label { font-size: 11px; color: var(--gray-500); margin-bottom: 4px; }
+    .caja-stat-val { font-size: 20px; font-weight: 600; color: var(--black); font-family: var(--mono); }
+
+    .caja-movs-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .caja-movs-list {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .caja-mov {
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .caja-mov:last-child { border-bottom: none; }
+
+    .caja-mov-icon {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .caja-mov-info { flex: 1; }
+    .caja-mov-label { font-size: 13px; font-weight: 500; color: var(--black); }
+    .caja-mov-meta { font-size: 11px; color: var(--gray-500); }
+
+    .caja-mov-amount { font-size: 14px; font-weight: 600; font-family: var(--mono); }
+    .caja-mov-amount.pos { color: var(--green); }
+    .caja-mov-amount.neg { color: var(--accent); }
+
+    .caja-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0 16px 20px;
+      flex-shrink: 0;
+    }
+
+    .btn-caja-action {
+      height: 50px;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+
+    .btn-caja-action:active { opacity: 0.8; }
+    .btn-caja-primary { background: var(--accent); color: var(--white); }
+    .btn-caja-secondary { background: var(--gray-100); color: var(--black); }
+
+    /* ════════════════════════════
+       SCREEN 8: MÁS
+    ════════════════════════════ */
+    #screen-mas {
+      background: var(--gray-50);
+    }
+
+    .mas-topbar {
+      background: var(--white);
+      padding: 14px 18px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+    }
+
+    .mas-user-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mas-user-avatar {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 600;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+
+    .mas-user-name { font-size: 15px; font-weight: 600; color: var(--black); }
+    .mas-user-role { font-size: 12px; color: var(--gray-500); }
+
+    .mas-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mas-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      padding: 0 4px;
+    }
+
+    .mas-list {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mas-item {
+      padding: 15px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--gray-100);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .mas-item:last-child { border-bottom: none; }
+    .mas-item:active { background: var(--gray-50); }
+
+    .mas-item-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mas-item-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--black); }
+
+    .mas-item-arrow {
+      color: var(--gray-300);
+    }
+
+    .mas-item.danger .mas-item-label { color: var(--accent); }
+
+    /* ════════════════════════════
+       OPEN MESA MODAL (diners)
+    ════════════════════════════ */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 400;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal-sheet {
+      background: var(--white);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      width: 100%;
+      padding: 0 0 32px;
+    }
+
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: var(--gray-200);
+      border-radius: 2px;
+      margin: 12px auto 20px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--black);
+      padding: 0 20px;
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 13px;
+      color: var(--gray-500);
+      padding: 0 20px;
+      margin-bottom: 20px;
+    }
+
+    .diners-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 0 20px;
+      margin-bottom: 20px;
+    }
+
+    .diner-btn {
+      height: 52px;
+      border-radius: var(--radius);
+      border: 2px solid var(--gray-200);
+      background: var(--white);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--black);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .diner-btn.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .diner-btn:active { transform: scale(0.95); }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+      padding: 0 20px;
+    }
+
+    .btn-modal-cancel {
+      flex: 1;
+      height: 50px;
+      border: 1.5px solid var(--gray-200);
+      background: transparent;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-600);
+      cursor: pointer;
+    }
+
+    .btn-modal-confirm {
+      flex: 2;
+      height: 50px;
+      border: none;
+      background: var(--accent);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      cursor: pointer;
+    }
+
+    /* ════════════════════════════
+       NAV LABEL HELPER
+    ════════════════════════════ */
+    .nav-label { font-size: 10px; }
+  </style>
+</head>
+
+<body>
+  <div class="stage">
+    <div class="pda-frame">
+
+      <!-- ══════════════════════════════
+           SCREEN 1: LOGIN PIN
+      ══════════════════════════════ -->
+      <div id="screen-pin" class="screen active">
+        <div class="pin-header">
+          <div class="pin-logo">
+            <div class="pin-logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+              </svg>
+            </div>
+            <span class="pin-logo-text">Yurest</span>
+          </div>
+          <button class="pin-email-link" onclick="showScreen('screen-email')">Correo y contraseña</button>
+        </div>
+
+        <div class="pin-body">
+          <span class="pin-label">Selecciona tu operador</span>
+
+          <div class="operator-row">
+            <div class="op-chip selected" onclick="selectOp(this)">
+              <div class="op-avatar" style="background:var(--orange)">MA</div>
+              <span class="op-name">María</span>
+            </div>
+            <div class="op-chip" onclick="selectOp(this)">
+              <div class="op-avatar" style="background:var(--blue)">CR</div>
+              <span class="op-name">Carlos</span>
+            </div>
+            <div class="op-chip" onclick="selectOp(this)">
+              <div class="op-avatar" style="background:var(--green)">LU</div>
+              <span class="op-name">Lucía</span>
+            </div>
+            <div class="op-chip" onclick="selectOp(this)">
+              <div class="op-avatar" style="background:#8B5CF6">RO</div>
+              <span class="op-name">Roberto</span>
+            </div>
+          </div>
+
+          <div class="pin-dots">
+            <div class="pin-dot" id="pd0"></div>
+            <div class="pin-dot" id="pd1"></div>
+            <div class="pin-dot" id="pd2"></div>
+            <div class="pin-dot" id="pd3"></div>
+          </div>
+
+          <div class="pin-keypad">
+            <button class="key" onclick="pinKey('1')">1</button>
+            <button class="key" onclick="pinKey('2')">2</button>
+            <button class="key" onclick="pinKey('3')">3</button>
+            <button class="key" onclick="pinKey('4')">4</button>
+            <button class="key" onclick="pinKey('5')">5</button>
+            <button class="key" onclick="pinKey('6')">6</button>
+            <button class="key" onclick="pinKey('7')">7</button>
+            <button class="key" onclick="pinKey('8')">8</button>
+            <button class="key" onclick="pinKey('9')">9</button>
+            <button class="key key-del" onclick="pinDel()">⌫</button>
+            <button class="key" onclick="pinKey('0')">0</button>
+            <button class="key key-enter" onclick="pinEnter()">Entrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 2: SELECCIÓN OPERADOR
+      ══════════════════════════════ -->
+      <div id="screen-operators" class="screen">
+        <div class="ops-header">
+          <button class="btn-back" onclick="showScreen('screen-pin')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div>
+            <div class="ops-title">¿Quién eres?</div>
+          </div>
+        </div>
+
+        <div class="ops-body">
+          <div class="ops-grid">
+            <div class="op-card" onclick="showScreen('screen-pin')">
+              <div class="op-card-avatar" style="background:var(--orange)">MA</div>
+              <div class="op-card-name">María</div>
+              <div class="op-card-role">Camarera</div>
+            </div>
+            <div class="op-card" onclick="showScreen('screen-pin')">
+              <div class="op-card-avatar" style="background:var(--blue)">CR</div>
+              <div class="op-card-name">Carlos</div>
+              <div class="op-card-role">Camarero</div>
+            </div>
+            <div class="op-card" onclick="showScreen('screen-pin')">
+              <div class="op-card-avatar" style="background:var(--green)">LU</div>
+              <div class="op-card-name">Lucía</div>
+              <div class="op-card-role">Supervisora</div>
+            </div>
+            <div class="op-card" onclick="showScreen('screen-pin')">
+              <div class="op-card-avatar" style="background:#8B5CF6">RO</div>
+              <div class="op-card-name">Roberto</div>
+              <div class="op-card-role">Camarero</div>
+            </div>
+            <div class="op-card" onclick="showScreen('screen-pin')">
+              <div class="op-card-avatar" style="background:#F59E0B">AN</div>
+              <div class="op-card-name">Ana</div>
+              <div class="op-card-role">Encargada</div>
+            </div>
+            <div class="op-card" onclick="showScreen('screen-pin')">
+              <div class="op-card-avatar" style="background:#14B8A6">JO</div>
+              <div class="op-card-name">Jorge</div>
+              <div class="op-card-role">Camarero</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="ops-email-btn" onclick="showScreen('screen-email')">
+          Iniciar sesión con correo y contraseña
+        </button>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 3: EMAIL LOGIN
+      ══════════════════════════════ -->
+      <div id="screen-email" class="screen">
+        <div class="email-header">
+          <button class="btn-back" onclick="showScreen('screen-pin')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="ops-title">Iniciar sesión</div>
+        </div>
+
+        <div class="email-body">
+          <div>
+            <div class="email-title">Bienvenido de nuevo</div>
+            <div class="email-sub">Accede con tu cuenta del restaurante</div>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" placeholder="usuario@restaurante.com">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Contraseña</label>
+            <input type="password" class="form-input" placeholder="••••••••">
+          </div>
+
+          <button class="btn-login-email" onclick="showScreen('screen-mesas')">Entrar</button>
+
+          <div class="login-divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">o</span>
+            <div class="divider-line"></div>
+          </div>
+
+          <button class="btn-pin-back" onclick="showScreen('screen-pin')">Volver al acceso por PIN</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 4: MESAS
+      ══════════════════════════════ -->
+      <div id="screen-mesas" class="screen">
+        <div class="topbar">
+          <div class="topbar-info">
+            <div class="topbar-restaurant">Restaurante Voraz</div>
+            <div class="topbar-date">Lunes, 27 May · 13:42</div>
+          </div>
+          <div class="topbar-right">
+            <div class="user-chip-sm" style="background:var(--orange)" onclick="showScreen('screen-pin')">MA</div>
+          </div>
+        </div>
+
+        <!-- Zone tabs -->
+        <div class="zone-tabs">
+          <button class="zone-tab active">Todo</button>
+          <button class="zone-tab">Terraza</button>
+          <button class="zone-tab">Interior</button>
+          <button class="zone-tab">Barra</button>
+        </div>
+
+        <!-- Tables -->
+        <div class="mesas-grid">
+          <div class="mesa-card open" onclick="showScreen('screen-mesa')">
+            <div class="mesa-status open"></div>
+            <div class="mesa-num">01</div>
+            <div class="mesa-label">Terraza</div>
+            <div class="mesa-footer">
+              <div class="mesa-diners">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                4
+              </div>
+              <div class="mesa-importe">38,50€</div>
+            </div>
+          </div>
+
+          <div class="mesa-card open" onclick="showScreen('screen-mesa')">
+            <div class="mesa-status open"></div>
+            <div class="mesa-num">03</div>
+            <div class="mesa-label">Interior</div>
+            <div class="mesa-footer">
+              <div class="mesa-diners">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                2
+              </div>
+              <div class="mesa-importe">14,20€</div>
+            </div>
+          </div>
+
+          <div class="mesa-card libre" onclick="openMesaModal()">
+            <div class="mesa-status libre"></div>
+            <div class="mesa-num">05</div>
+            <div class="mesa-label">Interior</div>
+            <div class="mesa-footer">
+              <div class="mesa-diners" style="color:var(--gray-300)">Libre</div>
+            </div>
+          </div>
+
+          <div class="mesa-card open" onclick="showScreen('screen-mesa')">
+            <div class="mesa-status open"></div>
+            <div class="mesa-num">07</div>
+            <div class="mesa-label">Barra</div>
+            <div class="mesa-footer">
+              <div class="mesa-diners">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                1
+              </div>
+              <div class="mesa-importe">8,00€</div>
+            </div>
+          </div>
+
+          <div class="mesa-card libre" onclick="openMesaModal()">
+            <div class="mesa-status libre"></div>
+            <div class="mesa-num">09</div>
+            <div class="mesa-label">Terraza</div>
+            <div class="mesa-footer">
+              <div class="mesa-diners" style="color:var(--gray-300)">Libre</div>
+            </div>
+          </div>
+
+          <div class="mesa-card libre" onclick="openMesaModal()">
+            <div class="mesa-status libre"></div>
+            <div class="mesa-num">11</div>
+            <div class="mesa-label">Terraza</div>
+            <div class="mesa-footer">
+              <div class="mesa-diners" style="color:var(--gray-300)">Libre</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="bottom-nav">
+          <button class="nav-btn active" onclick="navigateTo('screen-mesas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="nav-label">Mesas</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-pedidos', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span class="nav-label">Pedidos</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-caja', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/>
+              <line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+            <span class="nav-label">Caja</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-mas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="5" r="1" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              <circle cx="12" cy="19" r="1" fill="currentColor"/>
+            </svg>
+            <span class="nav-label">Más</span>
+          </button>
+        </div>
+
+        <!-- Modal: abrir mesa -->
+        <div class="modal-overlay" id="modal-abrir-mesa">
+          <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Abrir mesa</div>
+            <div class="modal-sub">¿Cuántos comensales?</div>
+            <div class="diners-selector">
+              <button class="diner-btn" onclick="selectDiners(this)">1</button>
+              <button class="diner-btn selected" onclick="selectDiners(this)">2</button>
+              <button class="diner-btn" onclick="selectDiners(this)">3</button>
+              <button class="diner-btn" onclick="selectDiners(this)">4</button>
+              <button class="diner-btn" onclick="selectDiners(this)">5</button>
+              <button class="diner-btn" onclick="selectDiners(this)">6</button>
+              <button class="diner-btn" onclick="selectDiners(this)">7</button>
+              <button class="diner-btn" onclick="selectDiners(this)">8+</button>
+            </div>
+            <div class="modal-btn-row">
+              <button class="btn-modal-cancel" onclick="closeMesaModal()">Cancelar</button>
+              <button class="btn-modal-confirm" onclick="confirmAbrirMesa()">Abrir mesa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 5: MESA ABIERTA
+      ══════════════════════════════ -->
+      <div id="screen-mesa" class="screen">
+        <div class="mesa-topbar">
+          <button class="btn-back" onclick="showScreen('screen-mesas')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="mesa-topbar-info">
+            <div class="mesa-topbar-name">Mesa 01 · Terraza</div>
+            <div class="mesa-topbar-meta">4 comensales · Abierta 13:10</div>
+          </div>
+          <button class="btn-dots" onclick="openDropdown()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="comandas-list">
+          <!-- Comanda 1 -->
+          <div class="comanda-group">
+            <div class="comanda-group-header">
+              <span class="comanda-group-label">Comanda 1</span>
+              <span class="comanda-group-time">13:12</span>
+            </div>
+            <div class="comanda-line">
+              <div class="cl-qty">2</div>
+              <div style="flex:1">
+                <div class="cl-name">Croquetas de jamón</div>
+              </div>
+              <div class="cl-price">9,80€</div>
+              <div class="cl-status done"></div>
+            </div>
+            <div class="comanda-line">
+              <div class="cl-qty">1</div>
+              <div style="flex:1">
+                <div class="cl-name">Ensalada mixta</div>
+                <div class="cl-note">Sin cebolla</div>
+              </div>
+              <div class="cl-price">7,50€</div>
+              <div class="cl-status done"></div>
+            </div>
+            <div class="comanda-line">
+              <div class="cl-qty">4</div>
+              <div style="flex:1">
+                <div class="cl-name">Agua mineral</div>
+              </div>
+              <div class="cl-price">6,00€</div>
+              <div class="cl-status done"></div>
+            </div>
+          </div>
+
+          <!-- Comanda 2 -->
+          <div class="comanda-group">
+            <div class="comanda-group-header">
+              <span class="comanda-group-label">Comanda 2</span>
+              <span class="comanda-group-time">13:28</span>
+            </div>
+            <div class="comanda-line">
+              <div class="cl-qty">2</div>
+              <div style="flex:1">
+                <div class="cl-name">Lomo de merluza</div>
+              </div>
+              <div class="cl-price">26,00€</div>
+              <div class="cl-status pending"></div>
+            </div>
+            <div class="comanda-line">
+              <div class="cl-qty">2</div>
+              <div style="flex:1">
+                <div class="cl-name">Solomillo a la plancha</div>
+                <div class="cl-note">Uno al punto, otro muy hecho</div>
+              </div>
+              <div class="cl-price">34,00€</div>
+              <div class="cl-status pending"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mesa-bottom">
+          <div class="mesa-total-row">
+            <span class="mesa-total-label">Total mesa</span>
+            <span class="mesa-total-val">83,30€</span>
+          </div>
+          <div class="mesa-actions">
+            <button class="btn-add-comanda" onclick="showScreen('screen-mesas')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Añadir comanda
+            </button>
+            <button class="btn-more-opts" onclick="openDropdown()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="5" cy="12" r="1.5" fill="currentColor"/>
+                <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                <circle cx="19" cy="12" r="1.5" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dropdown options sheet -->
+        <div class="dropdown-overlay" id="dropdown-mesa" onclick="closeDropdown(event)">
+          <div class="dropdown-sheet">
+            <div class="dropdown-handle"></div>
+
+            <div class="dropdown-item" onclick="closeDropdown()">
+              <div class="dropdown-item-icon" style="background:var(--blue-soft)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/>
+                  <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+                </svg>
+              </div>
+              <div>
+                <div class="dropdown-item-label">Cobrar mesa</div>
+                <div class="dropdown-item-sub">Ir a la pantalla de pago</div>
+              </div>
+            </div>
+
+            <div class="dropdown-item" onclick="closeDropdown()">
+              <div class="dropdown-item-icon" style="background:#F0FDF4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+              </div>
+              <div>
+                <div class="dropdown-item-label">Dividir cuenta</div>
+                <div class="dropdown-item-sub">Separar por comensales</div>
+              </div>
+            </div>
+
+            <div class="dropdown-item" onclick="closeDropdown()">
+              <div class="dropdown-item-icon" style="background:#FFF7ED">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2">
+                  <polyline points="15 3 21 3 21 9"/>
+                  <polyline points="9 21 3 21 3 15"/>
+                  <line x1="21" y1="3" x2="14" y2="10"/>
+                  <line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+              </div>
+              <div>
+                <div class="dropdown-item-label">Cambiar mesa</div>
+                <div class="dropdown-item-sub">Mover comanda a otra mesa</div>
+              </div>
+            </div>
+
+            <div class="dropdown-item" onclick="closeDropdown()">
+              <div class="dropdown-item-icon" style="background:var(--gray-100)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gray-600)" stroke-width="2">
+                  <circle cx="12" cy="8" r="4"/>
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              </div>
+              <div>
+                <div class="dropdown-item-label">Editar comensales</div>
+                <div class="dropdown-item-sub">Actualmente 4 personas</div>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <div class="dropdown-item danger" onclick="closeDropdown()">
+              <div class="dropdown-item-icon" style="background:var(--accent-soft)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                </svg>
+              </div>
+              <div>
+                <div class="dropdown-item-label">Cancelar mesa</div>
+                <div class="dropdown-item-sub">Anular y liberar la mesa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 6: PEDIDOS
+      ══════════════════════════════ -->
+      <div id="screen-pedidos" class="screen">
+        <div class="pedidos-topbar">
+          <div class="pedidos-title">Pedidos</div>
+          <div class="pedidos-sub">27 mayo · 6 pedidos activos</div>
+        </div>
+
+        <div class="pedidos-filters">
+          <button class="filter-chip active">Todos</button>
+          <button class="filter-chip">Pendientes</button>
+          <button class="filter-chip">En curso</button>
+          <button class="filter-chip">Listos</button>
+        </div>
+
+        <div class="pedidos-list">
+          <div class="pedido-card" onclick="showScreen('screen-mesa')">
+            <div class="pedido-card-header">
+              <div>
+                <div class="pedido-mesa">Mesa 01 · Terraza</div>
+                <div class="pedido-hora">Hace 14 min</div>
+              </div>
+              <div class="pedido-badge en-curso">En curso</div>
+            </div>
+            <div class="pedido-items">2× Lomo merluza · 2× Solomillo · 4× Agua</div>
+            <div class="pedido-footer">
+              <div class="pedido-importe">83,30€</div>
+              <div class="pedido-camarero">María A.</div>
+            </div>
+          </div>
+
+          <div class="pedido-card">
+            <div class="pedido-card-header">
+              <div>
+                <div class="pedido-mesa">Mesa 03 · Interior</div>
+                <div class="pedido-hora">Hace 5 min</div>
+              </div>
+              <div class="pedido-badge pendiente">Pendiente</div>
+            </div>
+            <div class="pedido-items">1× Ensalada · 2× Cerveza</div>
+            <div class="pedido-footer">
+              <div class="pedido-importe">14,20€</div>
+              <div class="pedido-camarero">Carlos R.</div>
+            </div>
+          </div>
+
+          <div class="pedido-card">
+            <div class="pedido-card-header">
+              <div>
+                <div class="pedido-mesa">Mesa 07 · Barra</div>
+                <div class="pedido-hora">Hace 32 min</div>
+              </div>
+              <div class="pedido-badge listo">Listo</div>
+            </div>
+            <div class="pedido-items">1× Café con leche · 1× Tarta</div>
+            <div class="pedido-footer">
+              <div class="pedido-importe">8,00€</div>
+              <div class="pedido-camarero">Lucía M.</div>
+            </div>
+          </div>
+
+          <div class="pedido-card">
+            <div class="pedido-card-header">
+              <div>
+                <div class="pedido-mesa">Mesa 11 · Terraza</div>
+                <div class="pedido-hora">Hace 2 min</div>
+              </div>
+              <div class="pedido-badge pendiente">Pendiente</div>
+            </div>
+            <div class="pedido-items">4× Menú del día completo</div>
+            <div class="pedido-footer">
+              <div class="pedido-importe">52,00€</div>
+              <div class="pedido-camarero">María A.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <button class="nav-btn" onclick="navigateTo('screen-mesas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="nav-label">Mesas</span>
+          </button>
+          <button class="nav-btn active" onclick="navigateTo('screen-pedidos', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span class="nav-label">Pedidos</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-caja', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/>
+              <line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+            <span class="nav-label">Caja</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-mas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="5" r="1" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              <circle cx="12" cy="19" r="1" fill="currentColor"/>
+            </svg>
+            <span class="nav-label">Más</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 7: CAJA
+      ══════════════════════════════ -->
+      <div id="screen-caja" class="screen">
+        <div class="caja-topbar">
+          <div class="caja-title">Caja</div>
+          <div class="caja-sub">Abierta desde las 09:00</div>
+        </div>
+
+        <div class="caja-body">
+          <div class="caja-balance-card">
+            <div class="caja-balance-label">Efectivo en caja</div>
+            <div class="caja-balance-amount">347,50€</div>
+            <div class="caja-balance-meta">Fondo inicial: 100,00€ · Apertura: 09:00</div>
+          </div>
+
+          <div class="caja-stats">
+            <div class="caja-stat">
+              <div class="caja-stat-label">Ventas hoy</div>
+              <div class="caja-stat-val">1.248€</div>
+            </div>
+            <div class="caja-stat">
+              <div class="caja-stat-label">Tickets</div>
+              <div class="caja-stat-val">34</div>
+            </div>
+            <div class="caja-stat">
+              <div class="caja-stat-label">Efectivo</div>
+              <div class="caja-stat-val">247€</div>
+            </div>
+            <div class="caja-stat">
+              <div class="caja-stat-label">Tarjeta</div>
+              <div class="caja-stat-val">1.001€</div>
+            </div>
+          </div>
+
+          <div class="caja-movs-title">Últimos movimientos</div>
+
+          <div class="caja-movs-list">
+            <div class="caja-mov">
+              <div class="caja-mov-icon" style="background:var(--green-soft)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
+              <div class="caja-mov-info">
+                <div class="caja-mov-label">Entrada efectivo</div>
+                <div class="caja-mov-meta">13:44 · María A.</div>
+              </div>
+              <div class="caja-mov-amount pos">+28,50€</div>
+            </div>
+            <div class="caja-mov">
+              <div class="caja-mov-icon" style="background:var(--accent-soft)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
+              <div class="caja-mov-info">
+                <div class="caja-mov-label">Salida efectivo</div>
+                <div class="caja-mov-meta">12:30 · Carlos R.</div>
+              </div>
+              <div class="caja-mov-amount neg">-15,00€</div>
+            </div>
+            <div class="caja-mov">
+              <div class="caja-mov-icon" style="background:var(--green-soft)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
+              <div class="caja-mov-info">
+                <div class="caja-mov-label">Cobro mesa 01</div>
+                <div class="caja-mov-meta">11:15 · Lucía M.</div>
+              </div>
+              <div class="caja-mov-amount pos">+83,30€</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="caja-actions">
+          <button class="btn-caja-action btn-caja-secondary">Añadir movimiento</button>
+          <button class="btn-caja-action btn-caja-primary">Cerrar caja</button>
+        </div>
+
+        <div class="bottom-nav">
+          <button class="nav-btn" onclick="navigateTo('screen-mesas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="nav-label">Mesas</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-pedidos', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span class="nav-label">Pedidos</span>
+          </button>
+          <button class="nav-btn active" onclick="navigateTo('screen-caja', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/>
+              <line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+            <span class="nav-label">Caja</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-mas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="5" r="1" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              <circle cx="12" cy="19" r="1" fill="currentColor"/>
+            </svg>
+            <span class="nav-label">Más</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SCREEN 8: MÁS
+      ══════════════════════════════ -->
+      <div id="screen-mas" class="screen">
+        <div class="mas-topbar">
+          <div class="mas-user-row">
+            <div class="mas-user-avatar" style="background:var(--orange)">MA</div>
+            <div>
+              <div class="mas-user-name">María Antúnez</div>
+              <div class="mas-user-role">Camarera · Restaurante Voraz</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mas-body">
+          <div class="mas-section-title">Turno</div>
+          <div class="mas-list">
+            <div class="mas-item">
+              <div class="mas-item-icon" style="background:var(--green-soft)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="mas-item-label">Fichar entrada / salida</div>
+              <svg class="mas-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="mas-item">
+              <div class="mas-item-icon" style="background:var(--blue-soft)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                </svg>
+              </div>
+              <div class="mas-item-label">Mis comandas del día</div>
+              <svg class="mas-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+
+          <div class="mas-section-title">Configuración</div>
+          <div class="mas-list">
+            <div class="mas-item">
+              <div class="mas-item-icon" style="background:var(--gray-100)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gray-600)" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+                </svg>
+              </div>
+              <div class="mas-item-label">Impresoras y dispositivos</div>
+              <svg class="mas-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="mas-item">
+              <div class="mas-item-icon" style="background:var(--gray-100)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gray-600)" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                </svg>
+              </div>
+              <div class="mas-item-label">Preferencias</div>
+              <svg class="mas-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="mas-item">
+              <div class="mas-item-icon" style="background:var(--gray-100)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gray-600)" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div class="mas-item-label">Ayuda y soporte</div>
+              <svg class="mas-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+
+          <div class="mas-list">
+            <div class="mas-item danger" onclick="showScreen('screen-pin')">
+              <div class="mas-item-icon" style="background:var(--accent-soft)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </div>
+              <div class="mas-item-label">Cerrar sesión</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <button class="nav-btn" onclick="navigateTo('screen-mesas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="nav-label">Mesas</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-pedidos', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span class="nav-label">Pedidos</span>
+          </button>
+          <button class="nav-btn" onclick="navigateTo('screen-caja', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/>
+              <line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+            <span class="nav-label">Caja</span>
+          </button>
+          <button class="nav-btn active" onclick="navigateTo('screen-mas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="5" r="1" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              <circle cx="12" cy="19" r="1" fill="currentColor"/>
+            </svg>
+            <span class="nav-label">Más</span>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /pda-frame -->
+  </div><!-- /stage -->
+
+  <script>
+    // ── NAVIGATION ──
+    function showScreen(id) {
+      document.querySelectorAll('.pda-frame .screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id)?.classList.add('active');
+    }
+
+    function navigateTo(screenId, btn) {
+      showScreen(screenId);
+      // update nav buttons in the target screen
+      const screen = document.getElementById(screenId);
+      screen?.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn?.classList.add('active');
+    }
+
+    // ── PIN ──
+    let pinValue = '';
+
+    function selectOp(el) {
+      document.querySelectorAll('.op-chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      pinValue = '';
+      updatePinDots();
+    }
+
+    function pinKey(digit) {
+      if (pinValue.length >= 4) return;
+      pinValue += digit;
+      updatePinDots();
+      if (pinValue.length === 4) setTimeout(pinEnter, 300);
+    }
+
+    function pinDel() {
+      pinValue = pinValue.slice(0, -1);
+      updatePinDots();
+    }
+
+    function pinEnter() {
+      if (pinValue.length > 0) {
+        showScreen('screen-mesas');
+        pinValue = '';
+        updatePinDots();
+      }
+    }
+
+    function updatePinDots() {
+      for (let i = 0; i < 4; i++) {
+        document.getElementById('pd' + i)?.classList.toggle('filled', i < pinValue.length);
+      }
+    }
+
+    // ── MESA MODAL ──
+    function openMesaModal() {
+      document.getElementById('modal-abrir-mesa')?.classList.add('open');
+    }
+
+    function closeMesaModal() {
+      document.getElementById('modal-abrir-mesa')?.classList.remove('open');
+    }
+
+    function confirmAbrirMesa() {
+      closeMesaModal();
+      showScreen('screen-mesa');
+    }
+
+    function selectDiners(btn) {
+      document.querySelectorAll('.diner-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    // ── DROPDOWN ──
+    function openDropdown() {
+      document.getElementById('dropdown-mesa')?.classList.add('open');
+    }
+
+    function closeDropdown(e) {
+      if (!e || e.target === document.getElementById('dropdown-mesa')) {
+        document.getElementById('dropdown-mesa')?.classList.remove('open');
+      }
+    }
+
+    // ── FILTER CHIPS ──
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        this.closest('.pedidos-filters')?.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ── ZONE TABS ──
+    document.querySelectorAll('.zone-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        this.closest('.zone-tabs')?.querySelectorAll('.zone-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
