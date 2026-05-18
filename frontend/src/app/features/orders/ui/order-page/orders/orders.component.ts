@@ -16,6 +16,7 @@ import {
   PaymentModalComponent,
   PaymentResult,
 } from '../components/payment-modal/payment-modal.component';
+import { PrebillModalComponent } from '../components/prebill-modal/prebill-modal.component';
 
 @Component({
   selector: 'app-orders',
@@ -28,6 +29,7 @@ import {
     OrderSummaryComponent,
     OrderProductsComponent,
     PaymentModalComponent,
+    PrebillModalComponent,
   ],
 })
 export class OrdersComponent implements OnInit {
@@ -46,6 +48,8 @@ export class OrdersComponent implements OnInit {
   sentLineIds: string[] = [];
 
   showPaymentModal = false;
+
+  showPrebillModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -168,46 +172,53 @@ export class OrdersComponent implements OnInit {
     });
   }
 
- checkout(): void {
-  if (!this.currentOrder || !this.user || this.orderLines.length === 0) {
-    return;
+  checkout(): void {
+    if (!this.currentOrder || !this.user || this.orderLines.length === 0) {
+      return;
+    }
+
+    this.showPaymentModal = true;
   }
 
-  this.showPaymentModal = true;
-}
+  confirmPayment(payment: PaymentResult): void {
+    console.log('PAYMENT', payment);
 
-confirmPayment(payment: PaymentResult): void {
-  console.log('PAYMENT', payment);
+    if (!this.currentOrder || !this.user) {
+      return;
+    }
 
-  if (!this.currentOrder || !this.user) {
-    return;
+    this.currentOrderFacade
+      .checkoutOrder(this.currentOrder.id, this.user)
+      .subscribe({
+        next: () => {
+          this.showPaymentModal = false;
+          this.router.navigate(['/tpv/tables']);
+        },
+        error: (error: unknown) => {
+          console.log('ERROR checkout', error);
+        },
+      });
   }
 
-  this.currentOrderFacade
-    .checkoutOrder(this.currentOrder.id, this.user)
-    .subscribe({
-      next: () => {
-        this.showPaymentModal = false;
-        this.router.navigate(['/tpv/tables']);
-      },
-      error: (error: unknown) => {
-        console.log('ERROR checkout', error);
-      },
-    });
-}
-
-getOrderTotal(): number {
-  return this.orderLines.reduce((total, line) => {
-    return total + line.price * line.quantity;
-  }, 0);
-}
-
-sendToKitchen(): void {
-  if (this.orderLines.length === 0) {
-    return;
+  getOrderTotal(): number {
+    return this.orderLines.reduce((total, line) => {
+      return total + line.price * line.quantity;
+    }, 0);
   }
 
-  this.isSentToKitchen = true;
-  this.sentLineIds = this.orderLines.map((line) => line.id);
-}
+  sendToKitchen(): void {
+    if (this.orderLines.length === 0) {
+      return;
+    }
+
+    this.isSentToKitchen = true;
+    this.sentLineIds = this.orderLines.map((line) => line.id);
+  }
+  openPrebill(): void {
+    if (this.orderLines.length === 0) {
+      return;
+    }
+
+    this.showPrebillModal = true;
+  }
 }

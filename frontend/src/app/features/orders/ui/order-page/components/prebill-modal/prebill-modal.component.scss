@@ -1,0 +1,42 @@
+.prebill-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prebill-modal {
+  width: 420px;
+  max-width: 90vw;
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-radius: 18px;
+}
+
+.prebill-lines {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.prebill-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.warning {
+  font-size: 13px;
+  color: var(--app-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}

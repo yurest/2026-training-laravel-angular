@@ -65,7 +65,14 @@
             : "Enviar a cocina"
         }}
       </ion-button>
-
+      <ion-button
+        expand="block"
+        fill="outline"
+        [disabled]="orderLines.length === 0"
+        (click)="openPrebill.emit()"
+      >
+        Precuenta
+      </ion-button>
       <ion-button
         expand="block"
         [disabled]="orderLines.length === 0"

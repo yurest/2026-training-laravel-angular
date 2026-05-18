@@ -19,6 +19,7 @@
       (deleteLine)="deleteLine($event)"
       (sendToKitchen)="sendToKitchen()"
       (checkout)="checkout()"
+      (openPrebill)="openPrebill()"
     ></app-order-summary>
   </div>
 
@@ -28,4 +29,10 @@
     (closed)="showPaymentModal = false"
     (paymentConfirmed)="confirmPayment($event)"
   ></app-payment-modal>
+
+  <app-prebill-modal
+    *ngIf="showPrebillModal"
+    [orderLines]="orderLines"
+    (closed)="showPrebillModal = false"
+  ></app-prebill-modal>
 </ion-content>

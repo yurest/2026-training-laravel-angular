@@ -28,6 +28,7 @@ export class OrderSummaryComponent {
   @Output() deleteLine = new EventEmitter<CurrentOrderLine>();
   @Output() checkout = new EventEmitter<void>();
   @Output() sendToKitchen = new EventEmitter<void>();
+  @Output() openPrebill = new EventEmitter<void>();
 
   getLineTotal(line: CurrentOrderLine): number {
     return line.price * line.quantity;

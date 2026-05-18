@@ -1,0 +1,34 @@
+<div class="prebill-backdrop">
+  <ion-card class="prebill-modal">
+    <ion-card-content>
+      <h2>Precuenta</h2>
+
+      <p *ngIf="tableName">
+        {{ tableName }}
+      </p>
+
+      <div class="prebill-lines">
+        <div *ngFor="let line of orderLines" class="prebill-line">
+          <span>{{ line.quantity }} x {{ line.name }}</span>
+          <strong>{{ getLineTotal(line) / 100 | number: '1.2-2' }} €</strong>
+        </div>
+      </div>
+
+      <hr />
+
+      <h3>Total: {{ getTotal() / 100 | number: '1.2-2' }} €</h3>
+
+      <p class="warning">Precuenta. No válido como factura.</p>
+
+      <div class="actions">
+        <ion-button color="medium" fill="outline" (click)="closed.emit()">
+          Cerrar
+        </ion-button>
+
+        <ion-button (click)="printPrebill()">
+          Imprimir
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>
