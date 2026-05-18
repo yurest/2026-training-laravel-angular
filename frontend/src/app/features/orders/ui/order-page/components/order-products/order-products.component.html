@@ -3,6 +3,14 @@
 
   <div class="families-list">
     <ion-button
+      size="small"
+      [fill]="selectedFamilyId === null ? 'solid' : 'outline'"
+      (click)="selectFamily(null)"
+    >
+      Todas
+    </ion-button>
+
+    <ion-button
       *ngFor="let family of families"
       size="small"
       [fill]="selectedFamilyId === family.id ? 'solid' : 'outline'"
@@ -12,26 +20,30 @@
     </ion-button>
   </div>
 
-  <div class="products-grid">
-    <ion-card
-      *ngFor="let product of getFilteredProducts()"
-      (click)="productSelected.emit(product)"
-    >
-      <img
-        *ngIf="product.image_src; else noImage"
-        class="product-image"
-        [src]="product.image_src"
-        [alt]="product.name"
-      />
+  <div *ngFor="let family of getVisibleFamilies()" class="family-section">
+    <h4>{{ family.name }}</h4>
 
-      <ng-template #noImage>
-        <div class="product-placeholder">🍽️</div>
-      </ng-template>
+    <div class="products-grid">
+      <ion-card
+        *ngFor="let product of getProductsByFamily(family.id)"
+        (click)="productSelected.emit(product)"
+      >
+        <img
+          *ngIf="product.image_src; else noImage"
+          class="product-image"
+          [src]="product.image_src"
+          [alt]="product.name"
+        />
 
-      <ion-card-content>
-        <h4>{{ product.name }}</h4>
-        <p>{{ product.price / 100 | number: "1.2-2" }} €</p>
-      </ion-card-content>
-    </ion-card>
+        <ng-template #noImage>
+          <div class="product-placeholder">🍽️</div>
+        </ng-template>
+
+        <ion-card-content>
+          <h5>{{ product.name }}</h5>
+          <p>{{ product.price / 100 | number: '1.2-2' }} €</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
   </div>
 </div>

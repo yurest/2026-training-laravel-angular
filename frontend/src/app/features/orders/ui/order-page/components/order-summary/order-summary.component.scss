@@ -1,6 +1,6 @@
 .summary-section {
   height: 100%;
-  padding: 16px;
+  padding: 14px;
   border-radius: 12px;
   background: var(--app-surface);
   color: var(--app-text);
@@ -11,7 +11,7 @@
 
 .order-lines {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 .order-line {
@@ -39,12 +39,12 @@
 
 .summary-footer {
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 8px;
 }
 
 .summary-actions {
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 ion-button {

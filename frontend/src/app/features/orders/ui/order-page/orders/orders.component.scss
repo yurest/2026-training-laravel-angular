@@ -1,12 +1,17 @@
 .orders-layout {
-  display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 24px;
-  align-items: start;
+  display: block;
+}
+
+app-order-products {
+  display: block;
+  margin-right: 460px;
 }
 
 app-order-summary {
-  position: sticky;
-  top: 24px;
-  height: calc(100vh - 100px);
+  position: fixed;
+  top: 50px;
+  right: 56px;
+  width: 420px;
+  height: calc(100vh - 120px);
+  z-index: 10;
 }

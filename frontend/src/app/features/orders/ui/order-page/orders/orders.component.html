@@ -21,4 +21,11 @@
       (checkout)="checkout()"
     ></app-order-summary>
   </div>
+
+  <app-payment-modal
+    *ngIf="showPaymentModal"
+    [total]="getOrderTotal()"
+    (closed)="showPaymentModal = false"
+    (paymentConfirmed)="confirmPayment($event)"
+  ></app-payment-modal>
 </ion-content>

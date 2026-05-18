@@ -1,0 +1,70 @@
+<div class="payment-backdrop">
+  <ion-card class="payment-modal">
+    <ion-card-content>
+      <h2>Cobrar pedido</h2>
+
+      <p class="total">Total: {{ getTotalInEuros() | number: "1.2-2" }} €</p>
+
+      <div class="payment-methods">
+        <ion-button
+          [fill]="selectedMethod === 'cash' ? 'solid' : 'outline'"
+          (click)="selectMethod('cash')"
+        >
+          Efectivo
+        </ion-button>
+
+        <ion-button
+          [fill]="selectedMethod === 'card' ? 'solid' : 'outline'"
+          (click)="selectMethod('card')"
+        >
+          Tarjeta
+        </ion-button>
+
+        <ion-button
+          [fill]="selectedMethod === 'mixed' ? 'solid' : 'outline'"
+          (click)="selectMethod('mixed')"
+        >
+          Mixto
+        </ion-button>
+      </div>
+
+      <div *ngIf="selectedMethod === 'cash'">
+        <p>Pago en efectivo</p>
+      </div>
+
+      <div *ngIf="selectedMethod === 'card'">
+        <p>Pago con tarjeta</p>
+      </div>
+
+      <div *ngIf="selectedMethod === 'mixed'" class="mixed-payment">
+        <ion-input
+          type="number"
+          min="0"
+          label="Efectivo (€)"
+          labelPlacement="stacked"
+          [(ngModel)]="cashAmount"
+          (ionInput)="fixNegativeAmounts()"
+        ></ion-input>
+
+        <ion-input
+          type="number"
+          min="0"
+          label="Tarjeta (€)"
+          labelPlacement="stacked"
+          [(ngModel)]="cardAmount"
+          (ionInput)="fixNegativeAmounts()"
+        ></ion-input>
+      </div>
+
+      <div class="modal-actions">
+        <ion-button color="medium" fill="outline" (click)="closed.emit()">
+          Cancelar
+        </ion-button>
+
+        <ion-button [disabled]="!isPaymentValid()" (click)="confirmPayment()">
+          Confirmar pago
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>

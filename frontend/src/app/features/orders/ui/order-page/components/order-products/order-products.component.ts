@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IonCard, IonCardContent,IonButton } from '@ionic/angular/standalone';
+import { IonButton, IonCard, IonCardContent } from '@ionic/angular/standalone';
 import { Product } from '../../../../../catalog/domain/product.model';
 import { Family } from '../../../../../catalog/domain/family.model';
 
@@ -19,17 +19,23 @@ export class OrderProductsComponent {
 
   selectedFamilyId: string | number | null = null;
 
-  selectFamily(familyId: string | number): void {
+  selectFamily(familyId: string | number | null): void {
     this.selectedFamilyId = familyId;
   }
 
-  getFilteredProducts(): Product[] {
+  getVisibleFamilies(): Family[] {
     if (!this.selectedFamilyId) {
-      return [];
+      return this.families;
     }
 
+    return this.families.filter(
+      (family) => String(family.id) === String(this.selectedFamilyId),
+    );
+  }
+
+  getProductsByFamily(familyId: string | number): Product[] {
     return this.products.filter(
-      (product) => String(product.family_id) === String(this.selectedFamilyId),
+      (product) => String(product.family_id) === String(familyId),
     );
   }
 }

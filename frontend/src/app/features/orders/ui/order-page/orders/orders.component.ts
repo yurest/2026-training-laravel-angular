@@ -12,6 +12,10 @@ import {
 import { Order } from '../../../infrastructure/order.service';
 import { CurrentOrderFacade } from '../../../application/current-order.facade';
 import { Family } from '../../../../catalog/domain/family.model';
+import {
+  PaymentModalComponent,
+  PaymentResult,
+} from '../components/payment-modal/payment-modal.component';
 
 @Component({
   selector: 'app-orders',
@@ -23,6 +27,7 @@ import { Family } from '../../../../catalog/domain/family.model';
     IonContent,
     OrderSummaryComponent,
     OrderProductsComponent,
+    PaymentModalComponent,
   ],
 })
 export class OrdersComponent implements OnInit {
@@ -39,6 +44,8 @@ export class OrdersComponent implements OnInit {
 
   isSentToKitchen = false;
   sentLineIds: string[] = [];
+
+  showPaymentModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -161,29 +168,46 @@ export class OrdersComponent implements OnInit {
     });
   }
 
-  checkout(): void {
-    if (!this.currentOrder || !this.user || this.orderLines.length === 0) {
-      return;
-    }
-
-    this.currentOrderFacade
-      .checkoutOrder(this.currentOrder.id, this.user)
-      .subscribe({
-        next: (response: any) => {
-          console.log('SALE CREATED', response);
-          this.router.navigate(['/tpv/tables']);
-        },
-        error: (error: unknown) => {
-          console.log('ERROR checkout', error);
-        },
-      });
+ checkout(): void {
+  if (!this.currentOrder || !this.user || this.orderLines.length === 0) {
+    return;
   }
-  sendToKitchen(): void {
-    if (this.orderLines.length === 0) {
-      return;
-    }
 
-    this.isSentToKitchen = true;
-    this.sentLineIds = this.orderLines.map((line) => line.id);
+  this.showPaymentModal = true;
+}
+
+confirmPayment(payment: PaymentResult): void {
+  console.log('PAYMENT', payment);
+
+  if (!this.currentOrder || !this.user) {
+    return;
   }
+
+  this.currentOrderFacade
+    .checkoutOrder(this.currentOrder.id, this.user)
+    .subscribe({
+      next: () => {
+        this.showPaymentModal = false;
+        this.router.navigate(['/tpv/tables']);
+      },
+      error: (error: unknown) => {
+        console.log('ERROR checkout', error);
+      },
+    });
+}
+
+getOrderTotal(): number {
+  return this.orderLines.reduce((total, line) => {
+    return total + line.price * line.quantity;
+  }, 0);
+}
+
+sendToKitchen(): void {
+  if (this.orderLines.length === 0) {
+    return;
+  }
+
+  this.isSentToKitchen = true;
+  this.sentLineIds = this.orderLines.map((line) => line.id);
+}
 }

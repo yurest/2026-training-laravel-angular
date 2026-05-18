@@ -14,15 +14,15 @@ class TableSeeder extends Seeder
     public function run(): void
     {
         $restaurantId = DB::table('restaurants')->first()->id;
-        $terraceId = DB::table('zones')->where('name', 'Terrace')->first()->id;
-        $diningRoomId = DB::table('zones')->where('name', 'Dining Room')->first()->id;
-        $barId = DB::table('zones')->where('name', 'Bar')->first()->id;
+        $terraceId = DB::table('zones')->where('name', 'Terraza')->first()->id;
+        $diningRoomId = DB::table('zones')->where('name', 'Salón')->first()->id;
+        $barId = DB::table('zones')->where('name', 'Barra')->first()->id;
         DB::table('tables')->insert([
             [
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $terraceId,
-                'name' => 'Table 1',
+                'name' => 'Mesa 1',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -30,7 +30,7 @@ class TableSeeder extends Seeder
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $terraceId,
-                'name' => 'Table 2',
+                'name' => 'Mesa 2',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -38,7 +38,7 @@ class TableSeeder extends Seeder
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $diningRoomId,
-                'name' => 'Table 3',
+                'name' => 'Mesa 3',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -46,7 +46,7 @@ class TableSeeder extends Seeder
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $diningRoomId,
-                'name' => 'Table 4',
+                'name' => 'Mesa 4',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -54,7 +54,7 @@ class TableSeeder extends Seeder
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $diningRoomId,
-                'name' => 'Table 5',
+                'name' => 'Mesa 5',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -62,7 +62,7 @@ class TableSeeder extends Seeder
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $barId,
-                'name' => 'Table 6',
+                'name' => 'Mesa 6',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -70,7 +70,7 @@ class TableSeeder extends Seeder
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
                 'zone_id' => $barId,
-                'name' => 'Table 7',
+                'name' => 'Mesa 7',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

@@ -19,7 +19,7 @@ class TaxSeeder extends Seeder
             [
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
-                'name' => 'VAT',
+                'name' => '21%',
                 'percentage' => 21,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -27,7 +27,7 @@ class TaxSeeder extends Seeder
             [
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
-                'name' => 'Reduced VAT',
+                'name' => '10%',
                 'percentage' => 10,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -35,7 +35,7 @@ class TaxSeeder extends Seeder
             [
                 'uuid' => Str::uuid()->toString(),
                 'restaurant_id' => $restaurantId,
-                'name' => 'Super Reduced VAT',
+                'name' => '4%',
                 'percentage' => 4,
                 'created_at' => now(),
                 'updated_at' => now(),
