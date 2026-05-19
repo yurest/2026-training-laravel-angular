@@ -20,11 +20,15 @@ export interface CurrentOrderLine {
 })
 export class OrderSummaryComponent {
   @Input() orderLines: CurrentOrderLine[] = [];
+  @Input() isSentToKitchen = false;
+  @Input() sentLineIds: string[] = [];
 
   @Output() increaseLine = new EventEmitter<CurrentOrderLine>();
   @Output() decreaseLine = new EventEmitter<CurrentOrderLine>();
   @Output() deleteLine = new EventEmitter<CurrentOrderLine>();
   @Output() checkout = new EventEmitter<void>();
+  @Output() sendToKitchen = new EventEmitter<void>();
+  @Output() openPrebill = new EventEmitter<void>();
 
   getLineTotal(line: CurrentOrderLine): number {
     return line.price * line.quantity;
@@ -35,5 +39,9 @@ export class OrderSummaryComponent {
       (total, line) => total + this.getLineTotal(line),
       0,
     );
+  }
+  getPendingLinesCount(): number {
+    return this.orderLines.filter((line) => !this.sentLineIds.includes(line.id))
+      .length;
   }
 }

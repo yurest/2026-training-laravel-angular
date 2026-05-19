@@ -9,9 +9,15 @@ import {
   CurrentOrderLine,
   OrderSummaryComponent,
 } from '../components/order-summary/order-summary.component';
-import { extractArrayFromResponse } from '../../../../../shared/helpers/api-response.helper';
 import { Order } from '../../../infrastructure/order.service';
 import { CurrentOrderFacade } from '../../../application/current-order.facade';
+import { Family } from '../../../../catalog/domain/family.model';
+import {
+  PaymentModalComponent,
+  PaymentResult,
+} from '../components/payment-modal/payment-modal.component';
+import { PrebillModalComponent } from '../components/prebill-modal/prebill-modal.component';
+import { TableService } from '../../../../floor/infrastructure/table.service';
 
 @Component({
   selector: 'app-orders',
@@ -23,11 +29,15 @@ import { CurrentOrderFacade } from '../../../application/current-order.facade';
     IonContent,
     OrderSummaryComponent,
     OrderProductsComponent,
+    PaymentModalComponent,
+    PrebillModalComponent,
   ],
 })
 export class OrdersComponent implements OnInit {
   orderId: string | null = null;
   currentOrder: Order | null = null;
+
+  families: Family[] = [];
 
   products: Product[] = [];
   orderLines: CurrentOrderLine[] = [];
@@ -35,11 +45,21 @@ export class OrdersComponent implements OnInit {
   user: any = null;
   isLoading = false;
 
+  isSentToKitchen = false;
+  sentLineIds: string[] = [];
+
+  showPaymentModal = false;
+
+  showPrebillModal = false;
+
+  tableName = '';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private currentOrderFacade: CurrentOrderFacade,
+    private tableService: TableService,
   ) {}
 
   ngOnInit(): void {
@@ -57,15 +77,39 @@ export class OrdersComponent implements OnInit {
     this.isLoading = true;
 
     this.currentOrderFacade.loadCurrentOrderPage(this.orderId).subscribe({
-      next: ({ currentOrder, products, orderLines }) => {
+      next: ({ currentOrder, products, orderLines, families }) => {
         this.currentOrder = currentOrder;
         this.products = products;
         this.orderLines = orderLines;
+        this.families = families;
+        this.loadTableName();
         this.isLoading = false;
       },
       error: (error: unknown) => {
         console.log('ERROR loading order page', error);
         this.isLoading = false;
+      },
+    });
+  }
+
+  loadTableName(): void {
+    if (!this.currentOrder) {
+      return;
+    }
+
+    this.tableService.getTables().subscribe({
+      next: (response: any) => {
+        const tables = response.tables ?? response.data ?? response;
+
+        const table = tables.find(
+          (item: any) =>
+            String(item.id) === String(this.currentOrder?.table_id),
+        );
+
+        this.tableName = table?.name ?? '';
+      },
+      error: (error: unknown) => {
+        console.log('ERROR loading table name', error);
       },
     });
   }
@@ -80,7 +124,7 @@ export class OrdersComponent implements OnInit {
         product,
         this.currentOrder.id,
         this.user,
-        this.orderLines,
+        this.getEditableOrderLines(),
       )
       .subscribe({
         next: (line) => {
@@ -103,6 +147,15 @@ export class OrdersComponent implements OnInit {
           console.log('ERROR adding product to order', error);
         },
       });
+  }
+  getEditableOrderLines(): CurrentOrderLine[] {
+    if (!this.isSentToKitchen) {
+      return this.orderLines;
+    }
+
+    return this.orderLines.filter(
+      (line) => !this.sentLineIds.includes(line.id),
+    );
   }
 
   increaseLine(line: CurrentOrderLine): void {
@@ -151,16 +204,48 @@ export class OrdersComponent implements OnInit {
       return;
     }
 
+    this.showPaymentModal = true;
+  }
+
+  confirmPayment(payment: PaymentResult): void {
+    console.log('PAYMENT', payment);
+
+    if (!this.currentOrder || !this.user) {
+      return;
+    }
+
     this.currentOrderFacade
       .checkoutOrder(this.currentOrder.id, this.user)
       .subscribe({
-        next: (response: any) => {
-          console.log('SALE CREATED', response);
+        next: () => {
+          this.showPaymentModal = false;
           this.router.navigate(['/tpv/tables']);
         },
         error: (error: unknown) => {
           console.log('ERROR checkout', error);
         },
       });
+  }
+
+  getOrderTotal(): number {
+    return this.orderLines.reduce((total, line) => {
+      return total + line.price * line.quantity;
+    }, 0);
+  }
+
+  sendToKitchen(): void {
+    if (this.orderLines.length === 0) {
+      return;
+    }
+
+    this.isSentToKitchen = true;
+    this.sentLineIds = this.orderLines.map((line) => line.id);
+  }
+  openPrebill(): void {
+    if (this.orderLines.length === 0) {
+      return;
+    }
+
+    this.showPrebillModal = true;
   }
 }

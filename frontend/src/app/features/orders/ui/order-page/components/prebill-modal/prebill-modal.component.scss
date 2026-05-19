@@ -1,0 +1,70 @@
+.prebill-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prebill-modal {
+  width: 420px;
+  max-width: 90vw;
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-radius: 18px;
+}
+
+.ticket-header {
+  text-align: center;
+  font-family: monospace;
+}
+
+.ticket-header h2 {
+  margin: 0 0 8px;
+}
+
+.ticket-separator {
+  border-top: 1px dashed var(--app-text);
+  margin: 12px 0;
+}
+
+.ticket-table {
+  display: grid;
+  grid-template-columns: 32px 1fr 60px 70px;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.ticket-table-header {
+  font-weight: 700;
+}
+
+.ticket-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: monospace;
+  margin-bottom: 6px;
+}
+
+.ticket-total-row.total {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.warning {
+  text-align: center;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+

@@ -25,7 +25,7 @@ final class CreateOrderLineLog
         ?int $oldPrice,
         ?int $newPrice,
         ?string $reason = null,
-    ): void {
+    ): void { 
         $restaurantIdVO = RestaurantId::create($restaurantId);
         $orderIdVO = OrderId::create($orderId);
         $userIdVO = UserId::create($userId);

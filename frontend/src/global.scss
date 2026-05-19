@@ -129,3 +129,62 @@ body.dark ion-alert .alert-radio-inner {
 body.dark ion-alert .alert-button {
   color: #7c3aed !important;
 }
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  app-prebill-modal,
+  app-prebill-modal * {
+    visibility: visible !important;
+  }
+
+  app-prebill-modal {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+  }
+
+  .prebill-backdrop {
+    position: static !important;
+    background: white !important;
+  }
+
+  .prebill-modal {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .actions {
+    display: none !important;
+  }
+  .ticket-table {
+  grid-template-columns: 22px 1fr 50px 55px !important;
+  gap: 3px !important;
+  font-size: 12px !important;
+  align-items: start;
+}
+
+.ticket-table-header span:nth-child(3) {
+  font-size: 11px !important;
+}
+
+.ticket-table span:nth-child(2) {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.prebill-modal {
+  font-size: 13px !important;
+}
+
+.ticket-total-row.total {
+  font-size: 24px !important;
+}
+}

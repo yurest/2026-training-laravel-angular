@@ -1,0 +1,55 @@
+<div class="prebill-backdrop">
+  <ion-card class="prebill-modal">
+    <ion-card-content>
+      <div class="ticket-header">
+        <h2>TPV - Yurest</h2>
+        <p>PRECUENTA</p>
+        <p>{{ tableName || "-" }}</p>
+        <p>{{ formatDate(openedAt) }}</p>
+      </div>
+
+      <div class="ticket-separator"></div>
+
+      <div class="ticket-table ticket-table-header">
+        <span>Ud.</span>
+        <span>Artículo</span>
+        <span>P.Unit</span>
+        <span>Total</span>
+      </div>
+
+      <div *ngFor="let line of getGroupedLines()" class="ticket-table">
+        <span>{{ line.quantity }}</span>
+        <span>{{ line.name }}</span>
+        <span>{{ line.price / 100 | number: "1.2-2" }}</span>
+        <span>{{ getLineTotal(line) / 100 | number: "1.2-2" }}</span>
+      </div>
+
+      <div class="ticket-separator"></div>
+
+      <div class="ticket-total-row">
+        <span>Base imponible</span>
+        <strong>{{ getBaseAmount() / 100 | number: "1.2-2" }} €</strong>
+      </div>
+
+      <div class="ticket-total-row">
+        <span>IVA</span>
+        <strong>{{ getTaxAmount() / 100 | number: "1.2-2" }} €</strong>
+      </div>
+
+      <div class="ticket-total-row total">
+        <span>TOTAL</span>
+        <strong>{{ getTotal() / 100 | number: "1.2-2" }} €</strong>
+      </div>
+
+      <p class="warning">PRECUENTA - NO VÁLIDO COMO FACTURA</p>
+
+      <div class="actions">
+        <ion-button color="medium" fill="outline" (click)="closed.emit()">
+          Cerrar
+        </ion-button>
+
+        <ion-button (click)="printPrebill()">Imprimir</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>

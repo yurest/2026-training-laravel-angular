@@ -1,54 +1,17 @@
 .orders-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+  display: block;
 }
 
-/* PRODUCTOS */
-.products-section ion-card {
-  cursor: pointer;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  background: #1e1e1e;
-  color: white;
+app-order-products {
+  display: block;
+  margin-right: 460px;
 }
 
-.products-section ion-card:active {
-  transform: scale(0.98);
-}
-
-/* PANEL DERECHO (PEDIDO) */
-.summary-section {
-  padding: 16px;
-  border-radius: 12px;
-  background: #1e1e1e; /* 🔥 fondo oscuro */
-  color: white;        /* 🔥 texto blanco */
-}
-
-/* LÍNEAS DEL PEDIDO */
-.order-line {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-/* TOTAL */
-.summary-section h3 {
-  margin-top: 10px;
-}
-
-/* BOTÓN */
-ion-button {
-  margin-top: 12px;
-}
-
-.line-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.orders-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+app-order-summary {
+  position: fixed;
+  top: 50px;
+  right: 56px;
+  width: 420px;
+  height: calc(100vh - 120px);
+  z-index: 10;
 }

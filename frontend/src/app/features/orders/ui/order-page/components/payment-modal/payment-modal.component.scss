@@ -1,0 +1,44 @@
+.payment-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-modal {
+  width: 420px;
+  max-width: 90vw;
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-radius: 18px;
+}
+
+.total {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.payment-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.mixed-payment {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}

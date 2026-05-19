@@ -6,15 +6,35 @@
   <div class="orders-layout" *ngIf="!isLoading">
     <app-order-products
       [products]="products"
+      [families]="families"
       (productSelected)="addProduct($event)"
     ></app-order-products>
 
     <app-order-summary
       [orderLines]="orderLines"
+      [isSentToKitchen]="isSentToKitchen"
+      [sentLineIds]="sentLineIds"
       (increaseLine)="increaseLine($event)"
       (decreaseLine)="decreaseLine($event)"
       (deleteLine)="deleteLine($event)"
+      (sendToKitchen)="sendToKitchen()"
       (checkout)="checkout()"
+      (openPrebill)="openPrebill()"
     ></app-order-summary>
   </div>
+
+  <app-payment-modal
+    *ngIf="showPaymentModal"
+    [total]="getOrderTotal()"
+    (closed)="showPaymentModal = false"
+    (paymentConfirmed)="confirmPayment($event)"
+  ></app-payment-modal>
+
+  <app-prebill-modal
+    *ngIf="showPrebillModal"
+    [orderLines]="orderLines"
+    [tableName]="tableName"
+    [openedAt]="currentOrder?.opened_at ?? null"
+    (closed)="showPrebillModal = false"
+  ></app-prebill-modal>
 </ion-content>
