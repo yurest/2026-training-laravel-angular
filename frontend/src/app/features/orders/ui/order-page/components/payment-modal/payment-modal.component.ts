@@ -8,12 +8,19 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 
-export type PaymentMethod = 'cash' | 'card' | 'mixed';
+export type PaymentMethod = 'cash' | 'card';
+
+export interface PaymentLine {
+  method: PaymentMethod;
+  amount: number;
+  receivedAmount?: number;
+  changeAmount?: number;
+}
 
 export interface PaymentResult {
-  method: PaymentMethod;
-  cashAmount: number;
-  cardAmount: number;
+  payments: PaymentLine[];
+  totalPaid: number;
+  changeAmount: number;
 }
 
 @Component({
@@ -38,67 +45,120 @@ export class PaymentModalComponent {
 
   selectedMethod: PaymentMethod = 'cash';
 
-  cashAmount = 0;
+  cashReceived = 0;
   cardAmount = 0;
+
+  payments: PaymentLine[] = [];
+  quickCashAmounts = [5, 10, 20, 50, 100];
 
   selectMethod(method: PaymentMethod): void {
     this.selectedMethod = method;
 
     if (method === 'cash') {
-      this.cashAmount = this.total / 100;
-      this.cardAmount = 0;
+      this.cashReceived = this.getPendingAmount() / 100;
     }
 
     if (method === 'card') {
-      this.cashAmount = 0;
-      this.cardAmount = this.total / 100;
-    }
-
-    if (method === 'mixed') {
-      this.cashAmount = 0;
-      this.cardAmount = 0;
+      this.cardAmount = this.getPendingAmount() / 100;
     }
   }
 
+  setQuickCashAmount(amount: number): void {
+    this.cashReceived = amount;
+  }
+
+  setExactAmount(): void {
+    this.cashReceived = this.getPendingAmount() / 100;
+  }
+
+  addPayment(): void {
+    if (this.selectedMethod === 'cash') {
+      this.addCashPayment();
+      return;
+    }
+
+    this.addCardPayment();
+  }
+
+  addCashPayment(): void {
+    const receivedAmount = Math.round(this.cashReceived * 100);
+
+    if (receivedAmount <= 0) {
+      return;
+    }
+
+    const pendingAmount = this.getPendingAmount();
+    const paymentAmount = Math.min(receivedAmount, pendingAmount);
+    const changeAmount = Math.max(receivedAmount - pendingAmount, 0);
+
+    this.payments.push({
+      method: 'cash',
+      amount: paymentAmount,
+      receivedAmount,
+      changeAmount,
+    });
+
+    this.cashReceived = 0;
+  }
+
+  addCardPayment(): void {
+    const amount = Math.round(this.cardAmount * 100);
+
+    if (amount <= 0 || amount > this.getPendingAmount()) {
+      return;
+    }
+
+    this.payments.push({
+      method: 'card',
+      amount,
+    });
+
+    this.cardAmount = 0;
+  }
+
+  removePayment(index: number): void {
+    this.payments.splice(index, 1);
+  }
+
   confirmPayment(): void {
-    if (!this.isPaymentValid()) {
+    if (!this.isPaymentComplete()) {
       return;
     }
 
     this.paymentConfirmed.emit({
-      method: this.selectedMethod,
-      cashAmount: Math.round(this.cashAmount * 100),
-      cardAmount: Math.round(this.cardAmount * 100),
+      payments: this.payments,
+      totalPaid: this.getPaidAmount(),
+      changeAmount: this.getChangeAmount(),
     });
   }
 
   getTotalInEuros(): number {
     return this.total / 100;
   }
-  getPaymentTotal(): number {
-    return (
-      Math.round(this.cashAmount * 100) + Math.round(this.cardAmount * 100)
-    );
+
+  getPaidAmount(): number {
+    return this.payments.reduce((total, payment) => {
+      return total + payment.amount;
+    }, 0);
   }
 
-  isPaymentValid(): boolean {
-    if (this.selectedMethod === 'cash' || this.selectedMethod === 'card') {
-      return this.total > 0;
-    }
-
-    if (this.selectedMethod === 'mixed') {
-      return (
-        this.cashAmount >= 0 &&
-        this.cardAmount >= 0 &&
-        this.getPaymentTotal() === this.total
-      );
-    }
-
-    return false;
+  getPendingAmount(): number {
+    return Math.max(this.total - this.getPaidAmount(), 0);
   }
+
+  getChangeAmount(): number {
+    return this.payments.reduce((total, payment) => {
+      return total + (payment.changeAmount ?? 0);
+    }, 0);
+  }
+
+  isPaymentComplete(): boolean {
+    return this.total > 0 && this.getPendingAmount() === 0;
+  }
+
   fixNegativeAmounts(): void {
-    if (this.cashAmount < 0) {
-      this.cashAmount = 0;
+    if (this.cashReceived < 0) {
+      this.cashReceived = 0;
     }
 
     if (this.cardAmount < 0) {

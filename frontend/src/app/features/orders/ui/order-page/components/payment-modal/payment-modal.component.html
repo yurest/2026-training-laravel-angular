@@ -3,7 +3,15 @@
     <ion-card-content>
       <h2>Cobrar pedido</h2>
 
-      <p class="total">Total: {{ getTotalInEuros() | number: "1.2-2" }} €</p>
+      <p>Total: {{ getTotalInEuros() | number: "1.2-2" }} €</p>
+      <p>Pagado: {{ getPaidAmount() / 100 | number: "1.2-2" }} €</p>
+      <p>Pendiente: {{ getPendingAmount() / 100 | number: "1.2-2" }} €</p>
+
+      <div *ngIf="getChangeAmount() > 0">
+        <strong
+          >Cambio: {{ getChangeAmount() / 100 | number: "1.2-2" }} €</strong
+        >
+      </div>
 
       <div class="payment-methods">
         <ion-button
@@ -19,41 +27,72 @@
         >
           Tarjeta
         </ion-button>
-
-        <ion-button
-          [fill]="selectedMethod === 'mixed' ? 'solid' : 'outline'"
-          (click)="selectMethod('mixed')"
-        >
-          Mixto
-        </ion-button>
       </div>
 
-      <div *ngIf="selectedMethod === 'cash'">
-        <p>Pago en efectivo</p>
-      </div>
-
-      <div *ngIf="selectedMethod === 'card'">
-        <p>Pago con tarjeta</p>
-      </div>
-
-      <div *ngIf="selectedMethod === 'mixed'" class="mixed-payment">
+      <div *ngIf="selectedMethod === 'cash'" class="payment-form">
         <ion-input
           type="number"
           min="0"
-          label="Efectivo (€)"
+          label="Recibido (€)"
           labelPlacement="stacked"
-          [(ngModel)]="cashAmount"
+          [(ngModel)]="cashReceived"
           (ionInput)="fixNegativeAmounts()"
         ></ion-input>
+      </div>
 
+      <div *ngIf="selectedMethod === 'card'" class="payment-form">
         <ion-input
           type="number"
           min="0"
-          label="Tarjeta (€)"
+          label="Importe tarjeta (€)"
           labelPlacement="stacked"
           [(ngModel)]="cardAmount"
           (ionInput)="fixNegativeAmounts()"
         ></ion-input>
+      </div>
+
+      <ion-button
+        expand="block"
+        [disabled]="getPendingAmount() === 0"
+        (click)="addPayment()"
+      >
+        Añadir pago
+      </ion-button>
+
+      <div class="payments-list" *ngIf="payments.length > 0">
+        <h3>Pagos</h3>
+
+        <div
+          *ngFor="let payment of payments; let i = index"
+          class="payment-line"
+        >
+          <div>
+            <strong>{{
+              payment.method === "cash" ? "Efectivo" : "Tarjeta"
+            }}</strong>
+
+            <div>Pagado: {{ payment.amount / 100 | number: "1.2-2" }} €</div>
+
+            <div *ngIf="payment.method === 'cash'">
+              Recibido:
+              {{ (payment.receivedAmount ?? 0) / 100 | number: "1.2-2" }} €
+            </div>
+
+            <div *ngIf="(payment.changeAmount ?? 0) > 0">
+              Cambio:
+              {{ (payment.changeAmount ?? 0) / 100 | number: "1.2-2" }} €
+            </div>
+          </div>
+
+          <ion-button
+            size="small"
+            color="danger"
+            fill="clear"
+            (click)="removePayment(i)"
+          >
+            Quitar
+          </ion-button>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -61,8 +100,11 @@
           Cancelar
         </ion-button>
 
-        <ion-button [disabled]="!isPaymentValid()" (click)="confirmPayment()">
-          Confirmar pago
+        <ion-button
+          [disabled]="!isPaymentComplete()"
+          (click)="confirmPayment()"
+        >
+          Finalizar venta
         </ion-button>
       </div>
     </ion-card-content>
