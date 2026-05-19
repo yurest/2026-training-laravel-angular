@@ -33,6 +33,8 @@
   <app-prebill-modal
     *ngIf="showPrebillModal"
     [orderLines]="orderLines"
+    [tableName]="tableName"
+    [openedAt]="currentOrder?.opened_at ?? null"
     (closed)="showPrebillModal = false"
   ></app-prebill-modal>
 </ion-content>
