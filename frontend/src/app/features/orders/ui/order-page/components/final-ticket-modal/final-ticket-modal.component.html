@@ -1,0 +1,67 @@
+<div class="final-ticket-backdrop">
+  <ion-card class="final-ticket-modal">
+    <ion-card-content>
+      <div class="ticket-header">
+        <h2>TPV - Yurest</h2>
+        <p>TICKET</p>
+        <p>{{ tableName || '-' }}</p>
+        <p>{{ formatDate(openedAt) }}</p>
+      </div>
+
+      <div class="ticket-separator"></div>
+
+      <div class="ticket-table ticket-table-header">
+        <span>Ud.</span>
+        <span>Artículo</span>
+        <span>P.Unit</span>
+        <span>Total</span>
+      </div>
+
+      <div *ngFor="let line of getGroupedLines()" class="ticket-table">
+        <span>{{ line.quantity }}</span>
+        <span>{{ line.name }}</span>
+        <span>{{ line.price / 100 | number: '1.2-2' }}</span>
+        <span>{{ getLineTotal(line) / 100 | number: '1.2-2' }}</span>
+      </div>
+
+      <div class="ticket-separator"></div>
+
+      <div class="ticket-total-row">
+        <span>Base imponible</span>
+        <strong>{{ getBaseAmount() / 100 | number: '1.2-2' }} €</strong>
+      </div>
+
+      <div class="ticket-total-row">
+        <span>IVA</span>
+        <strong>{{ getTaxAmount() / 100 | number: '1.2-2' }} €</strong>
+      </div>
+
+      <div class="ticket-total-row total">
+        <span>TOTAL</span>
+        <strong>{{ getTotal() / 100 | number: '1.2-2' }} €</strong>
+      </div>
+
+      <div class="ticket-separator"></div>
+
+      <div *ngFor="let payment of payments" class="ticket-total-row">
+        <span>{{ payment.method === 'cash' ? 'Efectivo' : 'Tarjeta' }}</span>
+        <strong>{{ payment.amount / 100 | number: '1.2-2' }} €</strong>
+      </div>
+
+      <div *ngIf="getChangeAmount() > 0" class="ticket-total-row">
+        <span>Cambio</span>
+        <strong>{{ getChangeAmount() / 100 | number: '1.2-2' }} €</strong>
+      </div>
+
+      <p class="warning">GRACIAS POR SU VISITA</p>
+
+      <div class="actions">
+        <ion-button color="medium" fill="outline" (click)="closed.emit()">
+          Cerrar
+        </ion-button>
+
+        <ion-button (click)="printTicket()">Imprimir</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>

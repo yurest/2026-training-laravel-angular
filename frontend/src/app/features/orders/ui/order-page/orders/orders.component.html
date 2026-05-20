@@ -37,4 +37,13 @@
     [openedAt]="currentOrder?.opened_at ?? null"
     (closed)="showPrebillModal = false"
   ></app-prebill-modal>
+
+  <app-final-ticket-modal
+  *ngIf="showFinalTicketModal"
+  [orderLines]="orderLines"
+  [payments]="finalTicketPayments"
+  [tableName]="tableName"
+  [openedAt]="currentOrder?.opened_at ?? null"
+  (closed)="goBackToTables()"
+  ></app-final-ticket-modal>
 </ion-content>

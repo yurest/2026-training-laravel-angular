@@ -36,9 +36,17 @@
   margin-bottom: 18px;
 }
 
+.payment-form {
+  margin-bottom: 16px;
+}
+
+.quick-cash-buttons ion-button {
+  min-width: 72px;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 24px;
 }

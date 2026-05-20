@@ -1,166 +1,303 @@
-# 2026 Training: Laravel + Angular Starter Kit
+# TPV Restaurant Management System
 
-Este repositorio sirve como proyecto base para prácticas de desarrollo backend y frontend, con **Laravel 12** en el backend y **Angular + Ionic** en el frontend.
+Sistema TPV (Terminal Punto de Venta) desarrollado con Laravel + Angular + Ionic para la gestión de restaurantes.
 
+El proyecto incluye una zona de administración (Backoffice) y un entorno de venta táctil orientado a tablets y uso diario en hostelería.
 
 ---
 
 ## Índice
 
-- [Prerrequisitos](#prerrequisitos)
-- [Cómo empezar](#cómo-empezar)
-- [Estructura del proyecto](#estructura-del-proyecto)
-  - [Backend (`backend/`)](#backend-backend)
-  - [Frontend (`frontend/`)](#frontend-frontend)
-  - [DbGate (cliente de base de datos)](#dbgate-cliente-de-base-de-datos)
-- [Objetivos de aprendizaje](#objetivos-de-aprendizaje)
+- [Tecnologías](#tecnologías)
+- [Funcionalidades](#funcionalidades)
+  - [Backoffice](#backoffice)
+  - [TPV](#tpv)
+- [Arquitectura](#arquitectura)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+  - [DbGate](#dbgate)
+- [Instalación](#instalación)
+  - [Prerrequisitos](#prerrequisitos)
+  - [Cómo empezar](#cómo-empezar)
+  - [Migraciones y seeders](#migraciones-y-seeders)
+- [Servicios Docker](#servicios-docker)
+- [Estado actual del proyecto](#estado-actual-del-proyecto)
+- [Futuras mejoras](#futuras-mejoras)
 - [Buenas prácticas](#buenas-prácticas)
 - [Estilo de código](#estilo-de-código)
+- [Proyecto académico](#proyecto-académico)
 
 ---
 
-## Prerrequisitos
+## Tecnologías
 
-Para seguir esta guía necesitas tener instalado en tu máquina:
+### Backend
 
-- **Docker** (y Docker Compose), para levantar la API, el frontend, la base de datos y DbGate. Sin Docker no podrás ejecutar `make start` ni el resto de comandos que dependen de los contenedores.
-- **Make** (GNU Make), para usar los objetivos del `Makefile` (`make start`, `make install`, `make db-migrate`, etc.).
-- **Git**, para clonar el repositorio.
+- Laravel 12
+- PHP 8
+- MySQL
+- Laravel Sanctum
+- Docker
+- Arquitectura DDD + Hexagonal
 
----
+### Frontend
 
-## Cómo empezar
-
-1. **Clonar el repositorio:**
-
-   ```bash
-   git clone <repo-url>
-   cd 2026-training-laravel-angular
-   ```
-
-2. **Configurar entorno backend (solo la primera vez):** copiar el archivo de ejemplo:
-
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
-
-3. **Levantar los contenedores Docker:**
-
-   ```bash
-   make start
-   ```
-
-4. **Instalar dependencias backend, migrar la base de datos y generar clave de aplicación:**
-
-   ```bash
-   make install   # composer install + migraciones (requiere que los contenedores estén levantados: make start)
-   docker compose run --rm api php artisan key:generate
-   ```
-
-   Si el contenedor `api` no quedó en marcha, vuelve a levantar: `make start`.
-
-5. **Frontend (Angular):** El repositorio ya incluye el proyecto en `frontend/`. Con `make start` el contenedor levanta la app automáticamente. Para desarrollo en primer plano con live reload: `make serve-frontend`.
-
-Tras seguir estos pasos tendrás:
-
-- **API (Laravel):** [http://localhost:8000](http://localhost:8000)
-- **Frontend (Angular):** [http://localhost:4200](http://localhost:4200)
-- **DbGate (MySQL):** [http://localhost:9051](http://localhost:9051) (conexión **Training MySQL** preconfigurada)
+- Angular 20
+- Ionic
+- TypeScript
+- Standalone Components
 
 ---
 
-## Estructura del proyecto
+## Funcionalidades
 
-### Backend (`backend/`)
+### Backoffice
 
-El backend sigue un enfoque **DDD + Hexagonal**, con cada dominio encapsulado bajo su propio namespace.  
-El ejemplo que se muestra a continuación es para el dominio `User`.
+- Login mediante autenticación por token
+- CRUD de productos
+- CRUD de familias
+- CRUD de impuestos
+- CRUD de zonas
+- CRUD de mesas
+- Activación y desactivación de productos
+- Gestión de imágenes de productos
+
+### TPV
+
+- Visualización de mesas por zonas
+- Control visual de mesas libres y ocupadas
+- Apertura de pedidos
+- Gestión de productos agrupados por familias
+- Añadir, eliminar y modificar líneas de pedido
+- Envío de productos a cocina
+- Control de líneas enviadas
+- Precuenta imprimible
+- Cobro de pedidos
+- Pago en efectivo
+- Pago con tarjeta
+- Pago mixto
+- Cálculo automático de cambio
+- Ticket final imprimible
+- Liberación automática de mesas al cerrar venta
+
+---
+
+## Arquitectura
+
+### Backend
+
+El backend sigue un enfoque **DDD + Hexagonal**, con cada dominio encapsulado bajo su propio namespace.
 
 ```text
 App/
-└── User/
+└── Product/
     ├── Domain/
     │   ├── Entity/
-    │   ├── ValueObject/
-    │   └── Interfaces/
+    │   ├── Interfaces/
+    │   └── ValueObject/
     ├── Application/
-    │   └── CreateUser.php
     └── Infrastructure/
-        ├── Persistence/
-        └── Entrypoint/Http/
 ```
 
 | Carpeta | Descripción |
-|---------|-------------|
-| **Domain/** | Lógica de negocio pura, entidades y value objects. |
-| **Interfaces/** | Contratos del dominio (por ejemplo `UserRepositoryInterface`). |
-| **Application/** | Casos de uso y handlers. |
-| **Infrastructure/** | Adaptadores que conectan el dominio con el mundo externo: persistencia, HTTP, colas. |
-| **Entrypoint/Http/** | Controladores o endpoints HTTP. |
-
-### Frontend (`frontend/`)
-
-Proyecto **Angular + Ionic** (standalone components). Cliente que consume la API del backend.
-
-```text
-frontend/src/app/
-├── components/        # Componentes reutilizables
-├── pages/             # Páginas de la aplicación
-│   └── core/          # Páginas principales
-│       └── home/
-├── pipes/             # Pipes personalizados
-├── providers/         # Interceptores y providers
-│   └── interceptor.ts
-└── services/          # Servicios (llamadas a la API, lógica compartida)
-```
-
-El interceptor HTTP (`providers/interceptor.ts`) prefija automáticamente la URL base de la API y añade los headers por defecto (`Accept`, `Accept-Language`).
-
-### DbGate (cliente de base de datos)
-
-Interfaz web para explorar y consultar la base MySQL. La conexión **Training MySQL** queda preconfigurada y apunta a la base `training` del servicio `db`.
+|---|---|
+| Domain | Lógica de negocio pura |
+| Interfaces | Contratos del dominio |
+| Application | Casos de uso y handlers |
+| Infrastructure | Persistencia y entrypoints HTTP |
 
 ---
 
-## Objetivos de aprendizaje
+### Frontend
 
-- Comprender y aplicar **DDD**: separar Domain, Application e Infrastructure.
-- Aprender a usar **repositorios e interfaces** para desacoplar dominio de la persistencia.
-- Practicar la implementación de **casos de uso y handlers**.
-- Exponer la lógica de negocio a través de **HTTP entrypoints** y mantener el dominio independiente del framework.
-- Familiarizarse con **Docker**, **Composer** y **Node** en un flujo de desarrollo profesional.
+Proyecto Angular + Ionic basado en standalone components y organización por features.
+
+```text
+frontend/src/app/
+├── core/
+├── shared/
+├── features/
+│   ├── identity/
+│   ├── floor/
+│   ├── orders/
+│   ├── catalog/
+│   ├── settings/
+│   └── sales/
+```
+
+| Carpeta | Descripción |
+|---|---|
+| core | Configuración global y layouts |
+| shared | Componentes reutilizables |
+| features | Funcionalidad separada por dominio |
+
+El interceptor HTTP añade automáticamente:
+- URL base de la API
+- Header `Accept`
+- Header `Accept-Language`
+- Token Bearer de autenticación
+
+---
+
+### DbGate
+
+Interfaz web para explorar y consultar la base MySQL.
+
+La conexión **Training MySQL** queda preconfigurada y apunta a la base `training` del servicio `db`.
+
+---
+
+## Instalación
+
+### Prerrequisitos
+
+Es necesario tener instalado:
+
+- Docker
+- Docker Compose
+- Make
+- Git
+
+---
+
+### Cómo empezar
+
+#### 1. Clonar el repositorio
+
+```bash
+git clone <repo-url>
+cd 2026-training-laravel-angular
+```
+
+#### 2. Configurar entorno backend
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+#### 3. Levantar contenedores Docker
+
+```bash
+make start
+```
+
+#### 4. Instalar dependencias backend
+
+```bash
+make install
+docker compose run --rm api php artisan key:generate
+```
+
+Si el contenedor `api` no quedó iniciado:
+
+```bash
+make start
+```
+
+#### 5. Frontend
+
+El frontend se levanta automáticamente con:
+
+```bash
+make start
+```
+
+Para desarrollo con live reload:
+
+```bash
+make serve-frontend
+```
+
+---
+
+### Migraciones y seeders
+
+```bash
+docker compose exec api php artisan migrate:fresh --seed
+```
+
+---
+
+## Servicios Docker
+
+| Servicio | URL |
+|---|---|
+| API Laravel | http://localhost:8000 |
+| Frontend Angular | http://localhost:4200 |
+| DbGate | http://localhost:9051 |
+
+---
+
+## Estado actual del proyecto
+
+Actualmente el proyecto incluye:
+
+- Backend funcional con arquitectura DDD
+- CRUDs principales implementados
+- Front de venta funcional
+- Sistema de pedidos
+- Tickets y precuentas
+- Cobro de ventas
+- Integración completa frontend/backend
+
+---
+
+## Futuras mejoras
+
+- Informes de ventas
+- Integración con impresoras térmicas
+- Autenticación por PIN
+- División de cuentas
+- Cierre de caja
+- Traslado de mesas
+- WebSockets en tiempo real
 
 ---
 
 ## Buenas prácticas
 
-- Programar contra **interfaces**, no implementaciones concretas.
-- Evitar lógica de negocio en Controllers o Eloquent Models.
-- Mantener los dominios **autocontenidos**, siguiendo la convención: `App/<Dominio>/{Domain, Application, Infrastructure}`.
-- Escribir **tests** que dependan de la interfaz del dominio, no de la implementación concreta.
+- Programar contra interfaces
+- Evitar lógica de negocio en Controllers o Models
+- Mantener dominios autocontenidos
+- Escribir tests desacoplados de infraestructura
 
 ---
 
 ## Estilo de código
 
-Para mantener un código consistente entre todos los colaboradores (humanos y IAs), se siguen estas pautas:
+### Backend
 
-- **Backend (PHP):** PSR-12 y las recomendaciones de [Symfony Coding Standards](https://symfony.com/doc/current/contributing/code/standards.html).
-- **Frontend (Angular):** [Angular Style Guide](https://angular.dev/style-guide).
-- **Convenciones básicas**:
-  - Una **clase por archivo**.
-  - `camelCase` para variables y métodos, `PascalCase` para clases, `SCREAMING_SNAKE_CASE` para constantes.
-  - Propiedades antes de los métodos; métodos públicos antes que protegidos y privados.
-  - Imports (`use`) para todas las clases que no estén en el espacio de nombres actual.
-- **Estructura y formato**:
-  - Siempre usar paréntesis al instanciar clases (`new Foo()`).
-  - En arrays multilínea, dejar **coma final** en cada elemento.
-  - Añadir una línea en blanco antes de un `return` cuando mejore la legibilidad.
-  - Evitar lógica compleja en una sola línea; preferir bloques claros con llaves siempre presentes.
+- PSR-12
+- Symfony Coding Standards
 
-Antes de subir cambios, se recomienda:
+### Frontend
+
+- Angular Style Guide
+
+### Convenciones
+
+- Una clase por archivo
+- camelCase para variables y métodos
+- PascalCase para clases
+- Imports explícitos
+- Arrays multilínea con coma final
+- Uso de llaves en bloques condicionales
+
+---
+
+Antes de subir cambios:
 
 ```bash
-make test   # tests del backend (PHPUnit)
-make lint   # formatear código PHP (Laravel Pint)
+make test
+make lint
 ```
+
+---
+
+## Proyecto de prácticas
+
+Proyecto desarrollado durante las prácticas de Desarrollo de Aplicaciones Multiplataforma (DAM), utilizando Laravel + Angular + Ionic para la construcción de un sistema TPV orientado a restauración.
+
+El objetivo del proyecto es aplicar arquitecturas y flujos de trabajo utilizados en entornos profesionales.
+
+Actualmente el proyecto continúa en desarrollo y ampliación de funcionalidades.

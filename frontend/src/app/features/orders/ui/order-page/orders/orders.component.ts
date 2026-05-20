@@ -13,11 +13,13 @@ import { Order } from '../../../infrastructure/order.service';
 import { CurrentOrderFacade } from '../../../application/current-order.facade';
 import { Family } from '../../../../catalog/domain/family.model';
 import {
+  PaymentLine,
   PaymentModalComponent,
   PaymentResult,
 } from '../components/payment-modal/payment-modal.component';
 import { PrebillModalComponent } from '../components/prebill-modal/prebill-modal.component';
 import { TableService } from '../../../../floor/infrastructure/table.service';
+import { FinalTicketModalComponent } from '../components/final-ticket-modal/final-ticket-modal.component';
 
 @Component({
   selector: 'app-orders',
@@ -31,6 +33,7 @@ import { TableService } from '../../../../floor/infrastructure/table.service';
     OrderProductsComponent,
     PaymentModalComponent,
     PrebillModalComponent,
+    FinalTicketModalComponent,
   ],
 })
 export class OrdersComponent implements OnInit {
@@ -53,6 +56,9 @@ export class OrdersComponent implements OnInit {
   showPrebillModal = false;
 
   tableName = '';
+
+  showFinalTicketModal = false;
+  finalTicketPayments: PaymentLine[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -218,8 +224,9 @@ export class OrdersComponent implements OnInit {
       .checkoutOrder(this.currentOrder.id, this.user)
       .subscribe({
         next: () => {
+          this.finalTicketPayments = payment.payments;
           this.showPaymentModal = false;
-          this.router.navigate(['/tpv/tables']);
+          this.showFinalTicketModal = true;
         },
         error: (error: unknown) => {
           console.log('ERROR checkout', error);
@@ -247,5 +254,9 @@ export class OrdersComponent implements OnInit {
     }
 
     this.showPrebillModal = true;
+  }
+  goBackToTables(): void {
+    this.showFinalTicketModal = false;
+    this.router.navigate(['/tpv/tables']);
   }
 }

@@ -38,6 +38,21 @@
           [(ngModel)]="cashReceived"
           (ionInput)="fixNegativeAmounts()"
         ></ion-input>
+
+        <div class="quick-cash-buttons">
+          <ion-button size="small" fill="outline" (click)="setExactAmount()">
+            Exacto
+          </ion-button>
+
+          <ion-button
+            *ngFor="let amount of quickCashAmounts"
+            size="small"
+            fill="outline"
+            (click)="setQuickCashAmount(amount)"
+          >
+            {{ amount }} €
+          </ion-button>
+        </div>
       </div>
 
       <div *ngIf="selectedMethod === 'card'" class="payment-form">
@@ -100,12 +115,12 @@
           Cancelar
         </ion-button>
 
-        <ion-button
-          [disabled]="!isPaymentComplete()"
-          (click)="confirmPayment()"
-        >
-          Finalizar venta
-        </ion-button>
+     <ion-button
+  *ngIf="isPaymentComplete()"
+  (click)="confirmPayment()"
+>
+  Finalizar venta
+</ion-button>
       </div>
     </ion-card-content>
   </ion-card>
