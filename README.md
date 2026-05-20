@@ -2,12 +2,27 @@
 
 Sistema TPV (Terminal Punto de Venta) desarrollado con Laravel + Angular + Ionic para la gestión de restaurantes.
 
-El proyecto incluye una zona de administración (Backoffice) y un entorno de venta táctil orientado a tablets y uso diario en hostelería.
+Autor: Rodrigo Tera García  
+GitHub: RTerabyte 
+Periodo de prácticas: Marzo - Junio 2026  
+Actualizado a fecha de: 20/05/2026
+
+El proyecto simula un entorno real de restauración, incluyendo tanto la parte de administración como el flujo completo de venta utilizado diariamente en un establecimiento hostelero.
+
+La aplicación se divide en dos áreas principales:
+
+- **Backoffice**: gestión de productos, familias, impuestos, zonas, mesas y configuración general del sistema.
+- **TPV**: entorno táctil orientado a tablets para el personal del local, permitiendo gestionar mesas, pedidos, pagos, tickets y cierre de ventas.
+
+El sistema ha sido desarrollado aplicando arquitecturas y patrones utilizados en entornos profesionales, incluyendo DDD (Domain-Driven Design), arquitectura hexagonal, separación frontend/backend y organización modular basada en features.
+
+Además de los hitos obligatorios del proyecto, se han implementado mejoras funcionales orientadas a acercar el comportamiento del TPV a un entorno real, como pagos mixtos, cálculo de cambio, tickets imprimibles y mejoras en el flujo de cobro.
 
 ---
 
 ## Índice
 
+- [Estado del proyecto](#estado-del-proyecto)
 - [Tecnologías](#tecnologías)
 - [Funcionalidades](#funcionalidades)
   - [Backoffice](#backoffice)
@@ -25,7 +40,19 @@ El proyecto incluye una zona de administración (Backoffice) y un entorno de ven
 - [Futuras mejoras](#futuras-mejoras)
 - [Buenas prácticas](#buenas-prácticas)
 - [Estilo de código](#estilo-de-código)
-- [Proyecto académico](#proyecto-académico)
+- [Proyecto de prácticas](#proyecto-de-prácticas)
+
+---
+## Estado del proyecto
+
+| Hito | Estado |
+|---|---|
+| Hito 1 — Modelo de datos | COMPLETADO |
+| Hito 2 — API REST Backoffice | COMPLETADO |
+| Hito 3 — Interfaz Backoffice | COMPLETADO |
+| Hito 4 — Front de venta TPV | COMPLETADO |
+| Hito 5 — Informes | EN PROCESO |
+| Hito 6 — Mejoras funcionales | EN PROCESO |
 
 ---
 
@@ -238,6 +265,7 @@ Actualmente el proyecto incluye:
 - Sistema de pedidos
 - Tickets y precuentas
 - Cobro de ventas
+- Sistema de pagos múltiples y cálculo automático de cambio
 - Integración completa frontend/backend
 
 ---
